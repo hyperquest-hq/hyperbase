@@ -1,5 +1,5 @@
-from graphbrain.parsers.alpha import Alpha
-from graphbrain.parsers.alpha_beta import AlphaBeta
+from hyperbase.parsers.alpha import Alpha
+from hyperbase.parsers.alpha_beta import AlphaBeta
 
 
 # Language code must be specified here

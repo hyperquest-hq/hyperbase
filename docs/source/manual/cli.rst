@@ -2,19 +2,19 @@
 Command-line interface
 ======================
 
-Graphbrain provides a command-line interface that can be used to execute a variety of tasks. You can access it either by using python to run the graphbrain root module as a script::
+hyperbase provides a command-line interface that can be used to execute a variety of tasks. You can access it either by using python to run the hyperbase root module as a script::
 
-   python -m graphbrain ...
+   python -m hyperbase ...
 
 or using the provided command::
 
-   graphbrain ...
+   hyperbase ...
 
 All cases below work with both.
 
 Here's an overview of the interface::
 
-   usage: graphbrain [-h] [--col COL] [--corefs] [--hg HG]
+   usage: hyperbase [-h] [--col COL] [--corefs] [--hg HG]
                      [--indir INDIR] [--infile INFILE] [--lang LANG]
                      [--outfile OUTFILE] [--parser PARSER]
                      [--sequence SEQUENCE] [--url URL]
@@ -46,7 +46,7 @@ create
 
 Creates an empty hypergraph database::
 
-   graphbrain --hg <hypergraph_database> create
+   hyperbase --hg <hypergraph_database> create
 
 
 export
@@ -54,14 +54,14 @@ export
 
 Exports a hypergraph database to a JSON file::
 
-   graphbrain --hg <hypergraph_database> --outfile <json_file> export
+   hyperbase --hg <hypergraph_database> --outfile <json_file> export
 
 import
 ------
 
 Imports a hypergraph database from a JSON file::
 
-   graphbrain --hg <hypergraph_database> --infile <json_file> import
+   hyperbase --hg <hypergraph_database> --infile <json_file> import
 
 txt
 ---
@@ -94,14 +94,14 @@ Or, if we consider modifier-defined concepts such as ``(black/Ma cat/Cc.s)``::
 names
 -----
 
-Performs `coreference resolution <https://graphbrain.net/reference/special-relations.html#coreferences>`_ for compound proper name concepts, for example detecting that "Barack Obama" and "Obama" refer to the same person but "Michelle Obama" refers to someone else).
+Performs `coreference resolution <https://hyperbase.net/reference/special-relations.html#coreferences>`_ for compound proper name concepts, for example detecting that "Barack Obama" and "Obama" refer to the same person but "Michelle Obama" refers to someone else).
 
 onto
 ----
 
 **Depends on**: taxonomy
 
-Performs `coreference resolution <https://graphbrain.net/reference/special-relations.html#coreferences>`_ based on probabilistic reasoning over taxonomies. For example, detecting that "United States" and "United States of America" refer to the same entity.
+Performs `coreference resolution <https://hyperbase.net/reference/special-relations.html#coreferences>`_ based on probabilistic reasoning over taxonomies. For example, detecting that "United States" and "United States of America" refer to the same entity.
 
 actors
 ------

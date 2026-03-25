@@ -1,8 +1,8 @@
 import json
 
-from graphbrain import hedge
-from graphbrain.cli import wrapper
-from graphbrain.parsers import create_parser
+from hyperbase import hedge
+from hyperbase.cli import wrapper
+from hyperbase.parsers import create_parser
 
 
 def generate_alpha_training_data(args):

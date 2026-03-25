@@ -1,7 +1,7 @@
 import random
 
-from graphbrain.cli import wrapper
-from graphbrain.parsers import create_parser
+from hyperbase.cli import wrapper
+from hyperbase.parsers import create_parser
 
 
 def extract_sentences(args):

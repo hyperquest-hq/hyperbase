@@ -1,6 +1,6 @@
-import graphbrain.constants as const
-from graphbrain import hedge, hgraph
-from graphbrain import hopen
+import hyperbase.constants as const
+from hyperbase import hedge, hgraph
+from hyperbase import hopen
 
 
 class Hypergraph:
@@ -18,93 +18,93 @@ class Hypergraph:
 
     def test_destroy(self):
         self.hg.destroy()
-        self.hg.add(hedge('(src graphbrain/1 (size graphbrain/1 7))'))
-        self.assertTrue(self.hg.exists(hedge('(src graphbrain/1 (size graphbrain/1 7))')))
+        self.hg.add(hedge('(src hyperbase/1 (size hyperbase/1 7))'))
+        self.assertTrue(self.hg.exists(hedge('(src hyperbase/1 (size hyperbase/1 7))')))
         self.hg.destroy()
-        self.assertFalse(self.hg.exists(hedge('(src graphbrain/1 (size graphbrain/1 7))')))
+        self.assertFalse(self.hg.exists(hedge('(src hyperbase/1 (size hyperbase/1 7))')))
 
     def test_all(self):
         self.hg.destroy()
-        self.hg.add('(size graphbrain/1 7)')
-        self.hg.add('(is graphbrain/1 great/1)')
-        self.hg.add('(src mary/1 (is graphbrain/1 great/1))')
+        self.hg.add('(size hyperbase/1 7)')
+        self.hg.add('(is hyperbase/1 great/1)')
+        self.hg.add('(src mary/1 (is hyperbase/1 great/1))')
 
         labels = set([edge.to_str() for edge in self.hg.all()])
         self.assertEqual(labels,
-                         {'size', 'graphbrain/1', '7', 'is', 'great/1', 'src', 'mary/1', '(size graphbrain/1 7)',
-                          '(is graphbrain/1 great/1)', '(src mary/1 (is graphbrain/1 great/1))'})
+                         {'size', 'hyperbase/1', '7', 'is', 'great/1', 'src', 'mary/1', '(size hyperbase/1 7)',
+                          '(is hyperbase/1 great/1)', '(src mary/1 (is hyperbase/1 great/1))'})
         self.hg.destroy()
         labels = set(self.hg.all())
         self.assertEqual(labels, set())
 
     def test_atoms(self):
         self.hg.destroy()
-        self.hg.add('(size graphbrain/1 7)')
-        self.hg.add('(is graphbrain/1 great/1)')
-        self.hg.add('(src mary/1 (is graphbrain/1 great/1))')
+        self.hg.add('(size hyperbase/1 7)')
+        self.hg.add('(is hyperbase/1 great/1)')
+        self.hg.add('(src mary/1 (is hyperbase/1 great/1))')
 
         labels = set([edge.to_str() for edge in self.hg.all_atoms()])
         self.assertEqual(labels,
-                         {'size', 'graphbrain/1', '7', 'is', 'great/1', 'src', 'mary/1'})
+                         {'size', 'hyperbase/1', '7', 'is', 'great/1', 'src', 'mary/1'})
         self.hg.destroy()
         labels = set(self.hg.all())
         self.assertEqual(labels, set())
 
     def test_edges(self):
         self.hg.destroy()
-        self.hg.add('(size graphbrain/1 7)')
-        self.hg.add('(is graphbrain/1 great/1)')
-        self.hg.add('(src mary/1 (is graphbrain/1 great/1))')
+        self.hg.add('(size hyperbase/1 7)')
+        self.hg.add('(is hyperbase/1 great/1)')
+        self.hg.add('(src mary/1 (is hyperbase/1 great/1))')
 
         labels = set([edge.to_str() for edge in self.hg.all_non_atoms()])
         self.assertEqual(labels,
-                         {'(size graphbrain/1 7)', '(is graphbrain/1 great/1)', '(src mary/1 (is graphbrain/1 great/1))'})
+                         {'(size hyperbase/1 7)', '(is hyperbase/1 great/1)', '(src mary/1 (is hyperbase/1 great/1))'})
         self.hg.destroy()
         labels = set(self.hg.all())
         self.assertEqual(labels, set())
 
     def test_all_attributes(self):
         self.hg.destroy()
-        self.hg.add('(size graphbrain/1 7)')
-        self.hg.add('(is graphbrain/1 great/1)')
-        self.hg.add('(src mary/1 (is graphbrain/1 great/1))')
+        self.hg.add('(size hyperbase/1 7)')
+        self.hg.add('(is hyperbase/1 great/1)')
+        self.hg.add('(src mary/1 (is hyperbase/1 great/1))')
 
         labels = set(['%s %s' % (t[0].to_str(), t[1]['d'])
                       for t in self.hg.all_attributes()])
-        self.assertEqual(labels, {'size 1', 'graphbrain/1 2', '7 1', 'is 1', 'great/1 1', 'src 1', 'mary/1 1',
-                                  '(size graphbrain/1 7) 0', '(is graphbrain/1 great/1) 1',
-                                  '(src mary/1 (is graphbrain/1 great/1)) 0'})
+        self.assertEqual(labels, {'size 1', 'hyperbase/1 2', '7 1', 'is 1', 'great/1 1', 'src 1', 'mary/1 1',
+                                  '(size hyperbase/1 7) 0', '(is hyperbase/1 great/1) 1',
+                                  '(src mary/1 (is hyperbase/1 great/1)) 0'})
         self.hg.destroy()
         labels = set(self.hg.all_attributes())
         self.assertEqual(labels, set())
 
     def test_get_attributes(self):
         self.hg.destroy()
-        edge = hedge('(is/Pd graphbrain/Cp great/C)')
+        edge = hedge('(is/Pd hyperbase/Cp great/C)')
         self.hg.add(edge)
         self.assertEqual(self.hg.get_attributes(edge), {'p': 1, 'd': 0, 'dd': 0})
         
     # exists, add, remove
     def test_ops1(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
-        self.assertTrue(self.hg.exists(hedge('(is/Pd graphbrain/Cp great/C)')))
-        self.hg.remove(hedge('(is/Pd graphbrain/Cp great/C)'))
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
+        self.assertTrue(self.hg.exists(hedge('(is/Pd hyperbase/Cp great/C)')))
+        self.hg.remove(hedge('(is/Pd hyperbase/Cp great/C)'))
         self.assertFalse(
-            self.hg.exists(hedge('(is/Pd graphbrain/Cp great/C)')))
+            self.hg.exists(hedge('(is/Pd hyperbase/Cp great/C)')))
 
     # exists, add, remove
     def test_ops_2(self):
         self.hg.destroy()
-        self.hg.add('(src graphbrain/1 (size graphbrain/1 7))')
-        self.assertTrue(self.hg.exists(hedge('(src graphbrain/1 (size graphbrain/1 7))')))
-        self.hg.remove(hedge('(src graphbrain/1 (size graphbrain/1 7))'))
-        self.assertFalse(self.hg.exists(hedge('(src graphbrain/1 (size graphbrain/1 7))')))
+        self.hg.add('(src hyperbase/1 (size hyperbase/1 7))')
+        self.assertTrue(self.hg.exists(hedge('(src hyperbase/1 (size hyperbase/1 7))')))
+        self.hg.remove(hedge('(src hyperbase/1 (size hyperbase/1 7))'))
+        self.assertFalse(self.hg.exists(hedge('(src hyperbase/1 (size hyperbase/1 7))')))
 
     # test add with count=True
     def test_add_count(self):
         self.hg.destroy()
-        edge = hedge('(is/Pd graphbrain/Cp great/C)')
+        edge = hedge('(is/Pd hyperbase/Cp great/C)')
         self.hg.add(edge, count=True)
         self.assertEqual(self.hg.get_int_attribute(edge, 'count'), 1)
         self.hg.add(edge, count=True)
@@ -112,64 +112,64 @@ class Hypergraph:
 
     def test_search(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
-        self.assertEqual(list(self.hg.search('(* graphbrain/Cp *)')), [hedge('(is/Pd graphbrain/Cp great/C)')])
-        self.assertEqual(list(self.hg.search('(is/Pd graphbrain/Cp *)')), [hedge('(is/Pd graphbrain/Cp great/C)')])
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
+        self.assertEqual(list(self.hg.search('(* hyperbase/Cp *)')), [hedge('(is/Pd hyperbase/Cp great/C)')])
+        self.assertEqual(list(self.hg.search('(is/Pd hyperbase/Cp *)')), [hedge('(is/Pd hyperbase/Cp great/C)')])
         self.assertEqual(list(self.hg.search('(x * *)')), [])
-        self.assertEqual(list(self.hg.search('(says/Pd * (is/Pd graphbrain/Cp great/C))')),
-                         [hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')])
+        self.assertEqual(list(self.hg.search('(says/Pd * (is/Pd hyperbase/Cp great/C))')),
+                         [hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')])
         self.assertEqual(list(self.hg.search('(says/Pd * (is/Pd * *))')),
-                         [hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')])
+                         [hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')])
 
     def test_search_open_ended(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
-        self.assertEqual(list(self.hg.search('(* graphbrain/Cp * ...)')), [hedge('(is/Pd graphbrain/Cp great/C)')])
-        self.assertEqual(list(self.hg.search('(is/Pd graphbrain/Cp * ...)')), [hedge('(is/Pd graphbrain/Cp great/C)')])
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
+        self.assertEqual(list(self.hg.search('(* hyperbase/Cp * ...)')), [hedge('(is/Pd hyperbase/Cp great/C)')])
+        self.assertEqual(list(self.hg.search('(is/Pd hyperbase/Cp * ...)')), [hedge('(is/Pd hyperbase/Cp great/C)')])
         self.assertEqual(list(self.hg.search('(x * * ...)')), [])
 
-        self.assertEqual(list(self.hg.search('(says/Pd * (is/Pd graphbrain/Cp great/C) ...)')),
-                         [hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))'),
-                          hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')])
+        self.assertEqual(list(self.hg.search('(says/Pd * (is/Pd hyperbase/Cp great/C) ...)')),
+                         [hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))'),
+                          hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')])
 
     def test_search_star(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
         self.assertEqual(set(self.hg.search('*')),
-                         {hedge('(is/Pd graphbrain/Cp great/C)'), hedge('(says/Pd mary/Cp)'),
-                          hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))'),
-                          hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)'), hedge('extra/C'),
-                          hedge('graphbrain/Cp'), hedge('great/C'), hedge('is/Pd'), hedge('mary/Cp'), hedge('says/Pd')})
+                         {hedge('(is/Pd hyperbase/Cp great/C)'), hedge('(says/Pd mary/Cp)'),
+                          hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))'),
+                          hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)'), hedge('extra/C'),
+                          hedge('hyperbase/Cp'), hedge('great/C'), hedge('is/Pd'), hedge('mary/Cp'), hedge('says/Pd')})
 
     def test_search_at(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
         self.assertEqual(set(self.hg.search('.')),
-                         {hedge('extra/C'), hedge('graphbrain/Cp'), hedge('great/C'), hedge('is/Pd'), hedge('mary/Cp'),
+                         {hedge('extra/C'), hedge('hyperbase/Cp'), hedge('great/C'), hedge('is/Pd'), hedge('mary/Cp'),
                           hedge('says/Pd')})
 
     def test_search_amp(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
         self.assertEqual(set(self.hg.search('(*)')),
-                         {hedge('(is/Pd graphbrain/Cp great/C)'), hedge('(says/Pd mary/Cp)'),
-                          hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))'),
-                          hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')})
+                         {hedge('(is/Pd hyperbase/Cp great/C)'), hedge('(says/Pd mary/Cp)'),
+                          hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))'),
+                          hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')})
 
     def test_search_non_atomic_pred(self):
         self.hg.destroy()
@@ -229,50 +229,50 @@ class Hypergraph:
 
     def test_count(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
-        self.assertEqual(self.hg.count('(* graphbrain/Cp *)'), 1)
-        self.assertEqual(self.hg.count('(is/Pd graphbrain/Cp *)'), 1)
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
+        self.assertEqual(self.hg.count('(* hyperbase/Cp *)'), 1)
+        self.assertEqual(self.hg.count('(is/Pd hyperbase/Cp *)'), 1)
         self.assertEqual(self.hg.count('(x * *)'), 0)
-        self.assertEqual(self.hg.count('(says/Pd * (is/Pd graphbrain/Cp great/C))'), 1)
+        self.assertEqual(self.hg.count('(says/Pd * (is/Pd hyperbase/Cp great/C))'), 1)
         self.assertEqual(self.hg.count('(says/Pd * (is/Pd * *))'), 1)
 
     def test_count_open_ended(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
-        self.assertEqual(self.hg.count('(* graphbrain/Cp * ...)'), 1)
-        self.assertEqual(self.hg.count('(is/Pd graphbrain/Cp * ...)'), 1)
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
+        self.assertEqual(self.hg.count('(* hyperbase/Cp * ...)'), 1)
+        self.assertEqual(self.hg.count('(is/Pd hyperbase/Cp * ...)'), 1)
         self.assertEqual(self.hg.count('(x * * ...)'), 0)
         self.assertEqual(
-            self.hg.count('(says/Pd * (is/Pd graphbrain/Cp great/C) ...)'), 2)
+            self.hg.count('(says/Pd * (is/Pd hyperbase/Cp great/C) ...)'), 2)
 
     def test_count_star(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
         self.assertEqual(self.hg.count('*'), 10)
 
     def test_count_at(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
         self.assertEqual(self.hg.count('.'), 6)
 
     def test_count_amp(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
         self.assertEqual(self.hg.count('(*)'), 4)
 
     def test_count_non_atomic_pred(self):
@@ -428,21 +428,21 @@ class Hypergraph:
 
     def test_star(self):
         self.hg.destroy()
-        edge1 = hedge('(is graphbrain/1 great/1)')
+        edge1 = hedge('(is hyperbase/1 great/1)')
         self.hg.add(edge1)
-        self.assertEqual(list(self.hg.star(hedge('graphbrain/1'))), [edge1])
-        self.assertEqual(list(self.hg.star(hedge('graphbrain/2'))), [])
+        self.assertEqual(list(self.hg.star(hedge('hyperbase/1'))), [edge1])
+        self.assertEqual(list(self.hg.star(hedge('hyperbase/2'))), [])
         self.hg.remove(edge1)
-        edge2 = hedge('(says mary/1 (is graphbrain/1 great/1))')
+        edge2 = hedge('(says mary/1 (is hyperbase/1 great/1))')
         self.hg.add(edge2)
         self.assertEqual(list(self.hg.star(edge1)), [edge2])
 
     def test_star_limit(self):
         self.hg.destroy()
-        self.hg.add('(is graphbrain/1 great/1)')
-        self.hg.add('(is graphbrain/1 great/2)')
-        self.hg.add('(is graphbrain/1 great/3)')
-        center = hedge('graphbrain/1')
+        self.hg.add('(is hyperbase/1 great/1)')
+        self.hg.add('(is hyperbase/1 great/2)')
+        self.hg.add('(is hyperbase/1 great/3)')
+        center = hedge('hyperbase/1')
         self.assertEqual(len(list(self.hg.star(center))), 3)
         self.assertEqual(len(list(self.hg.star(center, limit=1))), 1)
         self.assertEqual(len(list(self.hg.star(center, limit=2))), 2)
@@ -450,20 +450,20 @@ class Hypergraph:
 
     def test_atoms_with_root(self):
         self.hg.destroy()
-        self.hg.add('(is graphbrain/1 great/1)')
-        self.assertEqual(list(self.hg.atoms_with_root('graphbrain')), [hedge('graphbrain/1')])
-        self.hg.add('(is graphbrain/2 great/1)')
-        self.assertEqual(list(self.hg.atoms_with_root('graphbrain')), [hedge('graphbrain/1'), hedge('graphbrain/2')])
+        self.hg.add('(is hyperbase/1 great/1)')
+        self.assertEqual(list(self.hg.atoms_with_root('hyperbase')), [hedge('hyperbase/1')])
+        self.hg.add('(is hyperbase/2 great/1)')
+        self.assertEqual(list(self.hg.atoms_with_root('hyperbase')), [hedge('hyperbase/1'), hedge('hyperbase/2')])
 
     def test_edges_with_edges(self):
         self.hg.destroy()
-        edge1 = hedge('(is graphbrain/1 great/1)')
+        edge1 = hedge('(is hyperbase/1 great/1)')
         self.hg.add(edge1)
-        edge2 = hedge('(is graphbrain/1 great/2)')
+        edge2 = hedge('(is hyperbase/1 great/2)')
         self.hg.add(edge2)
-        self.assertEqual(list(self.hg.edges_with_edges((hedge('graphbrain/1'),), 'great')), [edge1, edge2])
-        self.assertEqual(list(self.hg.edges_with_edges((hedge('graphbrain/1'), hedge('is')), 'great')), [edge1, edge2])
-        self.assertEqual(list(self.hg.edges_with_edges((hedge('graphbrain/1'),), 'grea')), [])
+        self.assertEqual(list(self.hg.edges_with_edges((hedge('hyperbase/1'),), 'great')), [edge1, edge2])
+        self.assertEqual(list(self.hg.edges_with_edges((hedge('hyperbase/1'), hedge('is')), 'great')), [edge1, edge2])
+        self.assertEqual(list(self.hg.edges_with_edges((hedge('hyperbase/1'),), 'grea')), [])
 
     def test_edges_with_edges2(self):
         self.hg.destroy()
@@ -487,8 +487,8 @@ class Hypergraph:
     # get_int_attribute, get_float_attribute
     def test_attributes_atom(self):
         self.hg.destroy()
-        self.hg.add('(is graphbrain/1 great/1)')
-        atom = hedge('graphbrain/1')
+        self.hg.add('(is hyperbase/1 great/1)')
+        atom = hedge('hyperbase/1')
         self.assertEqual(self.hg.get_int_attribute(atom, 'foo'), None)
         self.assertEqual(self.hg.get_int_attribute(atom, 'foo', 0), 0)
         self.hg.set_attribute(atom, 'foo', 66)
@@ -506,7 +506,7 @@ class Hypergraph:
     # get_int_attribute, get_float_attribute
     def test_attributes_edge(self):
         self.hg.destroy()
-        edge = hedge('(is graphbrain/1 great/1)')
+        edge = hedge('(is hyperbase/1 great/1)')
         self.hg.add(edge)
         self.assertEqual(self.hg.get_int_attribute(edge, 'foo'), None)
         self.assertEqual(self.hg.get_int_attribute(edge, 'foo', 0), 0)
@@ -524,7 +524,7 @@ class Hypergraph:
     # increment attribute that does not exist yet
     def test_inc_attributes_does_not_exist(self):
         self.hg.destroy()
-        edge = hedge('(is graphbrain/1 great/1)')
+        edge = hedge('(is hyperbase/1 great/1)')
         self.hg.add(edge)
         self.assertEqual(self.hg.get_int_attribute(edge, 'foo'), None)
         self.hg.inc_attribute(edge, 'foo')
@@ -534,20 +534,20 @@ class Hypergraph:
 
     def test_degrees(self):
         self.hg.destroy()
-        graphbrain = hedge('graphbrain/1')
+        hyperbase = hedge('hyperbase/1')
         great = hedge('great/1')
-        self.assertEqual(self.hg.degree(graphbrain), 0)
-        self.hg.add('(is graphbrain/1 great/1)')
-        self.assertEqual(self.hg.degree(graphbrain), 1)
+        self.assertEqual(self.hg.degree(hyperbase), 0)
+        self.hg.add('(is hyperbase/1 great/1)')
+        self.assertEqual(self.hg.degree(hyperbase), 1)
         self.assertEqual(self.hg.degree(great), 1)
-        self.hg.add('(size graphbrain/1 7)')
-        self.assertEqual(self.hg.degree(graphbrain), 2)
+        self.hg.add('(size hyperbase/1 7)')
+        self.assertEqual(self.hg.degree(hyperbase), 2)
         self.assertEqual(self.hg.degree(great), 1)
-        self.hg.remove(hedge('(is graphbrain/1 great/1)'))
-        self.assertEqual(self.hg.degree(graphbrain), 1)
+        self.hg.remove(hedge('(is hyperbase/1 great/1)'))
+        self.assertEqual(self.hg.degree(hyperbase), 1)
         self.assertEqual(self.hg.degree(great), 0)
-        self.hg.remove(hedge('(size graphbrain/1 7)'))
-        self.assertEqual(self.hg.degree(graphbrain), 0)
+        self.hg.remove(hedge('(size hyperbase/1 7)'))
+        self.assertEqual(self.hg.degree(hyperbase), 0)
 
     def test_deep_degrees(self):
         self.hg.destroy()
@@ -573,48 +573,48 @@ class Hypergraph:
 
     def test_ego(self):
         self.hg.destroy()
-        self.hg.add('(is graphbrain/1 great/1)')
-        self.hg.add('(is graphbrain/1 great/2)')
-        self.assertEqual(self.hg.ego(hedge('graphbrain/1')),
-                         {hedge('graphbrain/1'), hedge('is'), hedge('great/1'), hedge('great/2')})
+        self.hg.add('(is hyperbase/1 great/1)')
+        self.hg.add('(is hyperbase/1 great/2)')
+        self.assertEqual(self.hg.ego(hedge('hyperbase/1')),
+                         {hedge('hyperbase/1'), hedge('is'), hedge('great/1'), hedge('great/2')})
 
     def test_remove_by_pattern(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/Cp great/C)')
+        self.hg.add('(is/Pd hyperbase/Cp great/C)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C) extra/C)')
-        self.assertEqual(set(self.hg.search('(says/Pd * (is/Pd graphbrain/Cp great/C))')),
-                         {hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')})
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C) extra/C)')
+        self.assertEqual(set(self.hg.search('(says/Pd * (is/Pd hyperbase/Cp great/C))')),
+                         {hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')})
         self.hg.remove_by_pattern('(says/Pd * *)')
-        self.assertFalse(self.hg.exists(hedge('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C))')))
-        self.assertTrue(self.hg.exists(hedge('(is/Pd graphbrain/Cp great/C)')))
+        self.assertFalse(self.hg.exists(hedge('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C))')))
+        self.assertTrue(self.hg.exists(hedge('(is/Pd hyperbase/Cp great/C)')))
 
     def test_root_degrees(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/C great/C/1)')
+        self.hg.add('(is/Pd hyperbase/C great/C/1)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cp great/C/2))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/Cs great/C) extra/C)')
-        self.assertEqual(self.hg.root_degrees(hedge('graphbrain/Cp')), (1, 3))
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cp great/C/2))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/Cs great/C) extra/C)')
+        self.assertEqual(self.hg.root_degrees(hedge('hyperbase/Cp')), (1, 3))
         self.assertEqual(self.hg.root_degrees(hedge('great/C')), (1, 3))
         self.assertEqual(self.hg.root_degrees(hedge('says/Pd')), (3, 3))
 
     def test_sum_degree(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/C great/C/1)')
+        self.hg.add('(is/Pd hyperbase/C great/C/1)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/C great/C/2))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/C great/C) extra/C)')
-        self.assertEqual(self.hg.sum_degree({hedge('graphbrain/C'), hedge('says/Pd')}), 4)
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/C great/C/2))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/C great/C) extra/C)')
+        self.assertEqual(self.hg.sum_degree({hedge('hyperbase/C'), hedge('says/Pd')}), 4)
 
     def test_sum_deep_degree(self):
         self.hg.destroy()
-        self.hg.add('(is/Pd graphbrain/C great/C/1)')
+        self.hg.add('(is/Pd hyperbase/C great/C/1)')
         self.hg.add('(says/Pd mary/Cp)')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/C great/C/2))')
-        self.hg.add('(says/Pd mary/Cp (is/Pd graphbrain/C great/C) extra/C)')
-        self.assertEqual(self.hg.sum_deep_degree({hedge('graphbrain/C'), hedge('says/Pd')}), 6)
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/C great/C/2))')
+        self.hg.add('(says/Pd mary/Cp (is/Pd hyperbase/C great/C) extra/C)')
+        self.assertEqual(self.hg.sum_deep_degree({hedge('hyperbase/C'), hedge('says/Pd')}), 6)
 
     def test_primary_1(self):
         self.hg.destroy()
@@ -851,7 +851,7 @@ class Hypergraph:
 
     def test_add_with_attributes1(self):
         self.hg.destroy()
-        edge = hedge('(is graphbrain/1 great/1)')
+        edge = hedge('(is hyperbase/1 great/1)')
         self.hg.add_with_attributes(edge, {'p': 1, 'd': 10, 'dd': 20, 'foo': 777, 'bar': -.77, 'xx': 'def'})
         self.assertTrue(self.hg.is_primary(edge))
         self.assertEqual(self.hg.degree(edge), 10)
@@ -862,13 +862,13 @@ class Hypergraph:
 
     def test_add_with_attributes2(self):
         self.hg.destroy()
-        edge = hedge('(is graphbrain/1 great/1)')
+        edge = hedge('(is hyperbase/1 great/1)')
         self.hg.add_with_attributes(edge, {'p': 0, 'd': 10, 'dd': 20, 'foo': 777, 'bar': -.77, 'xx': 'def'})
         self.assertFalse(self.hg.is_primary(edge))
 
     def test_add_with_attributes_search(self):
         self.hg.destroy()
-        edge = hedge('(is graphbrain/1 great/1)')
+        edge = hedge('(is hyperbase/1 great/1)')
         self.hg.add_with_attributes(edge, {'p': 1, 'd': 10, 'dd': 20, 'foo': 777, 'bar': -.77, 'xx': 'def'})
         results = set(self.hg.search('(is * *)'))
         self.assertEqual(results, set([edge]))

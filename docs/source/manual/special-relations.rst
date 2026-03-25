@@ -35,4 +35,4 @@ Lemma relations are stored in the hypergraph using the following hyperedge forma
 
 The last parameter of the hyperedge is the lemma atom. Lemma atoms only have the main type, with no further specification (e.g. ``ask/P/en`` but not ``ask/Pd/en`` or ``ask/Pd.so.|pf----/en``). The intent is to keep an appropriate level of generality.
 
-The parsers provided with Graphbrain generate lemma relations by default.
+The parsers provided with hyperbase generate lemma relations by default.

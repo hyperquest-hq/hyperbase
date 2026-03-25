@@ -1,8 +1,8 @@
 import unittest
 
-import graphbrain.constants as const
-from graphbrain import hedge, hgraph
-from graphbrain.patterns import (match_pattern, edge_matches_pattern, is_wildcard, is_pattern, is_full_pattern,
+import hyperbase.constants as const
+from hyperbase import hedge, hgraph
+from hyperbase.patterns import (match_pattern, edge_matches_pattern, is_wildcard, is_pattern, is_full_pattern,
                                  apply_vars, PatternCounter, is_unordered_pattern, common_pattern, more_general,
                                  is_variable, contains_variable, merge_patterns)
 
@@ -131,333 +131,333 @@ class TestPatterns(unittest.TestCase):
         self.assertEqual(match_pattern('(a b)', '(a a)'), [])
 
     def test_match_pattern_wildcard1(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd graphbrain/Cp.s *X)'),
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd hyperbase/Cp.s *X)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_wildcard2(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd graphbrain/Cp.s *)'), [{}])
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd hyperbase/Cp.s *)'), [{}])
 
     def test_match_pattern_wildcard3(self):
-        self.assertEqual(match_pattern('(was/Pd graphbrain /Cp.s great/C)', '(is/Pd graphbrain/Cp.s *X)'), [])
+        self.assertEqual(match_pattern('(was/Pd hyperbase /Cp.s great/C)', '(is/Pd hyperbase/Cp.s *X)'), [])
 
     def test_match_pattern_atomic_wildcard1(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd graphbrain/Cp.s .PROP)'),
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd hyperbase/Cp.s .PROP)'),
                          [{'PROP': hedge('great/C')}])
 
     def test_match_pattern_atomic_wildcard2(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd graphbrain/Cp.s .)'), [{}])
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd hyperbase/Cp.s .)'), [{}])
 
     def test_match_pattern_atomic_wildcard3(self):
-        self.assertEqual(match_pattern('(was/Pd graphbrain/Cp.s great/C)', '(is/Pd graphbrain/Cp.s .PROP)'), [])
+        self.assertEqual(match_pattern('(was/Pd hyperbase/Cp.s great/C)', '(is/Pd hyperbase/Cp.s .PROP)'), [])
 
     def test_match_pattern_atomic_wildcard4(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s (fairly/M great/C))', '(is/Pd graphbrain/Cp.s .PROP)'),
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s (fairly/M great/C))', '(is/Pd hyperbase/Cp.s .PROP)'),
                          [])
 
     def test_match_pattern_non_atomic_wildcard1(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s (fairly/M great/C))', '(is/Pd graphbrain/Cp.s (PROP))'),
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s (fairly/M great/C))', '(is/Pd hyperbase/Cp.s (PROP))'),
                          [{'PROP': hedge('(fairly/M great/C)')}])
 
     def test_match_pattern_non_atomic_wildcard2(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s (fairly/M great/C))', '(is/Pd graphbrain/Cp.s (*))'),
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s (fairly/M great/C))', '(is/Pd hyperbase/Cp.s (*))'),
                          [{}])
 
     def test_match_pattern_non_atomic_wildcard3(self):
-        self.assertEqual(match_pattern('(was/Pd graphbrain/Cp.s (fairly/M great/C))', '(is/Pd graphbrain/Cp.s (PROP))'),
+        self.assertEqual(match_pattern('(was/Pd hyperbase/Cp.s (fairly/M great/C))', '(is/Pd hyperbase/Cp.s (PROP))'),
                          [])
 
     def test_match_pattern_non_atomic_wildcard4(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd graphbrain/Cp.s (PROP))'), [])
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd hyperbase/Cp.s (PROP))'), [])
 
     def test_match_pattern_open_ended1(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd graphbrain/Cp.s *X ...)'),
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd hyperbase/Cp.s *X ...)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_open_ended2(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd graphbrain/Cp.s * ...)'), [{}])
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd hyperbase/Cp.s * ...)'), [{}])
 
     def test_match_pattern_open_ended3(self):
-        self.assertEqual(match_pattern('(was/Pd graphbrain /Cp.s great/C)', '(is/Pd graphbrain/Cp.s *X ...)'), [])
+        self.assertEqual(match_pattern('(was/Pd hyperbase /Cp.s great/C)', '(is/Pd hyperbase/Cp.s *X ...)'), [])
 
     def test_match_pattern_open_ended4(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd .OBJ ...)'),
-                         [{'OBJ': hedge('graphbrain/Cp.s')}])
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd .OBJ ...)'),
+                         [{'OBJ': hedge('hyperbase/Cp.s')}])
 
     def test_match_pattern_open_ended5(self):
-        self.assertEqual(match_pattern('(is/Pd graphbrain/Cp.s great/C)', '(is/Pd .OBJ)'), [])
+        self.assertEqual(match_pattern('(is/Pd hyperbase/Cp.s great/C)', '(is/Pd .OBJ)'), [])
 
     def test_match_pattern_argroles1(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.sc graphbrain/Cp.s *X)'),
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.sc hyperbase/Cp.s *X)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles2(self):
-        self.assertEqual(match_pattern('(is/Pd.cs great/C graphbrain/Cp.s)', '(is/Pd.{sc} graphbrain/Cp.s *X)'),
+        self.assertEqual(match_pattern('(is/Pd.cs great/C hyperbase/Cp.s)', '(is/Pd.{sc} hyperbase/Cp.s *X)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles3(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.{scx} graphbrain/Cp.s *X *Y)'), [])
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.{scx} hyperbase/Cp.s *X *Y)'), [])
 
     def test_match_pattern_argroles4(self):
         self.assertEqual(
-            match_pattern('(is/Pd.xcs today/C great/C graphbrain/Cp.s)', '(is/Pd.{sc} graphbrain/Cp.s *X ...)'),
+            match_pattern('(is/Pd.xcs today/C great/C hyperbase/Cp.s)', '(is/Pd.{sc} hyperbase/Cp.s *X ...)'),
             [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles5(self):
         self.assertEqual(
-            match_pattern('(is/Pd.xcs today/C great/C graphbrain/Cp.s)', '(is/Pd.{sc} graphbrain/Cp.s *X)'),
+            match_pattern('(is/Pd.xcs today/C great/C hyperbase/Cp.s)', '(is/Pd.{sc} hyperbase/Cp.s *X)'),
             [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles6(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.{sc} graphbrain/Cp.s *)'), [{}])
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.{sc} hyperbase/Cp.s *)'), [{}])
 
     def test_match_pattern_argroles7(self):
-        self.assertEqual(match_pattern('(was/Pd.sc graphbrain /Cp.s great/C)', '(is/Pd.{sc} graphbrain/Cp.s *X)'), [])
+        self.assertEqual(match_pattern('(was/Pd.sc hyperbase /Cp.s great/C)', '(is/Pd.{sc} hyperbase/Cp.s *X)'), [])
 
     def test_match_pattern_argroles8(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(+/Pd.{sc} graphbrain/Cp.s *X)'), [])
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(+/Pd.{sc} hyperbase/Cp.s *X)'), [])
 
     def test_match_pattern_argroles_ordered1(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.sc graphbrain/Cp.s *X)'),
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.sc hyperbase/Cp.s *X)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles_ordered2(self):
-        self.assertEqual(match_pattern('(is/Pd.cs great/C graphbrain/Cp.s)', '(is/Pd.sc graphbrain/Cp.s *X)'), [])
+        self.assertEqual(match_pattern('(is/Pd.cs great/C hyperbase/Cp.s)', '(is/Pd.sc hyperbase/Cp.s *X)'), [])
 
     def test_match_pattern_argroles_ordered3(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.scx graphbrain/Cp.s *X *Y)'), [])
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.scx hyperbase/Cp.s *X *Y)'), [])
 
     def test_match_pattern_argroles_ordered4(self):
         self.assertEqual(
-            match_pattern('(is/Pd.xcs today/C great/C graphbrain/Cp.s)', '(is/Pd.sc graphbrain/Cp.s *X ...)'), [])
+            match_pattern('(is/Pd.xcs today/C great/C hyperbase/Cp.s)', '(is/Pd.sc hyperbase/Cp.s *X ...)'), [])
 
     def test_match_pattern_argroles_ordered5(self):
-        self.assertEqual(match_pattern('(is/Pd.xcs today/C great/C graphbrain/Cp.s)', '(is/Pd.sc graphbrain/Cp.s *X)'),
+        self.assertEqual(match_pattern('(is/Pd.xcs today/C great/C hyperbase/Cp.s)', '(is/Pd.sc hyperbase/Cp.s *X)'),
                          [])
 
     def test_match_pattern_argroles_ordered6(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.sc graphbrain/Cp.s *)'), [{}])
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.sc hyperbase/Cp.s *)'), [{}])
 
     def test_match_pattern_argroles_ordered7(self):
-        self.assertEqual(match_pattern('(was/Pd.sc graphbrain /Cp.s great/C)', '(is/Pd.sc graphbrain/Cp.s *X)'), [])
+        self.assertEqual(match_pattern('(was/Pd.sc hyperbase /Cp.s great/C)', '(is/Pd.sc hyperbase/Cp.s *X)'), [])
 
     def test_match_pattern_argroles_ordered8(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(+/Pd.sc graphbrain/Cp.s *X)'), [])
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(+/Pd.sc hyperbase/Cp.s *X)'), [])
 
     def test_match_pattern_argroles_vars(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.{sc} graphbrain/Cp.s PROP)'),
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.{sc} hyperbase/Cp.s PROP)'),
                          [{'PROP': hedge('great/C')}])
 
     def test_match_pattern_argroles_vars1(self):
-        self.assertEqual(match_pattern('(is/Pd.cs great/C graphbrain/Cp.s)', '(is/Pd.{sc} graphbrain/Cp.s X)'),
+        self.assertEqual(match_pattern('(is/Pd.cs great/C hyperbase/Cp.s)', '(is/Pd.{sc} hyperbase/Cp.s X)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles_vars2(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.{scx} graphbrain/Cp.s X Y)'), [])
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.{scx} hyperbase/Cp.s X Y)'), [])
 
     def test_match_pattern_argroles_vars3(self):
         self.assertEqual(
-            match_pattern('(is/Pd.xcs today/C great/C graphbrain/Cp.s)', '(is/Pd.{sc} graphbrain/Cp.s X ...)'),
+            match_pattern('(is/Pd.xcs today/C great/C hyperbase/Cp.s)', '(is/Pd.{sc} hyperbase/Cp.s X ...)'),
             [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles_vars4(self):
-        self.assertEqual(match_pattern('(is/Pd.xcs today/C great/C graphbrain/Cp.s)', '(is/Pd.{sc} graphbrain/Cp.s X)'),
+        self.assertEqual(match_pattern('(is/Pd.xcs today/C great/C hyperbase/Cp.s)', '(is/Pd.{sc} hyperbase/Cp.s X)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles_vars5(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.{sc} graphbrain/Cp.s XYZ)'),
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.{sc} hyperbase/Cp.s XYZ)'),
                          [{'XYZ': hedge('great/C')}])
 
     def test_match_pattern_argroles_vars6(self):
-        self.assertEqual(match_pattern('(was/Pd.sc graphbrain /Cp.s great/C)', '(is/Pd.{sc} graphbrain/Cp.s X)'), [])
+        self.assertEqual(match_pattern('(was/Pd.sc hyperbase /Cp.s great/C)', '(is/Pd.{sc} hyperbase/Cp.s X)'), [])
 
     def test_match_pattern_argroles_unknown(self):
         self.assertEqual(
-            match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C)', '(is/Pd.{sc} graphbrain/Cp.s PROP ...)'),
+            match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C)', '(is/Pd.{sc} hyperbase/Cp.s PROP ...)'),
             [{'PROP': hedge('great/C')}])
 
     def test_match_pattern_argroles_unknown1(self):
         self.assertEqual(
-            match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C)', '(is/Pd.{sc} graphbrain/Cp.s PROP EXTRA)'),
+            match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C)', '(is/Pd.{sc} hyperbase/Cp.s PROP EXTRA)'),
             [{'PROP': hedge('great/C'), 'EXTRA': hedge('today/C')}])
 
     def test_match_pattern_argroles_unknown2(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP EXTRA)'),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP EXTRA)'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('today/C')},
                           {'PROP': hedge('great/C'), 'EXTRA': hedge('(after/J x/C)')}])
 
     def test_match_pattern_argroles_unknown3(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP EXTRA ...)'),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP EXTRA ...)'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('today/C')},
                           {'PROP': hedge('great/C'), 'EXTRA': hedge('(after/J x/C)')}])
 
     def test_match_pattern_argroles_unknown4(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP (EXTRA1) EXTRA2)'),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP (EXTRA1) EXTRA2)'),
                          [{'PROP': hedge('great/C'), 'EXTRA1': hedge('(after/J x/C)'), 'EXTRA2': hedge('today/C')}])
 
     def test_match_pattern_argroles_unknown5(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C (after/J x/C) today/C)',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP (EXTRA1) EXTRA2)'),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C (after/J x/C) today/C)',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP (EXTRA1) EXTRA2)'),
                          [{'PROP': hedge('great/C'), 'EXTRA1': hedge('(after/J x/C)'), 'EXTRA2': hedge('today/C')}])
 
     def test_match_pattern_repeated_vars1(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/P graphbrain/Cp.s PROP EXTRA EXTRA)'),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/P hyperbase/Cp.s PROP EXTRA EXTRA)'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('(list/J/. today/C (after/J x/C))')}])
 
     def test_match_pattern_repeated_vars2(self):
         self.assertEqual(
-            match_pattern('(is/P graphbrain/Cp.s great/C today/C today/C)', '(is/P graphbrain/Cp.s PROP EXTRA EXTRA)'),
+            match_pattern('(is/P hyperbase/Cp.s great/C today/C today/C)', '(is/P hyperbase/Cp.s PROP EXTRA EXTRA)'),
             [{'PROP': hedge('great/C'), 'EXTRA': hedge('(list/J/. today/C today/C)')}])
 
     def test_match_pattern_argroles_repeated_vars1(self):
-        self.assertEqual(match_pattern('(is/Pd.scxx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{scxx} graphbrain/Cp.s PROP EXTRA EXTRA)'),
+        self.assertEqual(match_pattern('(is/Pd.scxx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{scxx} hyperbase/Cp.s PROP EXTRA EXTRA)'),
                          [{'EXTRA': hedge('(list/J/. today/C (after/J x/C))'), 'PROP': hedge('great/C')},
                           {'EXTRA': hedge('(list/J/. (after/J x/C) today/C)'), 'PROP': hedge('great/C')}])
 
     def test_match_pattern_argroles_repeated_vars2(self):
-        self.assertEqual(match_pattern('(is/Pd.scxx graphbrain/Cp.s great/C today/C today/C)',
-                                       '(is/Pd.{scxx} graphbrain/Cp.s PROP EXTRA EXTRA)'),
+        self.assertEqual(match_pattern('(is/Pd.scxx hyperbase/Cp.s great/C today/C today/C)',
+                                       '(is/Pd.{scxx} hyperbase/Cp.s PROP EXTRA EXTRA)'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('(list/J/. today/C today/C)')}])
 
     def test_match_pattern_repeated_vars_external1(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C)', '(is/P graphbrain/Cp.s PROP EXTRA)',
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C)', '(is/P hyperbase/Cp.s PROP EXTRA)',
                                        curvars={'PROP': hedge('great/C')}),
                          [{'PROP': hedge('(list/J/. great/C great/C)'), 'EXTRA': hedge('today/C')}])
 
     def test_match_pattern_repeated_vars_external2(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C)', '(is/P graphbrain/Cp.s PROP EXTRA)',
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C)', '(is/P hyperbase/Cp.s PROP EXTRA)',
                                        curvars={'PROP': hedge('abc/C')}),
                          [{'PROP': hedge('(list/J/. abc/C great/C)'), 'EXTRA': hedge('today/C')}])
 
     def test_match_pattern_argroles_repeated_var_external1(self):
         self.assertEqual(
-            match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C)', '(is/Pd.{scx} graphbrain/Cp.s PROP EXTRA)',
+            match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C)', '(is/Pd.{scx} hyperbase/Cp.s PROP EXTRA)',
                           curvars={'PROP': hedge('great/C')}),
             [{'PROP': hedge('(list/J/. great/C great/C)'), 'EXTRA': hedge('today/C')}])
 
     def test_match_pattern_argroles_repeated_vars_external2(self):
         self.assertEqual(
-            match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C)', '(is/P.{sc} graphbrain/Cp.s PROP EXTRA)',
+            match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C)', '(is/P.{sc} hyperbase/Cp.s PROP EXTRA)',
                           curvars={'PROP': hedge('abc/C')}),
             [{'EXTRA': hedge('today/C'), 'PROP': hedge('(list/J/. abc/C great/C)')}])
 
     def test_match_pattern_deep1(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/P graphbrain/Cp.s PROP EXTRA (after/J X))'),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/P hyperbase/Cp.s PROP EXTRA (after/J X))'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('today/C'), 'X': hedge('x/C')}])
 
     def test_match_pattern_deep2(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/P graphbrain/Cp.s PROP EXTRA (before/J X))'),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/P hyperbase/Cp.s PROP EXTRA (before/J X))'),
                          [])
 
     def test_match_pattern_deep3(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/P graphbrain/Cp.s PROP EXTRA (after/J EXTRA))'),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/P hyperbase/Cp.s PROP EXTRA (after/J EXTRA))'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('(list/J/. today/C x/C)')}])
 
     def test_match_pattern_deep4(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C x/C (after/J x/C))',
-                                       '(is/P graphbrain/Cp.s PROP X (after/J X))'),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C x/C (after/J x/C))',
+                                       '(is/P hyperbase/Cp.s PROP X (after/J X))'),
                          [{'PROP': hedge('great/C'), 'X': hedge('(list/J/. x/C x/C)')}])
 
     def test_match_pattern_deep5(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C x/C (after/J x/C))',
-                                       '(is/P graphbrain/Cp.s PROP X (after/J X))', curvars={'X': hedge('x/C')}),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C x/C (after/J x/C))',
+                                       '(is/P hyperbase/Cp.s PROP X (after/J X))', curvars={'X': hedge('x/C')}),
                          [{'PROP': hedge('great/C'), 'X': hedge('(list/J/. x/C x/C x/C)')}])
 
     def test_match_pattern_deep6(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C x/C (after/J x/C))',
-                                       '(is/P graphbrain/Cp.s PROP X (after/J X))', curvars={'X': hedge('y/C')}),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C x/C (after/J x/C))',
+                                       '(is/P hyperbase/Cp.s PROP X (after/J X))', curvars={'X': hedge('y/C')}),
                          [{'PROP': hedge('great/C'), 'X': hedge('(list/J/. y/C x/C x/C)')}])
 
     def test_match_pattern_argroles_deep1(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP EXTRA (after/J X))'),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP EXTRA (after/J X))'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('today/C'), 'X': hedge('x/C')}])
 
     def test_match_pattern_argroles_deep2(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP EXTRA (before/J X))'),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP EXTRA (before/J X))'),
                          [])
 
     def test_match_pattern_argroles_deep3(self):
-        self.assertEqual(match_pattern('(is/Pd.scxx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{scxx} graphbrain/Cp.s PROP EXTRA (after/J EXTRA))'),
+        self.assertEqual(match_pattern('(is/Pd.scxx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{scxx} hyperbase/Cp.s PROP EXTRA (after/J EXTRA))'),
                          [{'EXTRA': hedge('(list/J/. today/C x/C)'), 'PROP': hedge('great/C')}])
 
     def test_match_pattern_argroles_deep4(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C x/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP X (after/J X))'),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C x/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP X (after/J X))'),
                          [{'PROP': hedge('great/C'), 'X': hedge('(list/J/. x/C x/C)')}])
 
     def test_match_pattern_argroles_deep5(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C x/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP X (after/J X))', curvars={'X': hedge('x/C')}),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C x/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP X (after/J X))', curvars={'X': hedge('x/C')}),
                          [{'PROP': hedge('great/C'), 'X': hedge('(list/J/. x/C x/C x/C)')}])
 
     def test_match_pattern_argroles_deep6(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C x/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP X (after/J X))', curvars={'X': hedge('y/C')}),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C x/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP X (after/J X))', curvars={'X': hedge('y/C')}),
                          [{'PROP': hedge('great/C'), 'X': hedge('(list/J/. y/C x/C x/C)')}])
 
     def test_match_pattern_argroles_multiple_results1(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP EXTRA ...)'),
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP EXTRA ...)'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('today/C')},
                           {'PROP': hedge('great/C'), 'EXTRA': hedge('(after/J x/C)')}])
 
     def test_match_pattern_argroles_multiple_results2(self):
-        self.assertEqual(match_pattern('(is/Pd.sscxx i/C graphbrain/Cp.s great/C today/C x/C)',
-                                       '(is/Pd.{sc} graphbrain/Cp.s PROP EXTRA ...)'),
+        self.assertEqual(match_pattern('(is/Pd.sscxx i/C hyperbase/Cp.s great/C today/C x/C)',
+                                       '(is/Pd.{sc} hyperbase/Cp.s PROP EXTRA ...)'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('i/C')},
                           {'PROP': hedge('great/C'), 'EXTRA': hedge('today/C')},
                           {'PROP': hedge('great/C'), 'EXTRA': hedge('x/C')}])
 
     def test_match_pattern_argroles_exclusions1(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.sc-x graphbrain/Cp.s X ...)'),
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.sc-x hyperbase/Cp.s X ...)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles_exclusions2(self):
         self.assertEqual(
-            match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/J)', '(is/Pd.sc-x graphbrain/Cp.s X ...)'),
+            match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/J)', '(is/Pd.sc-x hyperbase/Cp.s X ...)'),
             [])
 
     def test_match_pattern_argroles_exclusions3(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.sc-s graphbrain/Cp.s X ...)'),
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.sc-s hyperbase/Cp.s X ...)'),
                          [{'X': hedge('great/C')}])
 
     def test_match_pattern_argroles_exclusions4(self):
         self.assertEqual(
-            match_pattern('(is/Pd.sc i/Cp.s graphbrain/Cp.s great/C)', '(is/Pd.sc-s graphbrain/Cp.s X ...)'),
+            match_pattern('(is/Pd.sc i/Cp.s hyperbase/Cp.s great/C)', '(is/Pd.sc-s hyperbase/Cp.s X ...)'),
             [])
 
     def test_match_pattern_argroles_optionals1(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(is/Pd.{sc,x} X Y Z)'),
-                         [{'X': hedge('graphbrain/Cp.s'), 'Y': hedge('great/C')}])
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(is/Pd.{sc,x} X Y Z)'),
+                         [{'X': hedge('hyperbase/Cp.s'), 'Y': hedge('great/C')}])
 
     def test_match_pattern_argroles_optionals2(self):
-        self.assertEqual(match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/J)', '(is/Pd.{sc,x} X Y Z)'),
-                         [{'X': hedge('graphbrain/Cp.s'), 'Y': hedge('great/C'), 'Z': hedge('today/J')}])
+        self.assertEqual(match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/J)', '(is/Pd.{sc,x} X Y Z)'),
+                         [{'X': hedge('hyperbase/Cp.s'), 'Y': hedge('great/C'), 'Z': hedge('today/J')}])
 
     def test_match_pattern_match_connectors1(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C)', '(PRED/P graphbrain/Cp.s X ...)'),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C)', '(PRED/P hyperbase/Cp.s X ...)'),
                          [{'PRED': hedge('is/P'), 'X': hedge('great/C')}])
 
     def test_match_pattern_match_connectors2(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C)', '(X/P graphbrain/Cp.s X ...)'),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C)', '(X/P hyperbase/Cp.s X ...)'),
                          [{'X': hedge('(list/J/. is/P great/C)')}])
 
     def test_match_pattern_argroles_match_connectors1(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(PRED/Pd.sc graphbrain/Cp.s X ...)'),
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(PRED/Pd.sc hyperbase/Cp.s X ...)'),
                          [{'PRED': hedge('is/Pd.sc'), 'X': hedge('great/C')}])
 
     def test_match_pattern_argroles_match_connectors2(self):
-        self.assertEqual(match_pattern('(is/Pd.sc graphbrain/Cp.s great/C)', '(X/Pd.sc graphbrain/Cp.s X ...)'),
+        self.assertEqual(match_pattern('(is/Pd.sc hyperbase/Cp.s great/C)', '(X/Pd.sc hyperbase/Cp.s X ...)'),
                          [{'X': hedge('(list/J/. is/Pd.sc great/C)')}])
 
     def test_match_pattern_predicate_singleton(self):
@@ -485,39 +485,39 @@ class TestPatterns(unittest.TestCase):
         self.assertFalse(edge_matches_pattern(hedge('(a b)'), '(a a)'))
 
     def test_edge_matches_pattern_wildcard1(self):
-        self.assertTrue(edge_matches_pattern(hedge('(is/Pd graphbrain/Cp.s great/C)'), '(is/Pd graphbrain/Cp.s *)'))
+        self.assertTrue(edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s *)'))
 
     def test_edge_matches_pattern_wildcard2(self):
-        self.assertFalse(edge_matches_pattern(hedge('(was/Pd graphbrain/Cp.s great/C)'), '(is/Pd graphbrain/Cp.s *)'))
+        self.assertFalse(edge_matches_pattern(hedge('(was/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s *)'))
 
     def test_edge_matches_pattern_atomic_wildcard1(self):
-        self.assertTrue(edge_matches_pattern(hedge('(is/Pd graphbrain/Cp.s great/C)'), '(is/Pd graphbrain/Cp.s .)'))
+        self.assertTrue(edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s .)'))
 
     def test_edge_matches_pattern_atomic_wildcard2(self):
         self.assertFalse(
-            edge_matches_pattern(hedge('(was/Pd graphbrain /Cp.s great/C)'), '(is/Pd.sc graphbrain/Cp.s .)'))
+            edge_matches_pattern(hedge('(was/Pd hyperbase /Cp.s great/C)'), '(is/Pd.sc hyperbase/Cp.s .)'))
 
     def test_edge_matches_pattern_atomic_wildcard3(self):
         self.assertFalse(
-            edge_matches_pattern(hedge('(is/Pd graphbrain/Cp.s (fairly/M great/C))'), '(is/Pd graphbrain/Cp.s .)'))
+            edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s (fairly/M great/C))'), '(is/Pd hyperbase/Cp.s .)'))
 
     def test_edge_matches_pattern_edge_wildcard1(self):
         self.assertTrue(
-            edge_matches_pattern(hedge('(is/Pd graphbrain/Cp.s (fairly/M great/C))'), '(is/Pd graphbrain/Cp.s (*))'))
+            edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s (fairly/M great/C))'), '(is/Pd hyperbase/Cp.s (*))'))
 
     def test_edge_matches_pattern_edge_wildcard2(self):
-        self.assertFalse(edge_matches_pattern(hedge('(is/Pd graphbrain/Cp.s great/C)'), '(is/Pd graphbrain/Cp.s (*))'))
+        self.assertFalse(edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s (*))'))
 
     def test_edge_matches_pattern_open_ended1(self):
-        self.assertTrue(edge_matches_pattern(hedge('(is/Pd graphbrain/Cp.s great/C)'), '(is/Pd graphbrain/Cp.s * ...)'))
+        self.assertTrue(edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s * ...)'))
 
     def test_edge_matches_pattern_open_ended2(self):
         self.assertTrue(
-            edge_matches_pattern(hedge('(is/Pd graphbrain/Cp.s great/C extra/C)'), '(is/Pd graphbrain/Cp.s * ...)'))
+            edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C extra/C)'), '(is/Pd hyperbase/Cp.s * ...)'))
 
     def test_edge_matches_pattern_open_ended3(self):
         self.assertFalse(
-            edge_matches_pattern(hedge('(is/Pd humanity/Cp.s great/C extra/C)'), '(is/Pd graphbrain/Cp.s * ...)'))
+            edge_matches_pattern(hedge('(is/Pd humanity/Cp.s great/C extra/C)'), '(is/Pd hyperbase/Cp.s * ...)'))
 
     def test_match_pattern_complex(self):
         s = ('(says/Pd.rr.|f--3s-/en (calls/Pr.so.|f--3s-/en */C (*/M (draconian/Ma/en (+/B.am/. coronavirus/Cc.s/en '
@@ -555,50 +555,50 @@ class TestPatterns(unittest.TestCase):
 
     ##########################
     def test_match_pattern_repeated_var_funs1(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/P graphbrain/Cp.s (var */C PROP) (var */C EXTRA) (var */C EXTRA))'),
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/P hyperbase/Cp.s (var */C PROP) (var */C EXTRA) (var */C EXTRA))'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('(list/J/. today/C (after/J x/C))')}])
 
     def test_match_pattern_repeated_var_funs2(self):
         self.assertEqual(
-            match_pattern('(is/P graphbrain/Cp.s great/C today/C today/C)',
-                          '(is/P graphbrain/Cp.s (var * PROP) (var * EXTRA) (var * EXTRA))'),
+            match_pattern('(is/P hyperbase/Cp.s great/C today/C today/C)',
+                          '(is/P hyperbase/Cp.s (var * PROP) (var * EXTRA) (var * EXTRA))'),
             [{'PROP': hedge('great/C'), 'EXTRA': hedge('(list/J/. today/C today/C)')}])
 
     def test_match_pattern_repeated_var_funs3(self):
-        self.assertEqual(match_pattern('(is/Pd.scxx graphbrain/Cp.s great/C today/C (after/J x/C))',
-                                       '(is/Pd.{scxx} graphbrain/Cp.s (var * PROP) (var * EXTRA) (var * EXTRA))'),
+        self.assertEqual(match_pattern('(is/Pd.scxx hyperbase/Cp.s great/C today/C (after/J x/C))',
+                                       '(is/Pd.{scxx} hyperbase/Cp.s (var * PROP) (var * EXTRA) (var * EXTRA))'),
                          [{'EXTRA': hedge('(list/J/. today/C (after/J x/C))'), 'PROP': hedge('great/C')},
                           {'EXTRA': hedge('(list/J/. (after/J x/C) today/C)'), 'PROP': hedge('great/C')}])
 
     def test_match_pattern_repeated_var_funs4(self):
-        self.assertEqual(match_pattern('(is/Pd.scxx graphbrain/Cp.s great/C today/C today/C)',
-                                       '(is/Pd.{scxx} graphbrain/Cp.s (var * PROP) (var * EXTRA) (var * EXTRA))'),
+        self.assertEqual(match_pattern('(is/Pd.scxx hyperbase/Cp.s great/C today/C today/C)',
+                                       '(is/Pd.{scxx} hyperbase/Cp.s (var * PROP) (var * EXTRA) (var * EXTRA))'),
                          [{'PROP': hedge('great/C'), 'EXTRA': hedge('(list/J/. today/C today/C)')}])
 
     def test_match_pattern_repeated_var_funs5(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C)',
-                                       '(is/P graphbrain/Cp.s (var * PROP) (var * EXTRA))',
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C)',
+                                       '(is/P hyperbase/Cp.s (var * PROP) (var * EXTRA))',
                                        curvars={'PROP': hedge('great/C')}),
                          [{'PROP': hedge('(list/J/. great/C great/C)'), 'EXTRA': hedge('today/C')}])
 
     def test_match_pattern_repeated_var_funs6(self):
-        self.assertEqual(match_pattern('(is/P graphbrain/Cp.s great/C today/C)',
-                                       '(is/P graphbrain/Cp.s (var * PROP) (var * EXTRA))',
+        self.assertEqual(match_pattern('(is/P hyperbase/Cp.s great/C today/C)',
+                                       '(is/P hyperbase/Cp.s (var * PROP) (var * EXTRA))',
                                        curvars={'PROP': hedge('abc/C')}),
                          [{'PROP': hedge('(list/J/. abc/C great/C)'), 'EXTRA': hedge('today/C')}])
 
     def test_match_pattern_repeated_var_funs7(self):
         self.assertEqual(
-            match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C)',
-                          '(is/Pd.{scx} graphbrain/Cp.s (var */C PROP) (var */C EXTRA))',
+            match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C)',
+                          '(is/Pd.{scx} hyperbase/Cp.s (var */C PROP) (var */C EXTRA))',
                           curvars={'PROP': hedge('great/C')}),
             [{'PROP': hedge('(list/J/. great/C great/C)'), 'EXTRA': hedge('today/C')}])
 
     def test_match_pattern_repeated_var_funs8(self):
         self.assertEqual(
-            match_pattern('(is/Pd.scx graphbrain/Cp.s great/C today/C)',
-                          '(is/P.{sc} graphbrain/Cp.s (var * PROP) (var * EXTRA))',
+            match_pattern('(is/Pd.scx hyperbase/Cp.s great/C today/C)',
+                          '(is/P.{sc} hyperbase/Cp.s (var * PROP) (var * EXTRA))',
                           curvars={'PROP': hedge('abc/C')}),
             [{'EXTRA': hedge('today/C'), 'PROP': hedge('(list/J/. abc/C great/C)')}])
     ##########################

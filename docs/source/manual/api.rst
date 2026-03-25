@@ -5,34 +5,34 @@ API reference
 main functions
 ==============
 
-.. automodule:: graphbrain.__init__
+.. automodule:: hyperbase.__init__
     :members:
 
 hyperedge module
 ================
 
-.. automodule:: graphbrain.hyperedge
+.. automodule:: hyperbase.hyperedge
     :members:
 
 
 hypergraph module
 =================
 
-.. automodule:: graphbrain.hypergraph
+.. automodule:: hyperbase.hypergraph
     :members:
 
 
 patterns module
 ===============
 
-.. automodule:: graphbrain.patterns
+.. automodule:: hyperbase.patterns
     :members:
 
 
 processor module
 ================
 
-.. automodule:: graphbrain.processor
+.. automodule:: hyperbase.processor
     :members:
 
 
@@ -42,14 +42,14 @@ memory package
 permutations module
 -------------------
 
-.. automodule:: graphbrain.memory.permutations
+.. automodule:: hyperbase.memory.permutations
     :members:
 
 
 sqlite module
 -------------
 
-.. automodule:: graphbrain.memory.sqlite
+.. automodule:: hyperbase.memory.sqlite
     :members:
 
 
@@ -59,13 +59,13 @@ parsers package
 package functions
 -----------------
 
-.. automodule:: graphbrain.parsers.__init__
+.. automodule:: hyperbase.parsers.__init__
     :members:
 
 parser module
 -------------
 
-.. automodule:: graphbrain.parsers.parser
+.. automodule:: hyperbase.parsers.parser
     :members:
 
 
@@ -75,37 +75,37 @@ readers package
 reader module
 -------------
 
-.. automodule:: graphbrain.readers.reader
+.. automodule:: hyperbase.readers.reader
     :members:
 
 txt module
 ----------
 
-.. automodule:: graphbrain.readers.txt
+.. automodule:: hyperbase.readers.txt
     :members:
 
 dir module
 ----------
 
-.. automodule:: graphbrain.readers.dir
+.. automodule:: hyperbase.readers.dir
     :members:
 
 csv module
 ----------
 
-.. automodule:: graphbrain.readers.csv
+.. automodule:: hyperbase.readers.csv
     :members:
 
 wikipedia module
 ----------------
 
-.. automodule:: graphbrain.readers.wikipedia
+.. automodule:: hyperbase.readers.wikipedia
     :members:
 
 reddit module
 -------------
 
-.. automodule:: graphbrain.readers.reddit
+.. automodule:: hyperbase.readers.reddit
     :members:
 
 
@@ -115,37 +115,37 @@ utils package
 concepts module
 ---------------
 
-.. automodule:: graphbrain.utils.concepts
+.. automodule:: hyperbase.utils.concepts
     :members:
 
 conjunctions module
 -------------------
 
-.. automodule:: graphbrain.utils.conjunctions
+.. automodule:: hyperbase.utils.conjunctions
     :members:
 
 corefs module
 -------------
 
-.. automodule:: graphbrain.utils.corefs
+.. automodule:: hyperbase.utils.corefs
     :members:
 
 lemmas module
 -------------
 
-.. automodule:: graphbrain.utils.lemmas
+.. automodule:: hyperbase.utils.lemmas
     :members:
 
 number module
 -------------
 
-.. automodule:: graphbrain.utils.number
+.. automodule:: hyperbase.utils.number
     :members:
 
 ontology module
 ---------------
 
-.. automodule:: graphbrain.utils.ontology
+.. automodule:: hyperbase.utils.ontology
     :members:
 
 
@@ -155,41 +155,41 @@ processors package
 actors module
 -------------
 
-.. automodule:: graphbrain.processors.actors
+.. automodule:: hyperbase.processors.actors
     :members:
 
 claims module
 -------------
 
-.. automodule:: graphbrain.processors.claims
+.. automodule:: hyperbase.processors.claims
     :members:
 
 conflicts module
 ----------------
 
-.. automodule:: graphbrain.processors.conflicts
+.. automodule:: hyperbase.processors.conflicts
     :members:
 
 names module
 ------------
 
-.. automodule:: graphbrain.processors.names
+.. automodule:: hyperbase.processors.names
     :members:
 
 number module
 -------------
 
-.. automodule:: graphbrain.processors.number
+.. automodule:: hyperbase.processors.number
     :members:
 
 onto module
 -----------
 
-.. automodule:: graphbrain.processors.onto
+.. automodule:: hyperbase.processors.onto
     :members:
 
 taxonomy module
 ---------------
 
-.. automodule:: graphbrain.processors.taxonomy
+.. automodule:: hyperbase.processors.taxonomy
     :members:

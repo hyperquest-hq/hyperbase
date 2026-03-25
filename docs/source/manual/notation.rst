@@ -268,7 +268,7 @@ Or to a German word like this::
 
    himmel/Cp.s/de
 
-Or that it is a special atom defined by Graphbrain::
+Or that it is a special atom defined by hyperbase::
 
    +/B/.
 
@@ -291,7 +291,7 @@ We show here the full atom structure, including all optional parts.
 Special atoms
 =============
 
-The two special atoms below come predefined with Graphbrain and are very frequently useful.
+The two special atoms below come predefined with hyperbase and are very frequently useful.
 
 +-------+-----------------------+----------------------------------+
 | Atom  | Purpose               | Example                          |

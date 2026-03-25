@@ -6,15 +6,15 @@ An hypergraph can also be seen as a type of database, that stores knowledge in t
 
 The notebook for this tutorial can be found here:
 
-https://github.com/graphbrain/graphbrain/blob/master/notebooks/hypergraph.ipynb
+https://github.com/hyperbase/hyperbase/blob/master/notebooks/hypergraph.ipynb
 
 Form here on, the following imports are assumed:
 
 ::
 
-    from graphbrain import *
-    from graphbrain.notebook import *
-    from graphbrain.parsers import *
+    from hyperbase import *
+    from hyperbase.notebook import *
+    from hyperbase.parsers import *
 
 Create an hypergraph
 ====================
@@ -108,4 +108,4 @@ For example, with the current hypergraph, executing the below code would produce
 
 For all the details about how to define search patterns, refer to the ``search()`` function documentation:
 
-https://graphbrain.net/api.html#graphbrain.hypergraph.Hypergraph.search
+https://hyperbase.net/api.html#hyperbase.hypergraph.Hypergraph.search

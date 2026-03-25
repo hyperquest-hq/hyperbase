@@ -1,7 +1,7 @@
 import json
 import random
 
-from graphbrain.cli import wrapper
+from hyperbase.cli import wrapper
 
 
 def split_parser_training_data(args):

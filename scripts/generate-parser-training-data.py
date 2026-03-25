@@ -5,13 +5,13 @@ from os.path import join
 
 from termcolor import colored
 
-from graphbrain.cli import wrapper
-from graphbrain.colored import colored_atom
-from graphbrain.colored import colored_edge
-from graphbrain.colored import colored_type
-from graphbrain.hyperedge import build_atom
-from graphbrain.parsers import create_parser
-from graphbrain.parsers import print_tree
+from hyperbase.cli import wrapper
+from hyperbase.colored import colored_atom
+from hyperbase.colored import colored_edge
+from hyperbase.colored import colored_type
+from hyperbase.hyperedge import build_atom
+from hyperbase.parsers import create_parser
+from hyperbase.parsers import print_tree
 
 
 # 'X' here means that the atom should be discarded

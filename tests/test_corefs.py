@@ -1,8 +1,8 @@
 import unittest
 
-from graphbrain import hedge
-from graphbrain import hgraph
-from graphbrain.utils.corefs import are_corefs, coref_id, coref_set, main_coref, make_corefs
+from hyperbase import hedge
+from hyperbase import hgraph
+from hyperbase.utils.corefs import are_corefs, coref_id, coref_set, main_coref, make_corefs
 
 
 class TestCorefs(unittest.TestCase):

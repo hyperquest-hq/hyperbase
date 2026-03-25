@@ -2,29 +2,29 @@
 Basic hypergraph operations
 ===========================
 
-At the heart of Graphbrain lies the Semantic Hypergraph (SH). In practical terms, we will talk simply about *hypergraphs*, and we will treat them as a type of database, which contains a searchable collection of hyperedges.
+At the heart of hyperbase lies the Semantic Hypergraph (SH). In practical terms, we will talk simply about *hypergraphs*, and we will treat them as a type of database, which contains a searchable collection of hyperedges.
 
-Graphbrain provides abstractions to create, modify and search persistent hypergraph databases, as well as to define and manipulate hyperedges. In this section we introduce these basic operations, upon which all aspects of the library rely on.
+hyperbase provides abstractions to create, modify and search persistent hypergraph databases, as well as to define and manipulate hyperedges. In this section we introduce these basic operations, upon which all aspects of the library rely on.
 
 
 
-The two central functions of Graphbrain: hgraph() and hedge()
+The two central functions of hyperbase: hgraph() and hedge()
 =============================================================
 
-The root namespace ``graphbrain`` contains the two most fundamental functions of the library:
+The root namespace ``hyperbase`` contains the two most fundamental functions of the library:
 
 - ``hgraph(locator_string)``, which creates/opens a persistent hypergraph.
 - ``hedge(source)``, which creates a hyperedge from a string or a Python list or tuple.
 
-In fact, the latter is implemented in ``graphbrain.hyperedge``, but it is imported to the root namespace by default for convenience. We will see that, with just these two functions, a lot can be achieved.
+In fact, the latter is implemented in ``hyperbase.hyperedge``, but it is imported to the root namespace by default for convenience. We will see that, with just these two functions, a lot can be achieved.
 
 
 Creating and manipulating hyperedges
 ====================================
 
-Graphbrain defines the object class ``Hyperedge``, which provides a variety of methods to work with hyperedges. The full interface of this class is described in the API reference. However, these objects are not meant to be instantiated directly. Instead, the ``hedge`` function can be used to create such an object directly from a string representation conforming to the SH notation. For example::
+hyperbase defines the object class ``Hyperedge``, which provides a variety of methods to work with hyperedges. The full interface of this class is described in the API reference. However, these objects are not meant to be instantiated directly. Instead, the ``hedge`` function can be used to create such an object directly from a string representation conforming to the SH notation. For example::
 
-   from graphbrain import hedge
+   from hyperbase import hedge
    edge = hedge('(plays/P.so mary/C chess/C)')
 
 In the above example, ``edge`` is an instance of the ``Hyperedge`` class. Hyerpedges are Python sequences. In fact, the class ``Hyperedge`` is derived from ``tuple``, so it makes it possible to do things such as::
@@ -60,14 +60,14 @@ Another frequently useful task if that of determining the type of a hyperedge::
 Creating and populating hypergraphs
 ===================================
 
-Graphbrain hypergraphs are created and/or opened like this::
+hyperbase hypergraphs are created and/or opened like this::
 
-   from graphbrain import hgraph
+   from hyperbase import hgraph
    hg = hgraph('example.db')
 
 The argument ``'example.db'`` corresponds to a local file in the filesystem, where the hypergraph is persisted. A full path can also be provided, e.g.: ``hgraph('users/alice/books.db')``. The object returned by this function is of type ``Hypergraph``. Like ``Hyperedge``, it provides a number of general-purpose methods to work with hypergraphs and is not meant to be directly instantiated.
 
-Graphbrain comes with a default implementation of hypergraph database based on SQLite 3. This is a nice general-purpose option, because it is available in all popular operating systems and Python comes with native support for it. Files with extensions ``.db``, ``.sqlite`` or ``.sqlite3`` will be opened as SQLite-based hypergraph databases. For other options, see `the section on hypergraph database backends </manual/backends.html>`_. One possible disadvantage of SQLite is that it is not very space-efficient. This can become a problem with large hypergraphs, and a better option in this case might be the LevelDB-based hypergraph database. This backend is not included by default because it is currently hard to install outside of Linux. To support LevelDB, you will need to build Graphbrain from source with a special option, `as explained in the installation instructions </installation.html#building-graphbrain-with-support-for-leveldb-hypergraph-databases>`_.
+hyperbase comes with a default implementation of hypergraph database based on SQLite 3. This is a nice general-purpose option, because it is available in all popular operating systems and Python comes with native support for it. Files with extensions ``.db``, ``.sqlite`` or ``.sqlite3`` will be opened as SQLite-based hypergraph databases. For other options, see `the section on hypergraph database backends </manual/backends.html>`_. One possible disadvantage of SQLite is that it is not very space-efficient. This can become a problem with large hypergraphs, and a better option in this case might be the LevelDB-based hypergraph database. This backend is not included by default because it is currently hard to install outside of Linux. To support LevelDB, you will need to build hyperbase from source with a special option, `as explained in the installation instructions </installation.html#building-hyperbase-with-support-for-leveldb-hypergraph-databases>`_.
 
 Adding hyperedges to a hypergraph is simple. For example, let us add the edge that was defined above::
 
@@ -103,7 +103,7 @@ As with ``Hyperedge``, the full range of methods of ``Hypergraph`` is documented
 Adding many hyperedges as a batch (for speed)
 =============================================
 
-With some hypergraph database backends, as is the case for the default one (SQLite 3), adding a large number of edges can be much faster if done in a batch. To help define such bath operations, Graphbrain includes the ``hopen()`` context manager, to be used with Python's ``with`` statements. This works in a very similarly to the ``with open...`` expressions often used with files::
+With some hypergraph database backends, as is the case for the default one (SQLite 3), adding a large number of edges can be much faster if done in a batch. To help define such bath operations, hyperbase includes the ``hopen()`` context manager, to be used with Python's ``with`` statements. This works in a very similarly to the ``with open...`` expressions often used with files::
 
    with hopen('example.db') as hg:
        for edge in large_edge_list:
@@ -114,7 +114,7 @@ Since it never hurts performance, it is advisable to always use ``with hopen...`
 The neighborhood of a hyperedge (star)
 ======================================
 
-Hypergraphs are fundamentally about relationships. In an analogous fashion to graphs/networks, the neighborhood of an entity (other entities that it is directly connected to) is a simple but powerful concept. With graphbrain, the ``star()`` method provides one type of neighborhood that is particularly natural for hypergraphs and has wide applicability: it produces the set of hyperedges that contain a given hyperedge. For example, let us populate a hypergraph like this:
+Hypergraphs are fundamentally about relationships. In an analogous fashion to graphs/networks, the neighborhood of an entity (other entities that it is directly connected to) is a simple but powerful concept. With hyperbase, the ``star()`` method provides one type of neighborhood that is particularly natural for hypergraphs and has wide applicability: it produces the set of hyperedges that contain a given hyperedge. For example, let us populate a hypergraph like this:
 
    >>> hg.add(hedge('(of/B.ma moon/C jupiter/C)'))
    >>> hg.add(hedge('(of/B.ma moon/C saturn/C)'))
@@ -163,7 +163,7 @@ An optional ``root`` argument can be added, further requiring the matching edges
 Searching for hyperedges
 ========================
 
-Another fundamental way to query a hyperedge is by search patterns. Search patterns are templates that match hyperedges. Graphbrain provides a sophisticated pattern language that allows for semantically rich modes of matching. This will be discussed in greater detail in the next section. For now, let us just consider the wildcard ``*``, which matches any hyperedge (atomic or not). For example, the pattern ``(of/B.ma * *)`` matches both of the previously defined hyperedges. The ``search()`` method of ``Hypergraph`` allows for search using these patterns. Like ``star()``, it returns a generator::
+Another fundamental way to query a hyperedge is by search patterns. Search patterns are templates that match hyperedges. hyperbase provides a sophisticated pattern language that allows for semantically rich modes of matching. This will be discussed in greater detail in the next section. For now, let us just consider the wildcard ``*``, which matches any hyperedge (atomic or not). For example, the pattern ``(of/B.ma * *)`` matches both of the previously defined hyperedges. The ``search()`` method of ``Hypergraph`` allows for search using these patterns. Like ``star()``, it returns a generator::
 
    >>> list(hg.search('(of/B.ma * *)'))
    [(of/B.ma moon/C jupiter/C), (of/B.ma moon/C saturn/C)]
@@ -172,9 +172,9 @@ Another fundamental way to query a hyperedge is by search patterns. Search patte
 Degrees and deep degrees
 ========================
 
-In conventional graph theory, there is the notion of the degree of a node, which is the number of other nodes that it is directly connected to. This is a simple but generally useful measure of the *centrality* of a node in the graph. In hypergraphs we can also have the same notion of degree, with the only difference that a single hyperedge can connect one entity to several others. Graphbrain keeps track of the degree of every hyperedge, and the ``Hypergraph`` class provides a method to obtain it::
+In conventional graph theory, there is the notion of the degree of a node, which is the number of other nodes that it is directly connected to. This is a simple but generally useful measure of the *centrality* of a node in the graph. In hypergraphs we can also have the same notion of degree, with the only difference that a single hyperedge can connect one entity to several others. hyperbase keeps track of the degree of every hyperedge, and the ``Hypergraph`` class provides a method to obtain it::
 
-   >>> from graphbrain import *
+   >>> from hyperbase import *
    >>> hg = hgraph('example.db')
    >>> hg.degree('alice/C')
    0

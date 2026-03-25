@@ -2,7 +2,7 @@
 Overview
 ========
 
-The *Semantic Hypergraph* is central to Graphbrain, both conceptually and functionally. It can be seen from three different perspectives:
+The *Semantic Hypergraph* is central to hyperbase, both conceptually and functionally. It can be seen from three different perspectives:
 
 * as an intermediary between natural and formal languages
 * as a knowledge model
@@ -80,7 +80,7 @@ Thus, another relevant concept is that of a *claim*. A claim is an assertion tha
 As database
 ===========
 
-At a more concrete level, Graphbrain provides an actual database system that allows for persistent storage and manipulation of semantic hypergraphs.
+At a more concrete level, hyperbase provides an actual database system that allows for persistent storage and manipulation of semantic hypergraphs.
 
 The idea is for this database system to guarantee a certain interface (API), and allow for various backend implementations (e.g.: local, distributed, memory-only). This interface allows for fundamental tasks such as:
 
@@ -102,8 +102,8 @@ It produces new hyperedges such as::
 
 Certain agents use outside sources to introduce knowledge into hypergraphs. For example, the *txt_parser* agent receives as input a simple text file and converters each sentence that it detects in it into an hyperedge.
 
-You can find the full list of agents that are distributed with Graphbrain here:
+You can find the full list of agents that are distributed with hyperbase here:
 
-https://graphbrain.net/manual/agents.html
+https://hyperbase.net/manual/agents.html
 
 

@@ -1,7 +1,7 @@
-from graphbrain import hedge
-from graphbrain.cli import wrapper
-from graphbrain.parsers import create_parser
-from graphbrain.parsers import print_tree
+from hyperbase import hedge
+from hyperbase.cli import wrapper
+from hyperbase.parsers import create_parser
+from hyperbase.parsers import print_tree
 
 
 def test_parser(args):

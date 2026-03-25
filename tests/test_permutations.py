@@ -1,6 +1,6 @@
 import unittest
 
-from graphbrain.memory.permutations import *
+from hyperbase.memory.permutations import *
 
 
 class TestPermutations(unittest.TestCase):
@@ -220,7 +220,7 @@ class TestPermutations(unittest.TestCase):
         self.assertEqual(edge, hedge(('a', 'b', 'c')))
 
     def test_str_plus_1_1(self):
-        self.assertEqual(str_plus_1('graphbrain'), 'graphbraio')
+        self.assertEqual(str_plus_1('hyperbase'), 'hyperbasf')
 
     def test_str_plus_1_2(self):
         self.assertEqual(str_plus_1('zzz'), 'zz{')

@@ -1,6 +1,6 @@
-from graphbrain import *
-from graphbrain.cli import wrapper
-from graphbrain.parsers import *
+from hyperbase import *
+from hyperbase.cli import wrapper
+from hyperbase.parsers import *
 
 
 def update_tests(args):

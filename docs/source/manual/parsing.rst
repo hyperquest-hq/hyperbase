@@ -3,15 +3,15 @@ Parsing natural language
 ========================
 
 
-Parsing natural language to semantic hypergraphs is another crucial aspect of Graphbrain. This aspect of the library is covered by the ``graphbrain.parsers`` package. Let us see how to create a parser, and how to use it to parse a sentence::
+Parsing natural language to semantic hypergraphs is another crucial aspect of hyperbase. This aspect of the library is covered by the ``hyperbase.parsers`` package. Let us see how to create a parser, and how to use it to parse a sentence::
 
-   >>> from graphbrain.parsers import create_parser
+   >>> from hyperbase.parsers import create_parser
    >>> parser = create_parser(lang='en')
    >>> parse_results = parser.parse('Einstein first published the theory of relativity in 1905')
    >>> parse_results['parses'][0]['main_edge']
    ((first/M/en published/Pd.sox.<f-----/en) einstein/Cp.s/en (of/Br.ma/en (the/Md/en theory/Cc.s/en) relativity/Cc.s/en) (in/Tt/en 1905/C#/en))
 
-Notice that ``create_parser()`` takes a some time (10 to 20 seconds is normal), because it has to load the underlying language models. Here we pass it the only mandatory parameter, which is the name of the parser to use. This will typically correspond to the language to parse. Currently only one parser for English is provided ("en"), but Graphbrain already comes with auxiliary scripts to help in the development of parsers for other languages.
+Notice that ``create_parser()`` takes a some time (10 to 20 seconds is normal), because it has to load the underlying language models. Here we pass it the only mandatory parameter, which is the name of the parser to use. This will typically correspond to the language to parse. Currently only one parser for English is provided ("en"), but hyperbase already comes with auxiliary scripts to help in the development of parsers for other languages.
 
 We also see that we specify a position in the ``parse_results`` data structure (at the top-level, it is a dictionary) to directly access the hyperedge that corresponds to the parsed sentence. This is because ``parse_results`` includes useful additional information about the parsed text, and also because the parsed text can correspond to more than one hyperedge. So let us take a look at the full contents of ``parse_results`` from the example above::
 
@@ -58,13 +58,13 @@ Each parse dictionary (i.e. each item in ``parses``, corresponding to one senten
 Lemmas
 ======
 
-When creating a parser, it is possible to require it to also produce lemma relationships. Lemmas are linguistic roots of words, for example the infinitive tense of a verb or the singular form of a known. They are represented by Graphbrain in hyperedges like this::
+When creating a parser, it is possible to require it to also produce lemma relationships. Lemmas are linguistic roots of words, for example the infinitive tense of a verb or the singular form of a known. They are represented by hyperbase in hyperedges like this::
 
    (lemma/J/. published/P/en publish/P/en)
 
 The special conjunction ``lemma/J/.`` indicates a lemma specification, followed by the atom and its lemma form. Notice that only the main type is considered and other role information is removed, because these are not relevant to the lemma relationship and would reduce generality. Let us see the example above with lemmas enabled::
 
-   >>> from graphbrain.parsers import create_parser
+   >>> from hyperbase.parsers import create_parser
    >>> parser = create_parser(lang='en', lemmas=True)
    >>> parser.parse('Einstein first published the theory of relativity in 1905')
    {'parses':

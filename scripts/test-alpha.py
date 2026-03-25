@@ -1,7 +1,7 @@
 from collections import Counter
 
-from graphbrain.cli import wrapper
-from graphbrain.parsers.alpha import Alpha
+from hyperbase.cli import wrapper
+from hyperbase.parsers.alpha import Alpha
 
 
 def test_alpha(args):

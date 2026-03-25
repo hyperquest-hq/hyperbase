@@ -2,11 +2,11 @@ import statistics
 
 from termcolor import colored
 
-from graphbrain import hedge
-from graphbrain.cli import wrapper
-from graphbrain.colored import colored_edge
-from graphbrain.colored import indented
-from graphbrain.parsers import create_parser
+from hyperbase import hedge
+from hyperbase.cli import wrapper
+from hyperbase.colored import colored_edge
+from hyperbase.colored import indented
+from hyperbase.parsers import create_parser
 
 
 class ManualEvaluation(object):

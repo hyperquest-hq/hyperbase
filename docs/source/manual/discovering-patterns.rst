@@ -2,7 +2,7 @@
 Discovering patterns
 ====================
 
-Patterns are useful to identify hyperedge structures from which knowledge can be inferred. To facilitate the discovery of such patterns, Graphbrain provides the ``PatternCounter``, a class in the ``graphbrain.patterns`` module. By creating an instance of this class, one can feed it a collection of hyperedges and then obtain the most frequent patterns inferred from these hyperedges. This way, empirical sources can be used to guide the discovery of knowledge inference methods. We will see that ``PatternCounter`` can be tuned to focus on specific constructs and to operate at different levels of abstraction.
+Patterns are useful to identify hyperedge structures from which knowledge can be inferred. To facilitate the discovery of such patterns, hyperbase provides the ``PatternCounter``, a class in the ``hyperbase.patterns`` module. By creating an instance of this class, one can feed it a collection of hyperedges and then obtain the most frequent patterns inferred from these hyperedges. This way, empirical sources can be used to guide the discovery of knowledge inference methods. We will see that ``PatternCounter`` can be tuned to focus on specific constructs and to operate at different levels of abstraction.
 
 
 A simple example
@@ -10,13 +10,13 @@ A simple example
 
 To exemplify, let us first generate a hypergraph parsed from real text. For this, we will use the "wikipedia" reader / parser, which extracts the text from a Wikipedia page identified by it's URL, and then populates a hypergraph by parsing each sentence of the text into a hyperedge. Let us run this reader / parser from the command line::
 
-   $ graphbrain --hg ai.db --url https://en.wikipedia.org/wiki/Artificial_intelligence wikipedia
+   $ hyperbase --hg ai.db --url https://en.wikipedia.org/wiki/Artificial_intelligence wikipedia
 
 
 Once it finishes, we will have the ``ai.db`` hypergraph database in the current directory. Let us now simply find the most common patterns in this hypergraph::
 
-   from graphbrain import hgraph
-   from graphbrain.patterns import PatternCounter
+   from hyperbase import hgraph
+   from hyperbase.patterns import PatternCounter
 
    hg = hgraph('ai.db')
    pc = PatternCounter()

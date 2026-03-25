@@ -6,7 +6,7 @@ from os import listdir
 from os.path import isfile
 from os.path import join
 
-from graphbrain.cli import wrapper
+from hyperbase.cli import wrapper
 
 
 class SentenceExtractor(object):

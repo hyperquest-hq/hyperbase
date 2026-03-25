@@ -2,7 +2,7 @@
 Hypergraph database backends
 ============================
 
-In the future, we expect other hypergraph database backends to be included in the library (for example, fully in-memory hypergraphs for even higher performance at relatively small sizes, or distributed hypergraphs for huge datasets, fault-tolerance, etc.). Graphbrain is an open source project, so contributions from people interested in developing such implementations are very welcome!
+In the future, we expect other hypergraph database backends to be included in the library (for example, fully in-memory hypergraphs for even higher performance at relatively small sizes, or distributed hypergraphs for huge datasets, fault-tolerance, etc.). hyperbase is an open source project, so contributions from people interested in developing such implementations are very welcome!
 
 
 SQLite 3
@@ -14,7 +14,7 @@ SQLite 3
 
 **Cons:** not space-efficient; not as fast as LevelDB
 
-This backend comes with vamilla Graphbrain.
+This backend comes with vamilla hyperbase.
 
 
 LevelDB
@@ -31,7 +31,7 @@ LevelDB is a local filesytem-based high-performance key-value store.
 Anaconda on macOS
 -----------------
 
-We have found cases where the plyvel library that is installed as a dependency by Graphbrain does not work in Anaconda environments. This was observed on macOS Big Sur, on MacBook Pro laptops with the M1 chip. It is unknown if it might apply in other cases.
+We have found cases where the plyvel library that is installed as a dependency by hyperbase does not work in Anaconda environments. This was observed on macOS Big Sur, on MacBook Pro laptops with the M1 chip. It is unknown if it might apply in other cases.
 
 You might get error messages such as this one::
 

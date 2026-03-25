@@ -1,7 +1,7 @@
 [project]
-name = "graphbrain"
+name = "hyperbase"
 dynamic = ["version"]
-description = "Semantic Hypergraph Tools"
+description = "A foundational toolkit for Semantic Hypergraphs"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
@@ -55,10 +55,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://graphbrain.net"
+Homepage = "https://hyperquest.ai/hyperbase"
 
 [project.scripts]
-graphbrain = "graphbrain.cli:cli"
+hyperbase = "hyperbase.cli:cli"
 
 [build-system]
 requires = ["hatchling"]
@@ -69,7 +69,7 @@ path = "VERSION"
 pattern = "(?P<version>.+)"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/graphbrain"]
+packages = ["src/hyperbase"]
 
 [tool.mypy]
 strict = true

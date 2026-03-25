@@ -18,7 +18,7 @@ Use Cases
    <table style="border-style: none; border-spacing: 25px; border-collapse: separate;">
       <tr>
          <td>
-            <a href="https://graphbrain.net/_static/one-pagers/GB-A.pdf">
+            <a href="https://hyperbase.net/_static/one-pagers/GB-A.pdf">
                <img src="_static/one-pagers/GB-A_thumb.png" width="200px" />
             </a>
          </td>
@@ -26,12 +26,12 @@ Use Cases
             <strong>Use Case A: Conflict Networks</strong> <br />
             Extract inter-actor conflict network and topics of conflict from news headers.<br />
             <br />
-            <a href="https://graphbrain.net/_static/one-pagers/GB-A.pdf">Download here</a>
+            <a href="https://hyperbase.net/_static/one-pagers/GB-A.pdf">Download here</a>
          </td>
       </tr>
       <tr>
          <td>
-            <a href="https://graphbrain.net/_static/one-pagers/GB-C.pdf">
+            <a href="https://hyperbase.net/_static/one-pagers/GB-C.pdf">
                <img src="_static/one-pagers/GB-C_thumb.png" width="200px" />
             </a>
          </td>
@@ -39,7 +39,7 @@ Use Cases
             <strong>Use Case C: Scientific Results</strong> <br />
             Identify positive and negative results in scientific articles.<br />
             <br />
-            <a href="https://graphbrain.net/_static/one-pagers/GB-C.pdf">Download here</a>
+            <a href="https://hyperbase.net/_static/one-pagers/GB-C.pdf">Download here</a>
          </td>
       </tr>
    </table>

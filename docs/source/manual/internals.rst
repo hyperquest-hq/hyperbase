@@ -1,5 +1,5 @@
 ==================================
-Internals and extending Graphbrain
+Internals and extending hyperbase
 ==================================
 
 .. toctree::

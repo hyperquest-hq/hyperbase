@@ -2,7 +2,7 @@
 Tutorials and examples
 ======================
 
-We provide a sequence of tutorials and examples of increasing complexity, to illustrate how to perform common and useful tasks with Graphbrain.
+We provide a sequence of tutorials and examples of increasing complexity, to illustrate how to perform common and useful tasks with hyperbase.
 
 .. toctree::
    :maxdepth: 2

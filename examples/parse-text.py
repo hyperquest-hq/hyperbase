@@ -1,4 +1,4 @@
-from graphbrain.parsers import create_parser, print_tree
+from hyperbase.parsers import create_parser, print_tree
 
 
 if __name__ == '__main__':

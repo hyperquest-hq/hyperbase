@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# GraphBrain documentation build_symbol configuration file, created by
+# hyperbase documentation build_symbol configuration file, created by
 # sphinx-quickstart on Tue Oct 10 12:25:39 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -54,7 +54,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Graphbrain'
+project = 'hyperbase'
 copyright = '2026 CNRS'
 author = 'Telmo Menezes et al.'
 
@@ -106,13 +106,13 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_logo = '_static/graphbrain-logo.png'
+html_logo = '_static/hyperbase-logo.png'
 
 html_favicon = '_static/favicon.png'
 
 # html_show_sourcelink = False
 
 rst_prolog = """
-:github_url: https://github.com/graphbrain/graphbrain
+:github_url: https://github.com/hyperbase/hyperbase
 """
 html_show_sphinx = False
