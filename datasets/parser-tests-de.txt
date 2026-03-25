@@ -1,8 +1,0 @@
-Ich bin Telmo.
-(bin/Pd.sc.-f-i---/de ich/Ci/de telmo/Cp/de)
-Kommunikation ist ein Grundbedürfnis des Menschen.
-(ist/Pd.sc.-f-i---/de kommunikation/Cc/de (ein/Md/de (des/Bp.ma/de grundbedürfnis/Cc/de menschen/Cc/de)))
-Berlin ist die Bundeshauptstadt der Bundesrepublik Deutschland und zugleich eines ihrer Länder.
-(ist/Pd.sc.-f-i---/de berlin/Cp/de (und/J/de (die/Md/de (der/Bp.ma/de bundeshauptstadt/Cc/de (+/B.mm/. bundesrepublik/Cc/de deutschland/Cp/de))) (zugleich/T/de (eines/M_/de (ihrer/Mp/de länder/Cc/de)))))
-Derzeit stehen 274 Medikamente als nicht lieferbar auf der Internetseite des Bundesinstituts für Arzneimittel und Medizinprodukte.
-((derzeit/M/de stehen/Pd.sxx.-f-i---/de) (274/M#/de medikamente/Cc/de) (als/T/de (nicht/Mn/de lieferbar/Ca/de)) (auf/T/de (der/Md/de (des/Bp.ma/de internetseite/Cc/de (für/Bp.ma/de bundesinstituts/Cc/de (und/J/de arzneimittel/Cc/de medizinprodukte/Cc/de))))))
