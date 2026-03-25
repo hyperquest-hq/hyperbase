@@ -13,6 +13,7 @@
 
 ### Removed
 
+- hypergraph module, hypergraph database (memory module).
 - old scripts, examples, processors.
 
 ## [0.7.0] - 05-03-2026
