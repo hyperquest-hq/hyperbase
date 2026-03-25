@@ -1,5 +1,4 @@
 from hyperbase.patterns.common import common_pattern
-from hyperbase.patterns.counter import PatternCounter
 from hyperbase.patterns.entrypoints import match_pattern, edge_matches_pattern
 from hyperbase.patterns.merge import merge_patterns
 from hyperbase.patterns.properties import (is_wildcard, is_pattern, is_full_pattern, is_fun_pattern,
@@ -26,6 +25,5 @@ __all__ = [
     'match_pattern',
     'merge_patterns',
     'more_general',
-    'PatternCounter',
     'remove_variables'
 ]

@@ -1,31 +1,22 @@
 from collections import Counter
-from typing import List, Dict
 
 from hyperbase import hedge
-from hyperbase.hyperedge import Hyperedge
-from hyperbase.hypergraph import Hypergraph
 from hyperbase.patterns.argroles import _match_by_argroles
 from hyperbase.patterns.atoms import _matches_atomic_pattern
 from hyperbase.patterns.properties import is_fun_pattern, is_pattern, FUNS
 from hyperbase.patterns.utils import _defun_pattern_argroles, _atoms_and_tok_pos
 from hyperbase.patterns.variables import _varname, _assign_edge_to_var
-from hyperbase.utils.lemmas import lemma
 
 
 class Matcher:
     def __init__(
             self,
-            edge: Hyperedge,
-            pattern: Hyperedge,
-            curvars: dict = None,
-            tok_pos: Hyperedge = None,
-            skip_semsim: bool = False,
-            hg: Hypergraph = None
+            edge,
+            pattern,
+            curvars=None,
+            tok_pos=None
     ):
-        self.hg: Hypergraph = hg
-        self.skip_semsim: bool = skip_semsim
-
-        self.results: List[Dict] = self.match(edge, pattern, curvars=curvars, tok_pos=tok_pos)
+        self.results = self.match(edge, pattern, curvars=curvars, tok_pos=tok_pos)
 
     def match(self, edge, pattern, curvars=None, tok_pos=None):
         if curvars is None:
@@ -178,28 +169,6 @@ class Matcher:
 
         return results
 
-    # TODO: deal with argroles
-    def _match_lemma(self, lemma_pattern, edge, curvars):
-        if self.hg is None:
-            raise RuntimeError('Lemma pattern function requires hypergraph.')
-
-        if edge.not_atom:
-            return []
-
-        _lemma = lemma(self.hg, edge, same_if_none=True)
-
-        # add argroles to _lemma if needed
-        ar = edge.argroles()
-        if ar != '':
-            parts = _lemma.parts()
-            parts[1] = '{}.{}'.format(parts[1], ar)
-            _lemma = hedge('/'.join(parts))
-
-        if _matches_atomic_pattern(_lemma, lemma_pattern):
-            return [curvars]
-
-        return []
-
     def _match_fun_pat(self, edge, fun_pattern, curvars, tok_pos=None) -> list:
         fun = fun_pattern[0].root()
 
@@ -253,7 +222,5 @@ class Matcher:
                 if len(matches) > 0:
                     return matches
             return []
-        elif fun == 'lemma':
-            return self._match_lemma(fun_pattern[1], edge, curvars)
         else:
             raise NotImplementedError(f"Pattern function '{fun}' not implemented.")

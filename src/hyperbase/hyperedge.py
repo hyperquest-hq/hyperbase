@@ -734,7 +734,7 @@ class Atom(Hyperedge):
 
     def root(self) -> str:
         """Extracts the root of an atom
-        (e.g. the root of hypercore/C/1 is hypercore)."""
+        (e.g. the root of hyperbase/C/1 is hyperbase)."""
         return self.parts()[0]
 
     def replace_atom_part(self, part_pos: int, part: str) -> Atom:
@@ -891,7 +891,7 @@ class Atom(Hyperedge):
 
         The role of an atom is its second part, right after the root.
         A dot notation is used to separate the subroles. For example,
-        the role of hypercore/Cp.s/1 is:
+        the role of hyperbase/Cp.s/1 is:
 
             Cp.s
 
@@ -947,7 +947,7 @@ class Atom(Hyperedge):
         """Returns the type of the atom.
 
         The type of an atom is its first subrole. For example, the
-        type of hypercore/Cp.s/1 is 'Cp'.
+        type of hyperbase/Cp.s/1 is 'Cp'.
 
         If the atom only has a root, it is assumed to be a conjunction.
         In this case, this function returns the generic conjunction type: 'J'.

@@ -1,8 +1,4 @@
-from typing import Union
-
 from hyperbase import hedge
-from hyperbase.hyperedge import Hyperedge
-from hyperbase.hypergraph import Hypergraph
 from hyperbase.patterns.properties import is_fun_pattern
 from hyperbase.patterns.variables import is_variable
 
@@ -59,26 +55,6 @@ def _normalize_fun_patterns(pattern):
                 return hedge(new_pattern)
 
     return pattern
-
-
-def _edge_tok_pos(edge: Hyperedge, hg: Hypergraph = None) -> Union[Hyperedge, None]:
-    if hg is None:
-        # logger.debug(f"No hypergraph given to retrieve 'tok_pos' attribute for edge")
-        return None
-
-    tok_pos_str: str = hg.get_str_attribute(edge, "tok_pos")
-    # edge is not a root edge
-    if not tok_pos_str:
-        # logger.debug(f"Edge has no 'tok_pos' string attribute: {edge}")
-        return None
-
-    try:
-        tok_pos_hedge: Hyperedge = hedge(tok_pos_str)
-    except ValueError:
-        # logger.warning(f"Edge has invalid 'tok_pos' attribute: {edge}")
-        return None
-
-    return tok_pos_hedge
 
 
 def is_valid(edge, _vars=None):

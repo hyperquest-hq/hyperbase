@@ -1,6 +1,6 @@
 from typing import Set
 
-FUNS: Set[str] = {'var', 'atoms', 'lemma', 'any'}
+FUNS: Set[str] = {'var', 'atoms', 'lemma', 'any'} # | SEMSIM_FUNS.keys()
 
 def is_wildcard(atom):
     """Check if this atom defines a wildcard, i.e. if its root is a pattern matcher.
