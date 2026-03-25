@@ -1,14 +1,19 @@
 # Changelog
 
-## [0.7.1] - ongoing
+## [0.8.0] - ongoing
 
 ### Added
 
+- more comprehensive Hyperedge.check_correctness
+
 ### Changed
 
-- Replaced pkg_resources with importlib.resources.files() in parser_en.
+- renamed library to hyperbase.
+- trimmed down library to the essentials: hyperedge, patterns and parser foundations.
 
 ### Removed
+
+- old scripts, examples, processors.
 
 ## [0.7.0] - 05-03-2026
 ### Added

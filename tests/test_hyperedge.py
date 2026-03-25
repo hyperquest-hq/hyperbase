@@ -5,11 +5,11 @@ from hyperbase.hyperedge import hedge, build_atom, str2atom, split_edge_str
 
 class TestHyperedge(unittest.TestCase):
     def test_hedge1(self):
-        self.assertEqual(hedge('(is hyperbase/1 great/1)').to_str(), '(is hyperbase/1 great/1)')
+        self.assertEqual(hedge('(is hypercore/1 great/1)').to_str(), '(is hypercore/1 great/1)')
 
     def test_hedge2(self):
-        self.assertEqual(hedge('(src hyperbase/1 (is hyperbase/1 great/1))').to_str(),
-                         '(src hyperbase/1 (is hyperbase/1 great/1))')
+        self.assertEqual(hedge('(src hypercore/1 (is hypercore/1 great/1))').to_str(),
+                         '(src hypercore/1 (is hypercore/1 great/1))')
 
     def test_hedge3(self):
         self.assertEqual(hedge('((is my) brain/1 (super great/1))').to_str(), '((is my) brain/1 (super great/1))')
@@ -27,22 +27,22 @@ class TestHyperedge(unittest.TestCase):
         self.assertTrue(hedge('a').atom)
 
     def test_atom2(self):
-        self.assertTrue(hedge('hyperbase/C').atom)
+        self.assertTrue(hedge('hypercore/C').atom)
 
     def test_atom3(self):
-        self.assertTrue(hedge('hyperbase/Cn.p/1').atom)
+        self.assertTrue(hedge('hypercore/Cn.p/1').atom)
 
     def test_atom4(self):
         self.assertTrue(hedge('(X/C)').atom)
 
     def test_atom5(self):
-        self.assertFalse(hedge('(is/Pd.sc hyperbase/Cp.s great/C)').atom)
+        self.assertFalse(hedge('(is/Pd.sc hypercore/Cp.s great/C)').atom)
 
     def test_atom_parts1(self):
-        self.assertEqual(hedge('hyperbase/C').parts(), ['hyperbase', 'C'])
+        self.assertEqual(hedge('hypercore/C').parts(), ['hypercore', 'C'])
 
     def test_atom_parts2(self):
-        self.assertEqual(hedge('hyperbase').parts(), ['hyperbase'])
+        self.assertEqual(hedge('hypercore').parts(), ['hypercore'])
 
     def test_atom_parts3(self):
         self.assertEqual(hedge('go/P.so/1').parts(), ['go', 'P.so', '1'])
@@ -51,19 +51,19 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(hedge('(X/P.so/1)').parts(), ['X', 'P.so', '1'])
 
     def test_root1(self):
-        self.assertEqual(hedge('hyperbase/C').root(), 'hyperbase')
+        self.assertEqual(hedge('hypercore/C').root(), 'hypercore')
 
     def test_root2(self):
         self.assertEqual(hedge('go/P.so/1').root(), 'go')
 
     def test_build_atom1(self):
-        self.assertEqual(build_atom('hyperbase', 'C'), hedge('hyperbase/C'))
+        self.assertEqual(build_atom('hypercore', 'C'), hedge('hypercore/C'))
 
     def test_build_atom2(self):
         self.assertEqual(build_atom('go', 'P.so', '1'), hedge('go/P.so/1'))
 
     def test_replace_atom_part1(self):
-        self.assertEqual(hedge('hyperbase/C').replace_atom_part(0, 'x'), hedge('x/C'))
+        self.assertEqual(hedge('hypercore/C').replace_atom_part(0, 'x'), hedge('x/C'))
 
     def test_replace_atom_part2(self):
         self.assertEqual(hedge('xxx/1/yyy').replace_atom_part(1, '77'), hedge('xxx/77/yyy'))
@@ -105,34 +105,34 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(str2atom('graph brain/(1).'), 'graph%20brain%2f%281%29%2e')
 
     def test_split_edge_str1(self):
-        self.assertEqual(split_edge_str('is hyperbase/1 great/1'), ('is', 'hyperbase/1', 'great/1'))
+        self.assertEqual(split_edge_str('is hypercore/1 great/1'), ('is', 'hypercore/1', 'great/1'))
 
     def test_split_edge_str2(self):
-        self.assertEqual(split_edge_str('size hyperbase/1 7'), ('size', 'hyperbase/1', '7'))
+        self.assertEqual(split_edge_str('size hypercore/1 7'), ('size', 'hypercore/1', '7'))
 
     def test_split_edge_str3(self):
-        self.assertEqual(split_edge_str('size hyperbase/1 7.0'), ('size', 'hyperbase/1', '7.0'))
+        self.assertEqual(split_edge_str('size hypercore/1 7.0'), ('size', 'hypercore/1', '7.0'))
 
     def test_split_edge_str4(self):
-        self.assertEqual(split_edge_str('size hyperbase/1 -7'), ('size', 'hyperbase/1', '-7'))
+        self.assertEqual(split_edge_str('size hypercore/1 -7'), ('size', 'hypercore/1', '-7'))
 
     def test_split_edge_str5(self):
-        self.assertEqual(split_edge_str('size hyperbase/1 -7.0'), ('size', 'hyperbase/1', '-7.0'))
+        self.assertEqual(split_edge_str('size hypercore/1 -7.0'), ('size', 'hypercore/1', '-7.0'))
 
     def test_split_edge_str6(self):
-        self.assertEqual(split_edge_str('src hyperbase/1 (is hyperbase/1 great/1)'),
-                         ('src', 'hyperbase/1', '(is hyperbase/1 great/1)'))
+        self.assertEqual(split_edge_str('src hypercore/1 (is hypercore/1 great/1)'),
+                         ('src', 'hypercore/1', '(is hypercore/1 great/1)'))
 
     def test_to_str(self):
         self.assertEqual(
-            hedge('(is hyperbase/C great/C)').to_str(), '(is hyperbase/C great/C)')
-        self.assertEqual(hedge('(src hyperbase/C (is hyperbase/C great/C))').to_str(),
-                         '(src hyperbase/C (is hyperbase/C great/C))')
+            hedge('(is hypercore/C great/C)').to_str(), '(is hypercore/C great/C)')
+        self.assertEqual(hedge('(src hypercore/C (is hypercore/C great/C))').to_str(),
+                         '(src hypercore/C (is hypercore/C great/C))')
 
     def test_ent2str_roots_only(self):
-        self.assertEqual(hedge('(is hyperbase/C great/C)').to_str(roots_only=True), '(is hyperbase great)')
-        self.assertEqual(hedge('(src hyperbase/C (is hyperbase/C great/C))').to_str(roots_only=True),
-                         '(src hyperbase (is hyperbase great))')
+        self.assertEqual(hedge('(is hypercore/C great/C)').to_str(roots_only=True), '(is hypercore great)')
+        self.assertEqual(hedge('(src hypercore/C (is hypercore/C great/C))').to_str(roots_only=True),
+                         '(src hypercore (is hypercore great))')
 
     def test_label1(self):
         self.assertEqual(hedge('graph%20brain%2f%281%29%2e/Cn.s/.').label(), 'graph brain/(1).')
@@ -153,31 +153,31 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(hedge('(of/B capital/C (and/B belgium/C europe/C))').label(), 'capital of belgium and europe')
 
     def test_connector_atom1(self):
-        edge = hedge('(is/P.sc hyperbase/1 great/1)')
+        edge = hedge('(is/P.sc hypercore/1 great/1)')
         self.assertEqual(edge.connector_atom(), hedge('is/P.sc'))
 
     def test_connector_atom2(self):
-        edge = hedge('((not/M is/P.sc) hyperbase/1 great/1)')
+        edge = hedge('((not/M is/P.sc) hypercore/1 great/1)')
         self.assertEqual(edge.connector_atom(), hedge('is/P.sc'))
 
     def test_connector_atom3(self):
-        edge = hedge('((maybe/M (not/M is/P.sc)) hyperbase/1 great/1)')
+        edge = hedge('((maybe/M (not/M is/P.sc)) hypercore/1 great/1)')
         self.assertEqual(edge.connector_atom(), hedge('is/P.sc'))
 
     def test_connector_atom4(self):
-        edge = hedge('(((and/J not/M nope/M) is/P.sc) hyperbase/1 great/1)')
+        edge = hedge('(((and/J not/M nope/M) is/P.sc) hypercore/1 great/1)')
         self.assertEqual(edge.connector_atom(), hedge('is/P.sc'))
 
     def test_atoms1(self):
-        self.assertEqual(hedge('(is hyperbase/1 great/1)').atoms(),
-                         {hedge('is'), hedge('hyperbase/1'), hedge('great/1')})
+        self.assertEqual(hedge('(is hypercore/1 great/1)').atoms(),
+                         {hedge('is'), hedge('hypercore/1'), hedge('great/1')})
 
     def test_atoms2(self):
-        self.assertEqual(hedge('(src hyperbase/2 (is hyperbase/1 great/1))').atoms(),
-                         {hedge('is'), hedge('hyperbase/1'), hedge('great/1'), hedge('src'), hedge('hyperbase/2')})
+        self.assertEqual(hedge('(src hypercore/2 (is hypercore/1 great/1))').atoms(),
+                         {hedge('is'), hedge('hypercore/1'), hedge('great/1'), hedge('src'), hedge('hypercore/2')})
 
     def test_atoms3(self):
-        self.assertEqual(hedge('hyperbase/1').atoms(), {hedge('hyperbase/1')})
+        self.assertEqual(hedge('hypercore/1').atoms(), {hedge('hypercore/1')})
 
     def test_atoms4(self):
         edge = hedge('(the/Md (of/Br mayor/Cc (the/Md city/Cs)))')
@@ -185,15 +185,15 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(hedge('(is (X/C) great/1)').atoms(), {hedge('is'), hedge('(X/C)'), hedge('great/1')})
 
     def test_all_atoms1(self):
-        self.assertEqual(hedge('(is hyperbase/1 great/1)').all_atoms(),
-                         [hedge('is'), hedge('hyperbase/1'), hedge('great/1')])
+        self.assertEqual(hedge('(is hypercore/1 great/1)').all_atoms(),
+                         [hedge('is'), hedge('hypercore/1'), hedge('great/1')])
 
     def test_all_atoms2(self):
-        self.assertEqual(hedge('(src hyperbase/2 (is hyperbase/1 great/1))').all_atoms(),
-                         [hedge('src'), hedge('hyperbase/2'), hedge('is'), hedge('hyperbase/1'), hedge('great/1')])
+        self.assertEqual(hedge('(src hypercore/2 (is hypercore/1 great/1))').all_atoms(),
+                         [hedge('src'), hedge('hypercore/2'), hedge('is'), hedge('hypercore/1'), hedge('great/1')])
 
     def test_all_atoms3(self):
-        self.assertEqual(hedge('hyperbase/1').all_atoms(), [hedge('hyperbase/1')])
+        self.assertEqual(hedge('hypercore/1').all_atoms(), [hedge('hypercore/1')])
 
     def test_all_atoms4(self):
         edge = hedge('(the/Md (of/Br mayor/Cc (the/Md city/Cs)))')
@@ -206,37 +206,37 @@ class TestHyperedge(unittest.TestCase):
                          [hedge('the/Md'), hedge('of/Br'), hedge('(X/C)'), hedge('the/Md'), hedge('city/Cs')])
 
     def test_size1(self):
-        self.assertEqual(hedge('hyperbase/1').size(), 1)
+        self.assertEqual(hedge('hypercore/1').size(), 1)
 
     def test_size2(self):
         self.assertEqual(hedge('(X/C)').size(), 1)
 
     def test_size3(self):
-        self.assertEqual(hedge('(is hyperbase/1 great/1)').size(), 3)
+        self.assertEqual(hedge('(is hypercore/1 great/1)').size(), 3)
 
     def test_size4(self):
-        self.assertEqual(hedge('(is hyperbase/1 (super great/1))').size(), 4)
+        self.assertEqual(hedge('(is hypercore/1 (super great/1))').size(), 4)
 
     def test_depth1(self):
-        self.assertEqual(hedge('hyperbase/1').depth(), 0)
+        self.assertEqual(hedge('hypercore/1').depth(), 0)
 
     def test_depth2(self):
-        self.assertEqual(hedge('(is hyperbase/1 great/1)').depth(), 1)
+        self.assertEqual(hedge('(is hypercore/1 great/1)').depth(), 1)
 
     def test_depth3(self):
-        self.assertEqual(hedge('(is hyperbase/1 (super great/1))').depth(), 2)
+        self.assertEqual(hedge('(is hypercore/1 (super great/1))').depth(), 2)
 
     def test_depth4(self):
-        self.assertEqual(hedge('(is hyperbase/1 (super (X/C)))').depth(), 2)
+        self.assertEqual(hedge('(is hypercore/1 (super (X/C)))').depth(), 2)
 
     def test_roots1(self):
-        self.assertEqual(hedge('hyperbase/1').roots(), hedge('hyperbase'))
+        self.assertEqual(hedge('hypercore/1').roots(), hedge('hypercore'))
 
     def test_roots2(self):
-        self.assertEqual(hedge('(is hyperbase/1 great/1)').roots(), hedge('(is hyperbase great)'))
+        self.assertEqual(hedge('(is hypercore/1 great/1)').roots(), hedge('(is hypercore great)'))
 
     def test_roots3(self):
-        self.assertEqual(hedge('(is hyperbase/1 (super great/1))').roots(), hedge('(is hyperbase (super great))'))
+        self.assertEqual(hedge('(is hypercore/1 (super great/1))').roots(), hedge('(is hypercore (super great))'))
 
     def test_contains(self):
         edge = hedge('(is/Pd.sc piron/C (of/B capital/C piripiri/C))')
@@ -271,20 +271,20 @@ class TestHyperedge(unittest.TestCase):
         self.assertFalse(edge.contains(hedge('1111/C'), deep=True))
 
     def test_subedges1(self):
-        self.assertEqual(hedge('hyperbase/1').subedges(), {hedge('hyperbase/1')})
+        self.assertEqual(hedge('hypercore/1').subedges(), {hedge('hypercore/1')})
 
     def test_subedges2(self):
-        self.assertEqual(hedge('(is hyperbase/1 great/1)').subedges(),
-                         {hedge('is'), hedge('hyperbase/1'), hedge('great/1'), hedge('(is hyperbase/1 great/1)')})
+        self.assertEqual(hedge('(is hypercore/1 great/1)').subedges(),
+                         {hedge('is'), hedge('hypercore/1'), hedge('great/1'), hedge('(is hypercore/1 great/1)')})
 
     def test_subedges3(self):
-        self.assertEqual(hedge('(is hyperbase/1 (super great/1))').subedges(),
-                         {hedge('is'), hedge('hyperbase/1'), hedge('super'), hedge('great/1'),
-                          hedge('(super great/1)'), hedge('(is hyperbase/1 (super great/1))')})
+        self.assertEqual(hedge('(is hypercore/1 (super great/1))').subedges(),
+                         {hedge('is'), hedge('hypercore/1'), hedge('super'), hedge('great/1'),
+                          hedge('(super great/1)'), hedge('(is hypercore/1 (super great/1))')})
 
     def test_subedges4(self):
-        self.assertEqual(hedge('(is hyperbase/1 (X/C))').subedges(),
-                         {hedge('is'), hedge('hyperbase/1'), hedge('(X/C)'), hedge('(is hyperbase/1 (X/C))')})
+        self.assertEqual(hedge('(is hypercore/1 (X/C))').subedges(),
+                         {hedge('is'), hedge('hypercore/1'), hedge('(X/C)'), hedge('(is hypercore/1 (X/C))')})
 
     def test_insert_first_argument1(self):
         self.assertEqual(hedge('a').insert_first_argument(hedge('b')).to_str(), '(a b)')
@@ -328,16 +328,16 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(edge.replace_atom(hedge('x/C'), y, unique=True).to_str(), '(a/P x/C x/C)')
 
     def test_atom_role(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').role(), ['Cp', 's'])
+        self.assertEqual(hedge('hypercore/Cp.s/1').role(), ['Cp', 's'])
 
     def test_atom_role_implied_conjunction(self):
         self.assertEqual(hedge('and').role(), ['J'])
 
     def test_atom_simplify_atom1(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').simplify(), hedge('hyperbase/C/1'))
+        self.assertEqual(hedge('hypercore/Cp.s/1').simplify(), hedge('hypercore/C/1'))
 
     def test_atom_simplify_atom2(self):
-        self.assertEqual(hedge('hyperbase').simplify(), hedge('hyperbase'))
+        self.assertEqual(hedge('hypercore').simplify(), hedge('hypercore'))
 
     def test_atom_simplify_atom3(self):
         self.assertEqual(hedge('say/Pd.sr.|f----/en').simplify(), hedge('say/P/en'))
@@ -362,16 +362,16 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(edge.simplify(argroles=True, namespaces=False), hedge('is/P.sc mary/C nice/C'))
 
     def test_atom_type(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').type(), 'Cp')
+        self.assertEqual(hedge('hypercore/Cp.s/1').type(), 'Cp')
 
     def test_atom_mtype(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').mtype(), 'C')
+        self.assertEqual(hedge('hypercore/Cp.s/1').mtype(), 'C')
 
     def test_atom_type_implied_conjunction(self):
         self.assertEqual(hedge('and').type(), 'J')
 
     def test_non_atom_type1(self):
-        self.assertEqual(hedge('(is/Pd.so hyperbase/Cp.s great/C)').type(), 'Rd')
+        self.assertEqual(hedge('(is/Pd.so hypercore/Cp.s great/C)').type(), 'Rd')
 
     def test_non_atom_type2(self):
         self.assertEqual(hedge('(red/M shoes/Cc.p)').type(), 'Cc')
@@ -398,10 +398,10 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(hedge('(and/J meat/Cc.s potatoes/Cc.p)').type(), 'C')
 
     def test_non_atom_type10(self):
-        self.assertEqual(hedge('(and/J (is/Pd.so hyperbase/Cp.s great/C))').type(), 'R')
+        self.assertEqual(hedge('(and/J (is/Pd.so hypercore/Cp.s great/C))').type(), 'R')
 
     def test_non_atom_mtype1(self):
-        self.assertEqual(hedge('(is/Pd.so hyperbase/Cp.s great/C)').type(), 'Rd')
+        self.assertEqual(hedge('(is/Pd.so hypercore/Cp.s great/C)').type(), 'Rd')
 
     def test_non_atom_mtype2(self):
         self.assertEqual(hedge('(red/M shoes/Cc.p)').mtype(), 'C')
@@ -428,16 +428,16 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(hedge('(and/J meat/Cc.s potatoes/Cc.p)').mtype(), 'C')
 
     def test_non_atom_mtype10(self):
-        self.assertEqual(hedge('(and/J (is/Pd.so hyperbase/Cp.s great/C))').mtype(), 'R')
+        self.assertEqual(hedge('(and/J (is/Pd.so hypercore/Cp.s great/C))').mtype(), 'R')
 
     def test_connector_type1(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').connector_type(), None)
+        self.assertEqual(hedge('hypercore/Cp.s/1').connector_type(), None)
 
     def test_connector_type2(self):
-        self.assertEqual(hedge('hyperbase').connector_type(), None)
+        self.assertEqual(hedge('hypercore').connector_type(), None)
 
     def test_connector_type3(self):
-        self.assertEqual(hedge('(is/Pd.so hyperbase/Cp.s great/C)').connector_type(), 'Pd')
+        self.assertEqual(hedge('(is/Pd.so hypercore/Cp.s great/C)').connector_type(), 'Pd')
 
     def test_connector_type4(self):
         self.assertEqual(hedge('(red/M shoes/Cn.p)').connector_type(), 'M')
@@ -461,13 +461,13 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(hedge('(play/T piano/Cn.s)').connector_type(), 'T')
 
     def test_connector_mtype1(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').connector_mtype(), None)
+        self.assertEqual(hedge('hypercore/Cp.s/1').connector_mtype(), None)
 
     def test_connector_mtype2(self):
-        self.assertEqual(hedge('hyperbase').connector_mtype(), None)
+        self.assertEqual(hedge('hypercore').connector_mtype(), None)
 
     def test_connector_mtype3(self):
-        self.assertEqual(hedge('(is/Pd.so hyperbase/Cp.s great/C)').connector_mtype(), 'P')
+        self.assertEqual(hedge('(is/Pd.so hypercore/Cp.s great/C)').connector_mtype(), 'P')
 
     def test_connector_mtype4(self):
         self.assertEqual(hedge('(red/M shoes/Cn.p)').connector_mtype(), 'M')
@@ -491,37 +491,37 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(hedge('(play/T piano/Cn.s)').connector_mtype(), 'T')
 
     def test_t1(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').t, 'Cp')
+        self.assertEqual(hedge('hypercore/Cp.s/1').t, 'Cp')
 
     def test_t2(self):
-        self.assertEqual(hedge('(is/Pd.so hyperbase/Cp.s great/C)').t, 'Rd')
+        self.assertEqual(hedge('(is/Pd.so hypercore/Cp.s great/C)').t, 'Rd')
 
     def test_t3(self):
         self.assertEqual(hedge('(very/M large/M)').t, 'M')
 
     def test_mt1(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').mt, 'C')
+        self.assertEqual(hedge('hypercore/Cp.s/1').mt, 'C')
 
     def test_mt2(self):
-        self.assertEqual(hedge('(is/Pd.so hyperbase/Cp.s great/C)').mt, 'R')
+        self.assertEqual(hedge('(is/Pd.so hypercore/Cp.s great/C)').mt, 'R')
 
     def test_mt3(self):
         self.assertEqual(hedge('(very/M large/M)').mt, 'M')
 
     def test_ct1(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').ct, None)
+        self.assertEqual(hedge('hypercore/Cp.s/1').ct, None)
 
     def test_ct2(self):
-        self.assertEqual(hedge('(is/Pd.so hyperbase/Cp.s great/C)').ct, 'Pd')
+        self.assertEqual(hedge('(is/Pd.so hypercore/Cp.s great/C)').ct, 'Pd')
 
     def test_ct3(self):
         self.assertEqual(hedge('(red/M shoes/Cn.p)').ct, 'M')
 
     def test_cmt1(self):
-        self.assertEqual(hedge('hyperbase/Cp.s/1').cmt, None)
+        self.assertEqual(hedge('hypercore/Cp.s/1').cmt, None)
 
     def test_cmt2(self):
-        self.assertEqual(hedge('(is/Pd.so hyperbase/Cp.s great/C)').cmt, 'P')
+        self.assertEqual(hedge('(is/Pd.so hypercore/Cp.s great/C)').cmt, 'P')
 
     def test_cmt3(self):
         self.assertEqual(hedge('(red/M shoes/Cn.p)').cmt, 'M')
@@ -903,7 +903,7 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(output, {})
 
     def test_check_correctness_ok2(self):
-        edge = hedge('(+/B john/C smith/C)')
+        edge = hedge('(+/B.am john/C smith/C)')
         output = edge.check_correctness()
         self.assertEqual(output, {})
 
@@ -913,12 +913,22 @@ class TestHyperedge(unittest.TestCase):
         self.assertEqual(output, {})
 
     def test_check_correctness_ok4(self):
-        edge = hedge('(happened/P it/C before/C (in/T 1976/C))')
+        edge = hedge('(happened/P.sxx it/C before/C (in/T 1976/C))')
         output = edge.check_correctness()
         self.assertEqual(output, {})
 
     def test_check_correctness_ok5(self):
         edge = hedge('(and/J red/C green/C blue/C)')
+        output = edge.check_correctness()
+        self.assertEqual(output, {})
+
+    def test_check_correctness_ok6(self):
+        edge = hedge('(likes/P.sc x/C y/C)')
+        output = edge.check_correctness()
+        self.assertEqual(output, {})
+
+    def test_check_correctness_ok7(self):
+        edge = hedge('(not/M likes/P.sc)')
         output = edge.check_correctness()
         self.assertEqual(output, {})
 
@@ -1002,6 +1012,36 @@ class TestHyperedge(unittest.TestCase):
         output = edge.check_correctness()
         self.assertTrue(hedge('(and/J one/C)') in output)
 
+    def test_check_correctness_wrong_argroles1(self):
+        edge = hedge('(likes/P.ss x/C y/C)')
+        output = edge.check_correctness()
+        self.assertTrue(hedge('(likes/P.ss x/C y/C)') in output)
+
+    def test_check_correctness_wrong_argroles2(self):
+        edge = hedge('(likes/P.cc x/C y/C)')
+        output = edge.check_correctness()
+        self.assertTrue(hedge('(likes/P.cc x/C y/C)') in output)
+
+    def test_check_correctness_wrong_argroles3(self):
+        edge = hedge('(likes/P.scx x/C y/C)')
+        output = edge.check_correctness()
+        self.assertTrue(hedge('(likes/P.scx x/C y/C)') in output)
+
+    def test_check_correctness_wrong_argroles4(self):
+        edge = hedge('(likes/P.sz x/C y/C)')
+        output = edge.check_correctness()
+        self.assertTrue(hedge('(likes/P.sz x/C y/C)') in output)
+
+    def test_check_correctness_wrong_argroles5(self):
+        edge = hedge('(likes/B.sc x/C y/C)')
+        output = edge.check_correctness()
+        self.assertTrue(hedge('(likes/B.sc x/C y/C)') in output)
+
+    def test_check_correctness_wrong_argroles6(self):
+        edge = hedge('(likes/P x/C y/C)')
+        output = edge.check_correctness()
+        self.assertTrue(hedge('(likes/P x/C y/C)') in output)
+    
     def test_normalized_1(self):
         edge = hedge('(plays/Pd.os chess/C mary/C)')
         self.assertEqual(edge.normalized(), hedge('(plays/Pd.so mary/C chess/C)'))
@@ -1034,6 +1074,34 @@ class TestHyperedge(unittest.TestCase):
         edge_str = '((ahead/M/en (would/Mm/en go/P..-i-----/en)))'
         edge = hedge(edge_str)
         self.assertEqual(edge_str, str(edge))
+
+    def test_remove_argroles_atom1(self):
+        edge = hedge('come/Pd.sx')
+        self.assertEqual(edge.remove_argroles().to_str(), 'come/Pd')
+
+    def test_remove_argroles_atom2(self):
+        edge = hedge('come/Pd')
+        self.assertEqual(edge.remove_argroles().to_str(), 'come/Pd')
+
+    def test_replace_argroles_atom_none(self):
+        edge = hedge('come/Pd.sx')
+        self.assertEqual(edge.replace_argroles(None).to_str(), 'come/Pd')
+
+    def test_replace_argroles_atom_empty(self):
+        edge = hedge('come/Pd.sx')
+        self.assertEqual(edge.replace_argroles('').to_str(), 'come/Pd')
+
+    def test_replace_argroles_edge_none(self):
+        edge = hedge('(come/Pd.sx you/C here/C)')
+        self.assertEqual(edge.replace_argroles(None).to_str(), '(come/Pd you/C here/C)')
+
+    def test_replace_argroles_edge_empty(self):
+        edge = hedge('(come/Pd.sx you/C here/C)')
+        self.assertEqual(edge.replace_argroles('').to_str(), '(come/Pd you/C here/C)')
+
+    def test_replace_argroles_deep_none(self):
+        edge = hedge('((not/M is/P.sc) bob/C sad/C)')
+        self.assertEqual(edge.replace_argroles(None).to_str(), '((not/M is/P) bob/C sad/C)')
 
 if __name__ == '__main__':
     unittest.main()
