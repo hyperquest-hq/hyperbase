@@ -10,9 +10,9 @@
 ### Changed
 - renamed library to hyperbase.
 - trimmed down library to the essentials: hyperedge, patterns and parser foundations.
+- converted documentation to Material for MkDocs.
 
 ### Removed
-
 - hypergraph module, hypergraph database (memory module).
 - alphabeta parser implementation.
 - old scripts, examples, processors.

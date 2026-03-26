@@ -1,0 +1,53 @@
+name: Deploy docs to hyperquest.ai/hyperbase
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'src/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout hyperbase
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Build docs
+        run: uv run mkdocs build
+
+      - name: Checkout main site repo
+        uses: actions/checkout@v4
+        with:
+          repository: hyperquest-hq/hyperquest-hq.github.io
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: site-repo
+
+      - name: Deploy docs to site repo
+        run: |
+          rm -rf site-repo/hyperbase
+          cp -r site/ site-repo/hyperbase
+
+      - name: Push to main site repo
+        working-directory: site-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add hyperbase/
+          git diff --cached --quiet && echo "No changes to deploy" && exit 0
+          git commit -m "Update hyperbase docs"
+          git push

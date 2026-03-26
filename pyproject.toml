@@ -37,8 +37,8 @@ dev = [
     "pre-commit>=3.6.2",
     "types-passlib>=1.7.7.20240106",
     "coverage>=7.4.3",
-    "Sphinx",
-    "sphinx_rtd_theme",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.24",
 ]
 
 [project.urls]
