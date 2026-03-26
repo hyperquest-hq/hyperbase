@@ -14,6 +14,7 @@
 ### Removed
 
 - hypergraph module, hypergraph database (memory module).
+- alphabeta parser implementation.
 - old scripts, examples, processors.
 - ad hoc utils.
 - cli.
