@@ -4,7 +4,8 @@
 
 ### Added
 
-- more comprehensive Hyperedge.check_correctness
+- parser plugin foundation.
+- more comprehensive Hyperedge.check_correctness.
 
 ### Changed
 

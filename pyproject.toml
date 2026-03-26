@@ -27,13 +27,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = [
-    # fixed for now because of spacy
-    "numpy", # ==1.26.4',
-    "scikit-learn",
-    "spacy",
-    "spacy-transformers",
-    "thinc",
-    "torch",
+    "tqdm>=4.65.0",
 ]
 
 [project.optional-dependencies]
