@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.8.0] - ongoing - hyperbase is the successor of graphbrain
+## [0.8.0] - 26-03-2026 - hyperbase is the successor of graphbrain
 
 ### Added
 - parser plugin foundation.
