@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.8.0] - ongoing
+## [0.8.0] - ongoing - hyperbase is the successor of graphbrain
 
 ### Added
 
@@ -18,6 +18,7 @@
 - ad hoc utils.
 - cli.
 - notebook utils.
+- obsolete constants.
 
 ## [0.7.0] - 05-03-2026
 ### Added
