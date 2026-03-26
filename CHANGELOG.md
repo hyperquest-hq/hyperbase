@@ -3,12 +3,11 @@
 ## [0.8.0] - ongoing - hyperbase is the successor of graphbrain
 
 ### Added
-
 - parser plugin foundation.
 - more comprehensive Hyperedge.check_correctness.
+- check parse correctness.
 
 ### Changed
-
 - renamed library to hyperbase.
 - trimmed down library to the essentials: hyperedge, patterns and parser foundations.
 
