@@ -1,3 +1,0 @@
-# Co-reference Resolution
-
-TODO
