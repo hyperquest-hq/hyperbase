@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from __future__ import annotations
 
 from hyperbase.hyperedge import Hyperedge, hedge
 from hyperbase.patterns.matcher import Matcher
@@ -6,10 +6,10 @@ from hyperbase.patterns.utils import _normalize_fun_patterns
 
 
 def match_pattern(
-        edge,
-        pattern,
-        curvars=None
-) -> List[Dict]:
+        edge: Hyperedge | str | list[object] | tuple[object, ...],
+        pattern: Hyperedge | str | list[object] | tuple[object, ...],
+        curvars: dict[str, Hyperedge] | None = None
+) -> list[dict[str, Hyperedge]]:
     """Matches an edge to a pattern. This means that, if the edge fits the
     pattern, then a list of dictionaries will be returned. If the pattern
     specifies variables, then the returned dictionaries will be populated
@@ -47,7 +47,10 @@ def match_pattern(
     produces the result: []
     """
     _edge = hedge(edge)
-    _pattern = _normalize_fun_patterns(hedge(pattern))
+    _pattern = hedge(pattern)
+    if _edge is None or _pattern is None:
+        return []
+    _pattern = _normalize_fun_patterns(_pattern)
 
     matcher: Matcher = Matcher(
         edge=_edge,
@@ -59,9 +62,10 @@ def match_pattern(
 
 
 def edge_matches_pattern(
-        edge: Union[Hyperedge, str, list, tuple],
-        pattern: Union[Hyperedge, str, list, tuple]
-):
+        edge: Hyperedge | str | list[object] | tuple[object, ...],
+        pattern: Hyperedge | str | list[object] | tuple[object, ...],
+        **kwargs: object
+) -> bool:
     """Check if an edge matches a pattern.
 
     Patterns are themselves edges. They can match families of edges

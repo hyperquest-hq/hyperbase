@@ -1,24 +1,37 @@
+from __future__ import annotations
+
 from collections import Counter
+from typing import Any
 
 from hyperbase import hedge
+from hyperbase.hyperedge import Atom, Hyperedge
 from hyperbase.patterns.argroles import _match_by_argroles
 from hyperbase.patterns.atoms import _matches_atomic_pattern
 from hyperbase.patterns.properties import is_fun_pattern, is_pattern, FUNS
 from hyperbase.patterns.utils import _defun_pattern_argroles, _atoms_and_tok_pos
 from hyperbase.patterns.variables import _varname, _assign_edge_to_var
 
+# tok_pos can be nested lists/ints matching the edge structure
+TokPos = Any
+
 
 class Matcher:
     def __init__(
             self,
-            edge,
-            pattern,
-            curvars=None,
-            tok_pos=None
-    ):
-        self.results = self.match(edge, pattern, curvars=curvars, tok_pos=tok_pos)
+            edge: Hyperedge,
+            pattern: Hyperedge,
+            curvars: dict[str, Hyperedge] | None = None,
+            tok_pos: TokPos = None
+    ) -> None:
+        self.results: list[dict[str, Hyperedge]] = self.match(edge, pattern, curvars=curvars, tok_pos=tok_pos)
 
-    def match(self, edge, pattern, curvars=None, tok_pos=None):
+    def match(
+            self,
+            edge: Hyperedge,
+            pattern: Hyperedge,
+            curvars: dict[str, Hyperedge] | None = None,
+            tok_pos: TokPos = None
+    ) -> list[dict[str, Hyperedge]]:
         if curvars is None:
             curvars = {}
 
@@ -38,26 +51,27 @@ class Matcher:
         # atomic patterns
         if pattern.atom:
             if _matches_atomic_pattern(edge, pattern):
-                variables = {}
+                variables: dict[str, Hyperedge] = {}
                 if is_pattern(pattern):
                     varname = _varname(pattern)
                     if len(varname) > 0:
-                        # if varname in curvars and curvars[varname] != edge:
-                        #     return []
                         variables[varname] = _assign_edge_to_var({**curvars, **variables}, varname, edge)[varname]
                 return [{**curvars, **variables}]
             else:
                 return []
 
         min_len = len(pattern)
-        max_len = min_len
+        max_len: int | float = min_len
         # open-ended?
         if pattern[-1].to_str() == '...':
-            pattern = hedge(pattern[:-1])
+            new_pattern = hedge(pattern[:-1])
+            if new_pattern is None:
+                return []
+            pattern = new_pattern
             min_len -= 1
             max_len = float('inf')
 
-        result = [{}]
+        result: list[dict[str, Hyperedge]] = [{}]
         argroles_posopt = _defun_pattern_argroles(pattern)[0].argroles().split('-')[0]
         if len(argroles_posopt) > 0 and argroles_posopt[0] == '{':
             match_by_order = False
@@ -80,12 +94,12 @@ class Matcher:
         if match_by_order:
             for i, pitem in enumerate(pattern):
                 eitem = edge[i]
-                _result = []
+                _result: list[dict[str, Hyperedge]] = []
 
                 for variables in result:
                     if pitem.atom:
                         varname = _varname(pitem)
-                        if _matches_atomic_pattern(eitem, pitem):  # elif
+                        if _matches_atomic_pattern(eitem, pitem):
                             if len(varname) > 0 and varname[0].isupper():
                                 variables[varname] = _assign_edge_to_var(
                                     {**curvars, **variables}, varname, eitem)[varname]
@@ -111,7 +125,6 @@ class Matcher:
         else:
             result = []
             # match connector first
-            # TODO: avoid matching connector twice!
             ctok_pos = tok_pos[0] if tok_pos else None
             if self.match(edge[0], pattern[0], curvars, tok_pos=ctok_pos):
                 role_counts = Counter(argroles_opt).most_common()
@@ -130,7 +143,7 @@ class Matcher:
                     tok_pos=tok_pos
                 )
 
-        unique_vars = []
+        unique_vars: list[dict[str, Hyperedge]] = []
         for variables in result:
             v = {**curvars, **variables}
             if v not in unique_vars:
@@ -139,19 +152,19 @@ class Matcher:
 
     def _match_atoms(
             self,
-            atom_patterns,
-            atoms,
-            curvars,
-            atoms_tok_pos=None,
-            matched_atoms=None
-    ) -> list:
+            atom_patterns: tuple[Hyperedge, ...],
+            atoms: set[Atom] | list[Atom],
+            curvars: dict[str, Hyperedge],
+            atoms_tok_pos: list[Any] | None = None,
+            matched_atoms: list[Atom] | None = None
+    ) -> list[dict[str, Hyperedge]]:
         if matched_atoms is None:
             matched_atoms = []
 
         if len(atom_patterns) == 0:
             return [curvars]
 
-        results = []
+        results: list[dict[str, Hyperedge]] = []
         atom_pattern = atom_patterns[0]
 
         for atom_pos, atom in enumerate(atoms):
@@ -169,7 +182,13 @@ class Matcher:
 
         return results
 
-    def _match_fun_pat(self, edge, fun_pattern, curvars, tok_pos=None) -> list:
+    def _match_fun_pat(
+            self,
+            edge: Hyperedge,
+            fun_pattern: Hyperedge,
+            curvars: dict[str, Hyperedge],
+            tok_pos: TokPos = None
+    ) -> list[dict[str, Hyperedge]]:
         fun = fun_pattern[0].root()
 
         try:
@@ -200,14 +219,14 @@ class Matcher:
                 )
         elif fun == 'atoms':
             if tok_pos:
-                atoms, atoms_tok_pos = _atoms_and_tok_pos(edge, tok_pos)
+                atoms_list, atoms_tok_pos = _atoms_and_tok_pos(edge, tok_pos)
             else:
-                atoms = edge.atoms()
+                atoms_list = list(edge.atoms())
                 atoms_tok_pos = None
             atom_patterns = fun_pattern[1:]
             return self._match_atoms(
                 atom_patterns,
-                atoms,
+                atoms_list,
                 curvars,
                 atoms_tok_pos=atoms_tok_pos
             )

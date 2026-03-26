@@ -1,5 +1,8 @@
-def _matches_atomic_pattern(edge, atomic_pattern):
-    ap_parts = atomic_pattern.parts()
+from hyperbase.hyperedge import Hyperedge
+
+
+def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Hyperedge) -> bool:
+    ap_parts = atomic_pattern.parts()  # type: ignore[attr-defined]
 
     if len(ap_parts) == 0 or len(ap_parts[0]) == 0:
         return False
@@ -9,13 +12,13 @@ def _matches_atomic_pattern(edge, atomic_pattern):
     if struct_code == '.':
         if edge.not_atom:
             return False
-    elif atomic_pattern.parens:
+    elif atomic_pattern.parens:  # type: ignore[attr-defined]
         if edge.atom:
             return False
     elif struct_code != '*' and not struct_code.isupper():
         if edge.not_atom:
             return False
-        if edge.root() != atomic_pattern.root():
+        if edge.root() != atomic_pattern.root():  # type: ignore[attr-defined]
             return False
 
     # role match
@@ -23,7 +26,7 @@ def _matches_atomic_pattern(edge, atomic_pattern):
         pos = 1
 
         # type match
-        ap_role = atomic_pattern.role()
+        ap_role = atomic_pattern.role()  # type: ignore[attr-defined]
         ap_type = ap_role[0]
         e_type = edge.type()
         n = len(ap_type)
@@ -56,7 +59,7 @@ def _matches_atomic_pattern(edge, atomic_pattern):
                     if len(e_argroles) > len(ap_argroles_posopt):
                         return False
                     else:
-                        return ap_argroles_posopt.startswith(e_argroles)
+                        return ap_argroles_posopt.startswith(e_argroles)  # type: ignore[no-any-return]
 
                 ap_argroles_parts = ap_argroles_posopt.split(',')
                 ap_posroles = ap_argroles_parts[0]

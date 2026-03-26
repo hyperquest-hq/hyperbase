@@ -1,15 +1,20 @@
+from __future__ import annotations
+
+from collections.abc import Sequence
+
 from hyperbase import hedge
+from hyperbase.hyperedge import Hyperedge
 from hyperbase.patterns.argroles import edge2rolemap, rolemap_pairings, rolemap2edge
 from hyperbase.patterns.utils import more_general, is_valid
 from hyperbase.patterns.variables import all_variables, is_variable, contains_variable
 
 
-def common_pattern_argroles(edge1, edge2):
+def common_pattern_argroles(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
     rm1 = edge2rolemap(edge1)
     rm2 = edge2rolemap(edge2)
 
     _vars = all_variables(edge1) | all_variables(edge2)
-    best_pattern = None
+    best_pattern: Hyperedge | None = None
     for rm1_, rm2_ in rolemap_pairings(rm1, rm2):
         edge1_ = rolemap2edge(edge1[0], rm1_)
         edge2_ = rolemap2edge(edge2[0], rm2_)
@@ -23,9 +28,11 @@ def common_pattern_argroles(edge1, edge2):
             pattern = hedge('*/{}'.format(edge1_.mtype()))
         else:
             pattern = hedge(subedges)
+            if pattern is None:
+                continue
             pattern = pattern.replace_argroles('{{{}}}'.format(edge1_[0].argroles()))
 
-        if _vars == all_variables(pattern):
+        if pattern is not None and _vars == all_variables(pattern):
             if best_pattern is None or more_general(best_pattern, pattern):
                 best_pattern = pattern
 
@@ -35,7 +42,7 @@ def common_pattern_argroles(edge1, edge2):
     return best_pattern.normalized()
 
 
-def common_type(edges):
+def common_type(edges: Sequence[Hyperedge]) -> str | None:
     types = [edge.type() for edge in edges]
     if len(set(types)) == 1:
         return types[0]
@@ -45,50 +52,50 @@ def common_type(edges):
     return None
 
 
-def common_pattern_atoms(atoms):
-    roots = [atom.root() for atom in atoms]
-            
+def common_pattern_atoms(atoms: Sequence[Hyperedge]) -> Hyperedge | None:
+    roots = [atom.root() for atom in atoms]  # type: ignore[attr-defined]
+
     if len(set(roots)) != 1 or '*' in roots:
         root = '*'
     else:
         root = roots[0]
 
     if any(len(str(atom).split('/')) == 1 for atom in atoms):
-        atype = None
+        atype: str | None = None
     else:
         atype = common_type(atoms)
 
-    roles1 = []
-    roles2 = []
+    roles1: list[str | None] = []
+    roles2: list[str | None] = []
     for atom in atoms:
-        role = atom.role()
-        role1 = role[1] if len(role) > 1 else None
-        role2 = role[2] if len(role) > 2 else None
-        roles1.append(role1)
-        roles2.append(role2)
-    
-    role1 = None
-    role2 = None
-    if len(set(roles1)) == 1 and not roles1[0] is None:
-        role1 = roles1[0]
-        if len(set(roles2)) == 1 and not roles2[0] is None:
-            role2 = roles2[0]
-    
+        role = atom.role()  # type: ignore[attr-defined]
+        r1: str | None = role[1] if len(role) > 1 else None
+        r2: str | None = role[2] if len(role) > 2 else None
+        roles1.append(r1)
+        roles2.append(r2)
+
+    final_role1: str | None = None
+    final_role2: str | None = None
+    if len(set(roles1)) == 1 and roles1[0] is not None:
+        final_role1 = roles1[0]
+        if len(set(roles2)) == 1 and roles2[0] is not None:
+            final_role2 = roles2[0]
+
     if atype is None:
         atom_str = root
     else:
         role_parts = [atype]
-        if role1 is not None:
-            role_parts.append(role1)
-            if role2 is not None:
-                role_parts.append(role2)
+        if final_role1 is not None:
+            role_parts.append(final_role1)
+            if final_role2 is not None:
+                role_parts.append(final_role2)
         role_str = '.'.join(role_parts)
         atom_str = '{}/{}'.format(root, role_str)
-    
+
     return hedge(atom_str)
 
 
-def _common_pattern(edge1, edge2):
+def _common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
     nedge1 = edge1
     nedge2 = edge2
 
@@ -133,9 +140,9 @@ def _common_pattern(edge1, edge2):
     else:
         if nedge1.not_atom and nedge2.not_atom and nedge1.has_argroles() and nedge2.has_argroles():
             if nedge1.mt == nedge2.mt:
-                common_pattern = common_pattern_argroles(nedge1, nedge2)
-                if common_pattern:
-                    return common_pattern
+                common = common_pattern_argroles(nedge1, nedge2)
+                if common:
+                    return common
 
         # do not combine edges with argroles and edges without them
         perform_ordered_match = not ((nedge1.not_atom and nedge1.has_argroles())
@@ -157,7 +164,7 @@ def _common_pattern(edge1, edge2):
                 return hedge('*')
 
 
-def common_pattern(edge1, edge2):
+def common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
     edge = _common_pattern(edge1, edge2)
     if is_valid(edge):
         return edge

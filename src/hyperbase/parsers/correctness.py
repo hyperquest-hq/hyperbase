@@ -1,28 +1,30 @@
-from typing import List, Dict
+from __future__ import annotations
+
 from collections import Counter
+from typing import Any
 
 from hyperbase.hyperedge import Hyperedge
 from hyperbase.parsers.utils import filter_alphanumeric_strings
 
 
-def check_structural_quality(edge: Hyperedge) -> Dict:
-    errors = {}
-    
-    def _visit(current_edge):
+def check_structural_quality(edge: Hyperedge) -> dict[Hyperedge, list[tuple[str, str, int]]]:
+    errors: dict[Hyperedge, list[tuple[str, str, int]]] = {}
+
+    def _visit(current_edge: Hyperedge) -> None:
         if not current_edge or current_edge.atom:
             return
 
-        current_errors = []
-        
+        current_errors: list[tuple[str, str, int]] = []
+
         # Argrole checks
         try:
             ars = current_edge.argroles()
-            ar_counts = Counter()
+            ar_counts: Counter[str] = Counter()
             for ar in ars:
                 if ar not in 'mspaoixtjrc':
                     current_errors.append(('bad-argrole', f"Bad argument role '{ar}'. Should be one of 'mspaoixtjrc'.", 2))
                 ar_counts[ar] += 1
-            
+
             for role in 'spoiamc':
                  if ar_counts[role] > 1:
                      current_errors.append((f'duplicate-argrole-{role}', f"Argument role '{role}' should only be used once.", 2))
@@ -51,20 +53,20 @@ def check_structural_quality(edge: Hyperedge) -> Dict:
 
 def badness_check(
     edge: Hyperedge,
-    tokens: List[str]
-) -> Dict[str, List[str]]:
+    tokens: list[str]
+) -> dict[Any, list[tuple[str, str, int]]]:
 
     raw_errors = edge.check_correctness()
-    errors = {}
+    errors: dict[Any, list[tuple[str, str, int]]] = {}
     for k, v in raw_errors.items():
         errors[k] = [(err_type, err_msg, 0) for err_type, err_msg in v]
 
     structural_errors = check_structural_quality(edge)
-    for k, v in structural_errors.items():
+    for k, v2 in structural_errors.items():
         if k in errors:
-            errors[k].extend(v)
+            errors[k].extend(v2)
         else:
-            errors[k] = v
+            errors[k] = v2
 
     # Only check token matching if we have a valid edge
     if edge:
@@ -72,13 +74,13 @@ def badness_check(
             tokens = filter_alphanumeric_strings(tokens)
             roots = filter_alphanumeric_strings([atom.label() for atom in edge.all_atoms()])
 
-      
+
             # Track which tokens and roots have been matched
-            matched_tokens = set()
-            matched_roots = set()
+            matched_tokens: set[int] = set()
+            matched_roots: set[int] = set()
 
             # Count remaining unmatched instances of each root
-            def count_unmatched_roots(root_value):
+            def count_unmatched_roots(root_value: str) -> int:
                 count = 0
                 for root_idx, root in enumerate(roots):
                     if root == root_value and root_idx not in matched_roots:
@@ -119,7 +121,7 @@ def badness_check(
                                 continue  # This root is already matched
 
                             concatenated = ""
-                            root_sequence = []
+                            root_sequence: list[int] = []
 
                             for root_idx in range(root_start_idx, len(roots)):
                                 if root_idx in matched_roots:
@@ -152,7 +154,7 @@ def badness_check(
                                 continue  # Already matched
 
                             concatenated = ""
-                            token_sequence = []
+                            token_sequence: list[int] = []
 
                             for next_token_idx in range(token_idx, len(tokens)):
                                 if next_token_idx in matched_tokens:
@@ -242,7 +244,7 @@ def badness_check(
                                     if token_idx in matched_tokens:
                                         break  # Found a match, no need to try other combinations
 
-            token_matching_errors = []
+            token_matching_errors: list[tuple[str, str, int]] = []
             # Report unmatched roots
             for root_idx, root in enumerate(roots):
                 if root_idx not in matched_roots:

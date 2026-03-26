@@ -33,7 +33,7 @@ def get_parser(name: str, **kwargs: Any) -> Parser:
             f"Available parsers: {available}"
         )
     cls = parsers[name].load()
-    return cls(**kwargs)
+    return cls(**kwargs)  # type: ignore[no-any-return]
 
 
 __all__ = ["Parser", "get_parser", "list_parsers"]

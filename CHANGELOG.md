@@ -6,6 +6,7 @@
 - parser plugin foundation.
 - more comprehensive Hyperedge.check_correctness.
 - check parse correctness.
+- type checking: full code coverage.
 
 ### Changed
 - renamed library to hyperbase.

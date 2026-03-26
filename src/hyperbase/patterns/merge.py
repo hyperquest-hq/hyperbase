@@ -1,15 +1,20 @@
+from __future__ import annotations
+
+from typing import Any
+
 from hyperbase import hedge
+from hyperbase.hyperedge import Hyperedge
 from hyperbase.patterns.utils import is_valid
 
 
-def _extract_any_edges(edge):
+def _extract_any_edges(edge: Hyperedge) -> list[Hyperedge]:
     if edge.not_atom and str(edge[0]) == 'any':
         return list(edge[1:])
     else:
         return [edge]
 
 
-def _merge_patterns(edge1, edge2):
+def _merge_patterns(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
     # edges with different sizes cannot be merged
     if len(edge1) != len(edge2):
         return None
@@ -22,7 +27,7 @@ def _merge_patterns(edge1, edge2):
     if all(subedge1 != subedge2 for subedge1, subedge2 in zip(edge1, edge2)):
         return None
 
-    merged_edge = []
+    merged_edge: list[Hyperedge | list[Any]] = []
     for subedge1, subedge2 in zip(edge1, edge2):
         if subedge1 == subedge2:
             merged_edge.append(subedge1)
@@ -39,7 +44,7 @@ def _merge_patterns(edge1, edge2):
     return hedge(merged_edge)
 
 
-def merge_patterns(edge1, edge2):
+def merge_patterns(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
     edge = _merge_patterns(edge1, edge2)
     if is_valid(edge):
         return edge

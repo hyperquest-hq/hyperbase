@@ -1,24 +1,25 @@
-from typing import Set
+from hyperbase.hyperedge import Hyperedge
 
-FUNS: Set[str] = {'var', 'atoms', 'lemma', 'any'} # | SEMSIM_FUNS.keys()
 
-def is_wildcard(atom):
+FUNS: set[str] = {'var', 'atoms', 'lemma', 'any'} # | SEMSIM_FUNS.keys()
+
+def is_wildcard(atom: Hyperedge) -> bool:
     """Check if this atom defines a wildcard, i.e. if its root is a pattern matcher.
     (\\*, ., ..., if it is surrounded by parenthesis or variable label starting with an uppercase letter)
     """
     if atom.atom:
-        return atom.parens or atom[0][0] in {'*', '.'} or atom[0][0].isupper()
+        return atom.parens or atom[0][0] in {'*', '.'} or atom[0][0].isupper()  # type: ignore[attr-defined]
     else:
         return False
 
 
-def is_fun_pattern(edge):
+def is_fun_pattern(edge: Hyperedge) -> bool:
     if edge.atom:
         return False
     return str(edge[0]) in FUNS
 
 
-def is_pattern(edge):
+def is_pattern(edge: Hyperedge) -> bool:
     """Check if this edge defines a pattern, i.e. if it includes at least
     one pattern matcher.
 
@@ -36,7 +37,7 @@ def is_pattern(edge):
         return any(is_pattern(item) for item in edge)
 
 
-def is_unordered_pattern(edge):
+def is_unordered_pattern(edge: Hyperedge) -> bool:
     """Check if this edge defines an unordered pattern, i.e. if it includes at least
     one instance of unordered argument roles surrounded by curly brackets.
     """
@@ -45,7 +46,7 @@ def is_unordered_pattern(edge):
     else:
         return any(is_unordered_pattern(item) for item in edge)
 
-def is_full_pattern(edge):
+def is_full_pattern(edge: Hyperedge) -> bool:
     """Check if every atom is a pattern matcher.
 
     Pattern matcher are:

@@ -1,7 +1,4 @@
-from typing import List
-
-
-def filter_alphanumeric_strings(strings: List[str]) -> List[str]:
+def filter_alphanumeric_strings(strings: list[str]) -> list[str]:
     """
     Filter a list of strings to include only those containing alphanumeric characters,
     and remove all non-alphanumeric characters from each string.
@@ -12,7 +9,7 @@ def filter_alphanumeric_strings(strings: List[str]) -> List[str]:
     Returns:
         Filtered list containing only lowercased alphanumeric characters
     """
-    filtered = []
+    filtered: list[str] = []
     for s in strings:
         # Remove non-alphanumeric characters and lowercase
         cleaned = ''.join(c.lower() for c in s if c.isalnum())
