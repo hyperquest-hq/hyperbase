@@ -57,9 +57,6 @@ dev = [
 [project.urls]
 Homepage = "https://hyperquest.ai/hyperbase"
 
-[project.scripts]
-hyperbase = "hyperbase.cli:cli"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
