@@ -1,4 +1,4 @@
-site_name: hyperbase
+site_name: Hyperbase
 site_description: A foundational library for Semantic Hypergraphs
 site_url: https://hyperquest.ai/hyperbase
 repo_url: https://github.com/hyperquest-hq/hyperbase
@@ -62,7 +62,6 @@ nav:
   - Tutorials:
     - tutorials/index.md
     - Parsing a Sentence: tutorials/parsing-a-sentence.md
-    - Hypergraph Operations: tutorials/hypergraph-operations.md
     - Conflict Networks: tutorials/conflicts.md
     - Parsing a Book: tutorials/parsing-a-book.md
     - Actors Making Claims: tutorials/claims.md
@@ -70,24 +69,11 @@ nav:
     - manual/index.md
     - Overview: manual/overview.md
     - Notation: manual/notation.md
-    - Special Relations: manual/special-relations.md
-    - Hypergraph Operations: manual/hypergraph-operations.md
+    - Hyperedge Operations: manual/hyperedge-operations.md
     - Patterns: manual/patterns.md
     - Discovering Patterns: manual/discovering-patterns.md
     - Parsing: manual/parsing.md
-    - Readers: manual/readers.md
-    - Coreference Resolution: manual/corefs.md
-    - Meaning Extraction: manual/meaning.md
-    - Database Backends: manual/backends.md
-    - Notebooks & Visualizations: manual/notebooks.md
-    - CLI: manual/cli.md
-    - Internals:
-      - manual/internals/index.md
-      - Creating a Parser: manual/internals/create-parser.md
-      - Creating a Backend: manual/internals/create-backend.md
-    - API Reference: manual/api.md
   - Team: team.md
-  - Thanks: thanks.md
 
 extra_css:
   - assets/stylesheets/extra.css
