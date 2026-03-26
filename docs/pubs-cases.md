@@ -10,28 +10,28 @@
 <table style="border-style: none; border-spacing: 25px; border-collapse: separate;">
    <tr>
       <td>
-         <a href="https://hyperbase.net/assets/images/one-pagers/GB-A.pdf">
-            <img src="assets/images/one-pagers/GB-A_thumb.png" width="200px" />
+         <a href="https://hyperquest.ai/hyperbase/assets/images/one-pagers/GB-A.pdf">
+            <img src="https://hyperquest.ai/hyperbase/assets/images/one-pagers/GB-A_thumb.png" width="200px" />
          </a>
       </td>
       <td>
          <strong>Use Case A: Conflict Networks</strong> <br />
          Extract inter-actor conflict network and topics of conflict from news headers.<br />
          <br />
-         <a href="https://hyperbase.net/assets/images/one-pagers/GB-A.pdf">Download here</a>
+         <a href="https://hyperquest.ai/hyperbase/assets/images/one-pagers/GB-A.pdf">Download here</a>
       </td>
    </tr>
    <tr>
       <td>
-         <a href="https://hyperbase.net/assets/images/one-pagers/GB-C.pdf">
-            <img src="assets/images/one-pagers/GB-C_thumb.png" width="200px" />
+         <a href="https://hyperquest.ai/hyperbase/assets/images/one-pagers/GB-C.pdf">
+            <img src="https://hyperquest.ai/hyperbase/assets/images/one-pagers/GB-C_thumb.png" width="200px" />
          </a>
       </td>
       <td>
          <strong>Use Case C: Scientific Results</strong> <br />
          Identify positive and negative results in scientific articles.<br />
          <br />
-         <a href="https://hyperbase.net/assets/images/one-pagers/GB-C.pdf">Download here</a>
+         <a href="https://hyperquest.ai/hyperbase/assets/images/one-pagers/GB-C.pdf">Download here</a>
       </td>
    </tr>
 </table>

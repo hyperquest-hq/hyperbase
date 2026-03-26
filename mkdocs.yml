@@ -57,23 +57,18 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Publications & Use Cases: pubs-cases.md
   - Installation: installation.md
+  - Publications & Use Cases: pubs-cases.md
   - Tutorials:
-    - tutorials/index.md
     - Parsing a Sentence: tutorials/parsing-a-sentence.md
-    - Conflict Networks: tutorials/conflicts.md
-    - Parsing a Book: tutorials/parsing-a-book.md
-    - Actors Making Claims: tutorials/claims.md
   - Manual:
-    - manual/index.md
     - Overview: manual/overview.md
     - Notation: manual/notation.md
     - Hyperedge Operations: manual/hyperedge-operations.md
     - Patterns: manual/patterns.md
     - Discovering Patterns: manual/discovering-patterns.md
     - Parsing: manual/parsing.md
-  - Team: team.md
+  - Authors: authors.md
 
 extra_css:
   - assets/stylesheets/extra.css

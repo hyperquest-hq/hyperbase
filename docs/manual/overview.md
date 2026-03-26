@@ -1,10 +1,9 @@
 # Overview
 
-The *Semantic Hypergraph* is central to hyperbase, both conceptually and functionally. It can be seen from three different perspectives:
+The *Semantic Hypergraph* is central to hyperbase, both conceptually and functionally. It can be seen from two different perspectives:
 
 * as an intermediary between natural and formal languages
 * as a knowledge model
-* as a type of database
 
 We will elaborate, but first let us discuss the general concept of *hypergraph*.
 
@@ -67,31 +66,3 @@ As can be seen in the third example above, and thanks to nesting, it is possible
 This makes it possible to attribute facts to sources. Sources are themselves hyperedges, potentially also connected in other ways.
 
 Thus, another relevant concept is that of a *claim*. A claim is an assertion that can be attributed to a source. We thus have a knowledge representation without the need for a notion of ground truth, where instead every assertion can be modeled as a claim by a hyperedge (source) of a hyperedge (fact). This is of particular importance, e.g. for the analysis of discussions on controversial topics, where multiple actors have contradictory views on a same issue.
-
-## As database
-
-At a more concrete level, hyperbase provides an actual database system that allows for persistent storage and manipulation of semantic hypergraphs.
-
-The idea is for this database system to guarantee a certain interface (API), and allow for various backend implementations (e.g.: local, distributed, memory-only). This interface allows for fundamental tasks such as:
-
-1. Insertion of hyperedges.
-2. Removal of hyperedges.
-3. Search of hyperedges by pattern.
-
-Currently there is a single backend implementation, that is based on LevelDB (a very efficient sorted key-value store that is stored in a local directory). Hypergraphs stored in this format can only be accessed by one process/thread at a time.
-
-## Knowledge Agents
-
-Knowledge agents are programs that manipulate hypergraphs in some way. They can be introspective, working only on the current contents of the hypergraph to derive new knowledge. For example, the *taxonomy* agent infers simple taxonomies from concepts. It can infer that 'black cat' is a type of 'cat' or that 'city of Berlin' is a type of 'city'.
-
-It produces new hyperedges such as:
-
-```
-(type_of/P/. city/C (of/B city/C berlin/C))
-```
-
-Certain agents use outside sources to introduce knowledge into hypergraphs. For example, the *txt_parser* agent receives as input a simple text file and converts each sentence that it detects in it into an hyperedge.
-
-You can find the full list of agents that are distributed with hyperbase here:
-
-<https://hyperbase.net/manual/agents.html>
