@@ -1,7 +1,7 @@
 [project]
 name = "hyperbase"
 dynamic = ["version"]
-description = "A foundational toolkit for Semantic Hypergraphs"
+description = "A foundational library for Semantic Hypergraphs"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
@@ -27,20 +27,13 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = [
-    "asciitree",
-    "ipython",
-    "mwparserfromhell",
-    "networkx",
     # fixed for now because of spacy
     "numpy", # ==1.26.4',
-    "progressbar2",
     "scikit-learn",
     "spacy",
     "spacy-transformers",
-    "termcolor",
     "thinc",
     "torch",
-    "trafilatura",
 ]
 
 [project.optional-dependencies]

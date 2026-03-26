@@ -17,6 +17,7 @@
 - old scripts, examples, processors.
 - ad hoc utils.
 - cli.
+- notebook utils.
 
 ## [0.7.0] - 05-03-2026
 ### Added
