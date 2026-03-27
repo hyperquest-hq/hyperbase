@@ -2,7 +2,7 @@ site_name: Hyperbase
 site_description: A foundational library for Semantic Hypergraphs
 site_url: https://hyperquest.ai/hyperbase
 repo_url: https://github.com/hyperquest-hq/hyperbase
-repo_name: hyperquest-ai/hyperbase
+repo_name: hyperquest-hq/hyperbase
 
 theme:
   name: material
@@ -76,6 +76,6 @@ extra_css:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/hyperquest-ai/hyperbase
+      link: https://github.com/hyperquest-hq/hyperbase
 
 copyright: Copyright &copy; 2026 CNRS / Hyperquest
