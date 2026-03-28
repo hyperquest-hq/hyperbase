@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.1] - work in progress
+
+### Added
+
+### Changed
+
+### Removed
+
 ## [0.8.0] - 26-03-2026 - hyperbase is the successor of graphbrain
 
 ### Added
