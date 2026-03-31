@@ -28,7 +28,12 @@ classifiers = [
 ]
 dependencies = [
     "tqdm>=4.65.0",
+    "prompt-toolkit>=3.0.0",
+    "rich>=13.0.0",
 ]
+
+[project.scripts]
+hyperbase = "hyperbase.cli:main"
 
 [project.optional-dependencies]
 dev = [
