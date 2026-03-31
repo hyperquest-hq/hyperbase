@@ -3,6 +3,9 @@
 ## [0.8.1] - work in progress
 
 ### Added
+- cli interface.
+- repl cli entry point.
+- parsers cli entry point.
 
 ### Changed
 

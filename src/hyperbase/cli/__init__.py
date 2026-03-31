@@ -9,6 +9,12 @@ def main():
     )
     subparsers = parser.add_subparsers(dest="command")
 
+    # --- parsers subcommand ------------------------------------------------
+    subparsers.add_parser(
+        "parsers",
+        help="List installed parser plugins",
+    )
+
     # --- repl subcommand ---------------------------------------------------
     repl_parser = subparsers.add_parser(
         "repl",
@@ -82,6 +88,11 @@ def main():
     if args.command is None:
         parser.print_help()
         sys.exit(1)
+
+    if args.command == "parsers":
+        from hyperbase.cli.parsers import run_parsers
+        run_parsers()
+        sys.exit(0)
 
     if args.command == "repl":
         from hyperbase.cli.repl import run_repl
