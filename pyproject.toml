@@ -45,6 +45,7 @@ dev = [
     "mkdocs-material>=9.5",
     "mkdocstrings[python]>=0.24",
     "click==8.2.1",  # pinned to prevent bug with mkdocs reload on change
+    "pytest>=9.0.0",
 ]
 
 [project.urls]
