@@ -8,6 +8,7 @@
 - parsers cli entry point.
 
 ### Changed
+- added get_parser to main functions (at hyperbase root).
 - imrpoved documentation.
 
 ### Removed

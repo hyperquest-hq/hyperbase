@@ -22,29 +22,24 @@ def match_pattern(
     Patterns are themselves edges. They can match families of edges
     by employing special atoms:
 
-    -> '\\*' represents a general wildcard (matches any entity)
+    - `\\*` represents a general wildcard (matches any entity)
+    - `.` represents an atomic wildcard (matches any atom)
+    - `(\\*)` represents an edge wildcard (matches any non-atom)
+    - `...` at the end indicates an open-ended pattern.
 
-    -> '.' represents an atomic wildcard (matches any atom)
+    The wildcards (`\\*`, `.` and `(\\*)`) can be used to specify variables,
+    for example `\\*x`, `(CLAIM)` or `.ACTOR`. In case of a match, these
+    variables are assigned the hyperedge they correspond to. For example, consider
+    the edge:
 
-    -> '(\\*)' represents an edge wildcard (matches any edge)
+    `(is/P.so (my/Mp name/Cn) mary/Cp)`
 
-    -> '...' at the end indicates an open-ended pattern.
-
-    The wildcards ('\\*', '.' and '(\\*)') can be used to specify variables,
-    for example '\\*x', '(CLAIM)' or '.ACTOR'. In case of a match, these
-    variables are assigned the hyperedge they correspond to. For example,
-
-    (1) the edge: (is/Pd (my/Mp name/Cn) mary/Cp)
-    applied to the pattern: (is/Pd (my/Mp name/Cn) \\*NAME)
-    produces the result: [{'NAME', mary/Cp}]
-
-    (2) the edge: (is/Pd (my/Mp name/Cn) mary/Cp)
-    applied to the pattern: (is/Pd (my/Mp name/Cn) (NAME))
-    produces the result: [{}]
-
-    (3) the edge: (is/Pd (my/Mp name/Cn) mary/Cp)
-    applied to the pattern: (is/Pd . \\*NAME)
-    produces the result: []
+    - matching to the pattern: `(is/P.so (my/Mp name/Cn) \\*)`
+    produces the result: `[{}]`
+    - matching to the pattern: `(is/P.so (my/Mp name/Cn) \\*NAME)`
+    produces the result: `[{'NAME', mary/Cp}]`
+    - matching to the pattern: `(is/P.so . \\*NAME)`
+    produces the result: `[]`
     """
     _edge = hedge(edge)
     _pattern = hedge(pattern)
