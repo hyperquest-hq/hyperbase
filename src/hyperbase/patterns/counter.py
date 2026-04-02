@@ -4,7 +4,6 @@ from collections import Counter
 
 from hyperbase import hedge
 from hyperbase.hyperedge import Hyperedge
-from hyperbase.patterns.entrypoints import edge_matches_pattern
 
 
 class PatternCounter:
@@ -34,14 +33,14 @@ class PatternCounter:
 
     def _matches_expansions(self, edge: Hyperedge) -> bool:
         for expansion in self.expansions:
-            if edge_matches_pattern(edge, expansion):
+            if edge.match(expansion):
                 return True
         return False
 
     def _force_subtypes(self, edge: Hyperedge) -> bool:
         force_subtypes = False
         for st_pattern in self.match_subtypes:
-            if edge_matches_pattern(edge, st_pattern):
+            if edge.match(st_pattern):
                 force_subtypes = True
         return force_subtypes
 
@@ -49,7 +48,7 @@ class PatternCounter:
         force_root = False
         force_expansion = False
         for root_pattern in self.match_roots:
-            if edge_matches_pattern(edge, root_pattern):
+            if edge.match(root_pattern):
                 force_root = True
                 force_expansion = True
             elif _inner_edge_matches_pattern(edge, root_pattern):
@@ -141,13 +140,13 @@ def _edge2pattern(edge: Hyperedge, root: bool = False, subtype: bool = False) ->
         return hedge('{}.{}'.format(pattern, ar))
 
 
-def _inner_edge_matches_pattern(edge: Hyperedge, pattern: str, hg: object = None) -> bool:
+def _inner_edge_matches_pattern(edge: Hyperedge, pattern: str) -> bool:
     if edge.atom:
         return False
     for subedge in edge:
-        if edge_matches_pattern(subedge, pattern, hg=hg):
+        if subedge.match(pattern):
             return True
     for subedge in edge:
-        if _inner_edge_matches_pattern(subedge, pattern, hg=hg):
+        if _inner_edge_matches_pattern(subedge, pattern):
             return True
     return False

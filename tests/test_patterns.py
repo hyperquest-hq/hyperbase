@@ -1,7 +1,7 @@
 import unittest
 
 from hyperbase import hedge
-from hyperbase.patterns import (match_pattern, edge_matches_pattern, is_wildcard, is_pattern, is_full_pattern,
+from hyperbase.patterns import (match_pattern, is_wildcard, is_pattern, is_full_pattern,
                                  apply_vars, is_unordered_pattern, common_pattern, more_general,
                                  is_variable, contains_variable, merge_patterns)
 
@@ -467,47 +467,6 @@ class TestPatterns(unittest.TestCase):
                           'chairman/Cp.s/en)) (last/Ma/en week/Cc.s/en))) (by/T/en ((up/M/en was/P.s.<f-----/en) ('
                           'cellular/Ma/en usage/Cc.s/en))))', '(said/Pd.{sr}.<f----- */C *)'),
             [{}])
-
-    def test_edge_matches_pattern_simple1(self):
-        self.assertTrue(edge_matches_pattern(hedge('(a b)'), '(a b)'))
-
-    def test_edge_matches_pattern_simple2(self):
-        self.assertFalse(edge_matches_pattern(hedge('(a b)'), '(a a)'))
-
-    def test_edge_matches_pattern_wildcard1(self):
-        self.assertTrue(edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s *)'))
-
-    def test_edge_matches_pattern_wildcard2(self):
-        self.assertFalse(edge_matches_pattern(hedge('(was/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s *)'))
-
-    def test_edge_matches_pattern_atomic_wildcard1(self):
-        self.assertTrue(edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s .)'))
-
-    def test_edge_matches_pattern_atomic_wildcard2(self):
-        self.assertFalse(
-            edge_matches_pattern(hedge('(was/Pd hyperbase /Cp.s great/C)'), '(is/Pd.sc hyperbase/Cp.s .)'))
-
-    def test_edge_matches_pattern_atomic_wildcard3(self):
-        self.assertFalse(
-            edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s (fairly/M great/C))'), '(is/Pd hyperbase/Cp.s .)'))
-
-    def test_edge_matches_pattern_edge_wildcard1(self):
-        self.assertTrue(
-            edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s (fairly/M great/C))'), '(is/Pd hyperbase/Cp.s (*))'))
-
-    def test_edge_matches_pattern_edge_wildcard2(self):
-        self.assertFalse(edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s (*))'))
-
-    def test_edge_matches_pattern_open_ended1(self):
-        self.assertTrue(edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C)'), '(is/Pd hyperbase/Cp.s * ...)'))
-
-    def test_edge_matches_pattern_open_ended2(self):
-        self.assertTrue(
-            edge_matches_pattern(hedge('(is/Pd hyperbase/Cp.s great/C extra/C)'), '(is/Pd hyperbase/Cp.s * ...)'))
-
-    def test_edge_matches_pattern_open_ended3(self):
-        self.assertFalse(
-            edge_matches_pattern(hedge('(is/Pd humanity/Cp.s great/C extra/C)'), '(is/Pd hyperbase/Cp.s * ...)'))
 
     def test_match_pattern_complex(self):
         s = ('(says/Pd.rr.|f--3s-/en (calls/Pr.so.|f--3s-/en */C (*/M (draconian/Ma/en (+/B.am/. coronavirus/Cc.s/en '

@@ -2,23 +2,37 @@
 
 Hyperbase implements language to define hyperedge patterns. These patterns are valid hyperedges themselves, and are defined with the help of special atoms: *wildcards* and *variables*. The former are useful for simple matching, while the latter allow for the extraction of specific parts of a hyperedge.
 
-## Searching with wildcards
+## Matching with wildcards
 
 The basic wildcard is `*`. It matches any hyperedge. It allows for the definition of patterns like this:
 
-```
-(plays/P * *)
+```clojure
+(plays/P.so * *)
 ```
 
-We can use them to search the hypergraph for matching hyperedges. For example:
+Here's how it can be used to match hyperedges:
 
-```pycon
->>> from hyperbase import *
->>> hg = hgraph('example.db')
->>> hg.add('(plays/P.so alice/C chess/C)')
-(plays/P.so alice/C chess/C)
->>> list(hg.search('(plays/P.so * *)'))
-[(plays/P.so alice/C chess/C)]
+```python
+from hyperbase import hedge
+pattern = hedge("(plays/P.so * *)")
+edge = hedge("(plays/P.so alice/C chess/C)")
+edge.match(pattern)  # returns [{}]
+edge = hedge("(likes/P.so alice/C chess/C)")
+edge.match(pattern)  # returns []
+```
+
+Notice that, in the first case, a list with an empty dictionary is returned (`[{}]`) to indicate a match. We will see later how these dictionaries are used to return the values taken by pattern variables. In the second case the edge does not match the pattern, so an empty list is returned.
+
+Since an empty list evaluates to False, this method can also be used as a boolean condition:
+
+```python
+from hyperbase import hedge
+pattern = hedge("(plays/P.so * *)")
+edge = hedge("(plays/P.so alice/C chess/C)")
+if edge.match(pattern):
+    print("match found")  # this is printed
+else:
+    print("no match")
 ```
 
 There are two more wildcards:
@@ -30,19 +44,19 @@ Furthermore, it is possible to specify types and roles in wildcards, as in any o
 
 It is possible to specify the optional presence of further arguments with the special atom `...`, which simply indicates that any number (including zero) hyperedges may be present at that point. For instance:
 
-```
+```clojure
 (plays/P * *)
 ```
 
 does not match:
 
-```
+```clojure
 (plays/P.sox alice/C chess/C (at/T (the/M club/C)))
 ```
 
 but this pattern does:
 
-```
+```clojure
 (plays/P * * ...)
 ```
 
