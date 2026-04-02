@@ -10,7 +10,8 @@ def match_pattern(
         pattern: Hyperedge | str | list[object] | tuple[object, ...],
         curvars: dict[str, Hyperedge] | None = None
 ) -> list[dict[str, Hyperedge]]:
-    """Matches an edge to a pattern. This means that, if the edge fits the
+    """
+    Matches an edge to a pattern. This means that, if the edge fits the
     pattern, then a list of dictionaries will be returned. If the pattern
     specifies variables, then the returned dictionaries will be populated
     with the values for each pattern variable. There can be more than one

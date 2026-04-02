@@ -192,6 +192,45 @@ class Hyperedge(tuple):  # type: ignore[type-arg]
         """
         return False
 
+    def match(
+        self,
+        pattern: Hyperedge | str | list[object] | tuple[object, ...]
+    ) -> list[dict[str, Hyperedge]]:
+        """
+        Matches an edge to a pattern. This means that, if the edge fits the
+        pattern, then a list of dictionaries will be returned. If the pattern
+        specifies variables, then the returned dictionaries will be populated
+        with the values for each pattern variable. There can be more than one
+        dictionary in the list if there are multiple ways of matching the
+        variables. If the pattern specifies no variables but the edge matches
+        it, then a list with a single empty dictionary is returned. If the
+        edge does not match the pattern, an empty list is returned.
+
+        Patterns are themselves edges. They can match families of edges
+        by employing special atoms:
+
+        - `\\*` represents a general wildcard (matches any entity)
+        - `.` represents an atomic wildcard (matches any atom)
+        - `(\\*)` represents an edge wildcard (matches any non-atom)
+        - `...` at the end indicates an open-ended pattern.
+
+        The wildcards (`\\*`, `.` and `(\\*)`) can be used to specify variables,
+        for example `\\*x`, `(CLAIM)` or `.ACTOR`. In case of a match, these
+        variables are assigned the hyperedge they correspond to. For example, consider
+        the edge:
+
+        `(is/P.so (my/Mp name/Cn) mary/Cp)`
+
+        - matching to the pattern: `(is/P.so (my/Mp name/Cn) \\*)`
+        produces the result: `[{}]`
+        - matching to the pattern: `(is/P.so (my/Mp name/Cn) \\*NAME)`
+        produces the result: `[{'NAME', mary/Cp}]`
+        - matching to the pattern: `(is/P.so . \\*NAME)`
+        produces the result: `[]`
+        """
+        from hyperbase.patterns import match_pattern
+        return match_pattern(self, pattern)
+
     def to_str(self, roots_only: bool = False) -> str:
         """Converts edge to its string representation.
 

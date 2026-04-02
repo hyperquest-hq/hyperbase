@@ -6,10 +6,11 @@
 - cli interface.
 - repl cli entry point.
 - parsers cli entry point.
+- hyperedge.Hyperedge.match function (calls parsers.match_pattern).
 
 ### Changed
 - added get_parser to main functions (at hyperbase root).
-- imrpoved documentation.
+- improved documentation.
 
 ### Removed
 
