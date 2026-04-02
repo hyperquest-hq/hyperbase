@@ -8,6 +8,7 @@
 - parsers cli entry point.
 
 ### Changed
+- imrpoved documentation.
 
 ### Removed
 

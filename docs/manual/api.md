@@ -12,10 +12,6 @@
 
 ::: hyperbase.patterns
 
-## Parsers package
+## Parsers module
 
 ::: hyperbase.parsers
-
-### Parser module
-
-::: hyperbase.parsers.parser

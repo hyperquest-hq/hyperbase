@@ -1,6 +1,6 @@
 # Patterns
 
-As briefly discussed before, hyperbase provides a pattern language to query and match hyperedges in the hypergraph. These patterns are valid hyperedges, and can even be stored in the hypergraph themselves. Patterns are defined with the help of special atoms: *wildcards* and *variables*. The former are useful for simply querying and matching, while the latter allow for the extraction of specific parts of a hyperedge.
+Hyperbase implements language to define hyperedge patterns. These patterns are valid hyperedges themselves, and are defined with the help of special atoms: *wildcards* and *variables*. The former are useful for simple matching, while the latter allow for the extraction of specific parts of a hyperedge.
 
 ## Searching with wildcards
 

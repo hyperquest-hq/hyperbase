@@ -68,6 +68,7 @@ nav:
     - Patterns: manual/patterns.md
     - Discovering Patterns: manual/discovering-patterns.md
     - Parsing: manual/parsing.md
+    - API Reference: manual/api.md
   - Authors: authors.md
 
 extra_css:
