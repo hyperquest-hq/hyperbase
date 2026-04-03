@@ -7,10 +7,12 @@
 - cli interface with repl, parsers, readers.
 - hyperedge.Hyperedge.match function (calls parsers.match_pattern).
 - ParseResults.
+- HyperEdge.text.
 
 ### Changed
 - added get_parser to main functions (at hyperbase root).
 - improved documentation.
+- hedge now accepts ParseResults and can recursively add Hyperedge.text strings.
 
 ### Removed
 - function patterns.edge_matches_pattern.

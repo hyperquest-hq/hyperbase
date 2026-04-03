@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hyperbase.parsers.parse_result import ParseResult
 
 
 argrole_order: dict[str, int] = {
@@ -103,8 +106,50 @@ def _parsed_token(token: str) -> Hyperedge | None:
         return Atom((token,))
 
 
-def hedge(source: str | Hyperedge | list[Any] | tuple[Any, ...]) -> Hyperedge | None:
+def _collect_positions(tok_pos: Hyperedge) -> list[int]:
+    """Collect all valid (>= 0) token positions from a tok_pos tree."""
+    if tok_pos.atom:
+        pos = int(tok_pos[0])
+        return [pos] if pos >= 0 else []
+    else:
+        positions: list[int] = []
+        for sub in tok_pos:
+            positions.extend(_collect_positions(sub))
+        return positions
+
+
+def _rebuild_with_text(
+    edge: Hyperedge,
+    tok_pos: Hyperedge,
+    tokens: list[str],
+) -> Hyperedge:
+    """Recursively rebuild an edge, assigning text from tokens and tok_pos."""
+    if edge.atom:
+        pos = int(tok_pos[0])
+        text = tokens[pos] if pos >= 0 else None
+        return Atom(edge, edge.parens, text=text)
+    else:
+        new_children = tuple(
+            _rebuild_with_text(sub_edge, sub_tok_pos, tokens)
+            for sub_edge, sub_tok_pos in zip(edge, tok_pos)
+        )
+        positions = _collect_positions(tok_pos)
+        if positions:
+            min_pos = min(positions)
+            max_pos = max(positions)
+            text = ' '.join(tokens[min_pos:max_pos + 1])
+        else:
+            text = None
+        return Hyperedge(new_children, text=text)
+
+
+def hedge(source: str | Hyperedge | list[Any] | tuple[Any] | ParseResult) -> Hyperedge | None:
     """Create a hyperedge."""
+    # Check for ParseResult via duck typing to avoid circular import
+    if hasattr(source, 'tok_pos') and hasattr(source, 'tokens') and hasattr(source, 'edge'):
+        edge = _rebuild_with_text(source.edge, source.tok_pos, source.tokens)
+        edge.text = source.text
+        return edge
     if type(source) in {tuple, list}:
         return Hyperedge(tuple(hedge(item) for item in source))
     elif type(source) is str:
@@ -142,8 +187,10 @@ def build_atom(text: str, *parts: str) -> Atom:
 
 class Hyperedge(tuple):  # type: ignore[type-arg]
     """Non-atomic hyperedge."""
-    def __new__(cls, edges: Iterable[Hyperedge | None]) -> Hyperedge:
-        return super(Hyperedge, cls).__new__(cls, tuple(edges))
+    def __new__(cls, edges: Iterable[Hyperedge | None], text: str | None = None) -> Hyperedge:
+        edge = super(Hyperedge, cls).__new__(cls, tuple(edges))
+        edge.text = text
+        return edge
 
     @property
     def atom(self) -> bool:
@@ -735,12 +782,12 @@ class Hyperedge(tuple):  # type: ignore[type-arg]
 # Store parens attribute in a dict by id since we can't add attributes to tuple subclasses
 _atom_parens: dict[int, bool] = {}
 
-
 class Atom(Hyperedge):
     """Atomic hyperedge."""
-    def __new__(cls, edge: tuple[str, ...] | Atom, parens: bool = False) -> Atom:
+    def __new__(cls, edge: tuple[str, ...] | Atom, parens: bool = False, text: str | None = None) -> Atom:
         atom = super(Hyperedge, cls).__new__(cls, tuple(edge))
         _atom_parens[id(atom)] = parens
+        atom.text = text
         return atom
 
     @property
