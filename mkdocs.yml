@@ -66,7 +66,6 @@ nav:
     - Notation: manual/notation.md
     - Hyperedge Operations: manual/hyperedge-operations.md
     - Patterns: manual/patterns.md
-    - Discovering Patterns: manual/discovering-patterns.md
     - Parsing: manual/parsing.md
     - API Reference: manual/api.md
   - Authors: authors.md

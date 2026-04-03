@@ -8,10 +8,6 @@
 
 ::: hyperbase.hyperedge
 
-## Patterns module
-
-::: hyperbase.patterns
-
 ## Parsers module
 
 ::: hyperbase.parsers

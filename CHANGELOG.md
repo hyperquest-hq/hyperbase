@@ -13,6 +13,7 @@
 - improved documentation.
 
 ### Removed
+- function patterns.edge_matches_pattern.
 
 ## [0.8.0] - 26-03-2026 - hyperbase is the successor of graphbrain
 
