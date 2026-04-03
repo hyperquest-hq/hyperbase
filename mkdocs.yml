@@ -60,6 +60,7 @@ nav:
   - Installation: installation.md
   - Publications & Use Cases: pubs-cases.md
   - Tutorials:
+    - Playing with Hyperedges: tutorials/playing-with-hyperedges.md
     - Parsing a Sentence: tutorials/parsing-a-sentence.md
   - Manual:
     - Overview: manual/overview.md
