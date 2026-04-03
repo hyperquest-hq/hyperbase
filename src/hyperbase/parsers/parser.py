@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Iterator
 from typing import Any
 
@@ -39,3 +40,47 @@ class Parser:
             for sentence_results in self.parse_batch(batch):
                 results.extend(sentence_results)
         return results
+
+    def read_source(
+        self,
+        source: str,
+        reader: str = 'auto',
+        batch_size: int = 8,
+        progress: bool = False,
+    ) -> Iterator[list[dict[str, Any]]]:
+        """Read text blocks from *source* and parse each one.
+
+        Automatically selects (or explicitly uses) a reader, then
+        yields one list of parse results per text block.
+        """
+        from hyperbase.readers.reader import get_reader
+
+        rdr = get_reader(source, reader=reader)
+        yield from rdr.read_and_parse(
+            source, self, batch_size=batch_size, progress=progress,
+        )
+
+    def read_source_to_jsonl(
+        self,
+        source: str,
+        output: str,
+        reader: str = 'auto',
+        batch_size: int = 8,
+        progress: bool = False,
+    ) -> None:
+        """Read *source*, parse every block, and write results to a JSONL file.
+
+        Each result dict is serialized as one JSON line.
+        Non-serializable values (e.g. Hyperedge objects) are converted
+        to their string representation.
+        """
+        with open(output, 'w') as f:
+            for results in self.read_source(
+                source, reader=reader, batch_size=batch_size,
+                progress=progress,
+            ):
+                for result in results:
+                    if 'edge' in result and result['edge'] is not None:
+                        result['edge'] = str(result['edge'])
+                    f.write(json.dumps(result, ensure_ascii=False,
+                                       default=str) + '\n')

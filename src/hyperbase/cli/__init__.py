@@ -15,6 +15,59 @@ def main():
         help="List installed parser plugins",
     )
 
+    # --- read subcommand ---------------------------------------------------
+    read_parser = subparsers.add_parser(
+        "read",
+        help="Read a source, parse it, and write JSONL output",
+    )
+    read_parser.add_argument(
+        "source",
+        type=str,
+        help="Source to read (file path or URL)",
+    )
+    read_parser.add_argument(
+        "-o", "--output",
+        type=str,
+        required=True,
+        help="Output file path (.jsonl for parsed output, .txt for raw text)",
+    )
+    read_parser.add_argument(
+        "--parser",
+        type=str,
+        default="generative",
+        help="Parser plugin name (default: generative)",
+    )
+    read_parser.add_argument(
+        "--reader",
+        type=str,
+        default="auto",
+        help="Reader name or 'auto' (default: auto)",
+    )
+    read_parser.add_argument(
+        "--model_path",
+        type=str,
+        default=None,
+        help="Path to trained model (generative parser)",
+    )
+    read_parser.add_argument(
+        "--language",
+        type=str,
+        default=None,
+        help="Language for alphabeta parser",
+    )
+    read_parser.add_argument(
+        "--device",
+        type=str,
+        default=None,
+        help="Device to use (cuda/cpu/mps)",
+    )
+    read_parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=8,
+        help="Batch size for parsing (default: 8)",
+    )
+
     # --- repl subcommand ---------------------------------------------------
     repl_parser = subparsers.add_parser(
         "repl",
@@ -92,6 +145,11 @@ def main():
     if args.command == "parsers":
         from hyperbase.cli.parsers import run_parsers
         run_parsers()
+        sys.exit(0)
+
+    if args.command == "read":
+        from hyperbase.cli.read import run_read
+        run_read(args)
         sys.exit(0)
 
     if args.command == "repl":

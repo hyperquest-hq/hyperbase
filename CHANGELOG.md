@@ -3,9 +3,8 @@
 ## [0.8.1] - work in progress
 
 ### Added
-- cli interface.
-- repl cli entry point.
-- parsers cli entry point.
+- readers (txt, url, wikipedia).
+- cli interface with repl, parsers, readers.
 - hyperedge.Hyperedge.match function (calls parsers.match_pattern).
 
 ### Changed

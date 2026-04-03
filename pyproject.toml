@@ -30,6 +30,8 @@ dependencies = [
     "tqdm>=4.65.0",
     "prompt-toolkit>=3.0.0",
     "rich>=13.0.0",
+    "mwparserfromhell>=0.7.2",
+    "trafilatura>=2.0.0",
 ]
 
 [project.scripts]

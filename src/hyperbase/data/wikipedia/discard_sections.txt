@@ -1,0 +1,2096 @@
+## Discard title sections to not extract the at output files.
+#   For exmaple: References, Bibliography.
+
+## MANTAIN THIS FORMAT!
+
+
+## WARNING: It MUST contain the name of the sections in EVERY DESIRED LANGUAGE
+#       This is becase wikipedia dumps do not tag this sections and if it is desired to 
+#           expand templates (wich is recommended) it will cause output errors.
+
+
+
+## BANNED SECTION TITLES (hard-typed in every language)
+# \n separated values
+# WARNING: Some names maybe are not well written, manually check them for specific lang.
+
+
+
+# This language sections names are not included at this config file:
+#   aa
+#   ab
+#   ba
+#   bh
+#   bi
+#   bo
+#   br
+#   dz
+#   fj
+#   fo
+#   he
+#   ia
+#   ie
+#   ik
+#   in
+#   ji
+#   kl
+#   ks
+#   kz
+#   ls
+#   mo
+#   na
+#   oc
+#   rm
+#   rn
+#   sb
+#   sg
+#   sh
+#   ss
+#   sx
+#   tn
+#   to
+#   tw
+#   us
+#   vo
+#   wo
+#   zh
+
+
+
+
+
++ LANGUAGE (ISO-639-1): af
+Verwysings
+Verwysings en notas
+Aantekeninge en verwysings
+Sien ook
+Galery van beelde
+Eksterne skakels
+Bibliografie
+Geselekteerde Bibliografie
+Aanvullende Bibliografie
+Werke aangehaal
+Bykomende bibliografie
+Notas
+Verdere leeswerk
+Uitstallingskatalogusse
+Versamelings
+Verwante klanklêers
+
+
++ LANGUAGE (ISO-639-1): am
+ዋቢዎች
+ማጣቀሻዎች እና ማስታወሻዎች
+ማስታወሻዎች እና ማጣቀሻዎች
+ተመልከት
+የምስሎች ጋለሪ
+ውጫዊ አገናኞች
+መጽሃፍ ቅዱስ
+የተመረጠ መጽሃፍ ቅዱስ
+ማሟያ መጽሃፍ ቅዱስ
+ስራዎች ተጠቅሰዋል
+ተጨማሪ መጽሃፍ ቅዱስ
+ማስታወሻዎች
+ተጨማሪ ንባብ
+የኤግዚቢሽን ካታሎጎች
+ስብስቦች
+ተዛማጅ የድምጽ ፋይሎች
+
+
++ LANGUAGE (ISO-639-1): ar
+مراجع
+المراجع والملاحظات
+ملاحظات ومراجع
+أنظر أيضا
+معرض الصور
+روابط خارجية
+فهرس
+مراجع مختارة
+الببليوغرافيا التكميلية
+استشهد الأشغال
+ببليوغرافيا إضافية
+ملحوظات
+قراءة متعمقة
+كتالوجات المعرض
+المجموعات
+ملفات الصوت ذات الصلة
+
+
++ LANGUAGE (ISO-639-1): as
+তথ্যসূত্ৰসমূহ
+তথ্যসূত্ৰ আৰু টোকা
+টোকা আৰু উল্লেখ
+লগতে চাওক
+ছবিৰ গেলেৰী
+বাহ্যিক সংযোগসমূহ
+গ্ৰন্থতালিকা
+নিৰ্বাচিত গ্ৰন্থতালিকা
+পৰিপূৰক গ্ৰন্থতালিকা
+উদ্ধৃত ৰচনাসমূহ
+অতিৰিক্ত গ্ৰন্থতালিকা
+টোকাসমূহ
+অধিক পঢ়া
+প্ৰদৰ্শনী কেটেলগ
+সংগ্ৰহসমূহ
+সম্পৰ্কীয় শব্দ ফাইলসমূহ
+
+
++ LANGUAGE (ISO-639-1): ay
+Uñakipt’atanaka
+Referencias ukat notas ukanaka
+Notas ukat referencias ukanaka
+Uñxattʼarakismawa
+Galería de imágenes ukan uñacht’ayata
+Anqax Uñt’atanaka
+Bibliografía uñt’ayaña
+Ajllit Bibliografía
+Bibliografía Complementaria ukax mä juk’a pachanakanwa
+Uñakipata luratanaka
+Yaqha bibliografía uñt’ayaña
+Notas ukanaka
+Juk’ampi liyt’añataki
+Uñacht’ayañataki Catálogos ukanaka
+Apthapiwinaka
+Uka tuqit uñt’at sonido archivonaka
+
+
++ LANGUAGE (ISO-639-1): az
+İstinadlar
+İstinadlar və qeydlər
+Qeydlər və istinadlar
+Həmçinin bax
+Şəkillər qalereyası
+Xarici linklər
+Biblioqrafiya
+Seçilmiş biblioqrafiya
+Tamamlayıcı biblioqrafiya
+İstinad edilən əsərlər
+Əlavə biblioqrafiya
+Qeydlər
+Əlavə oxu
+Sərgi Kataloqları
+Kolleksiyalar
+Əlaqədar səs faylları
+
+
++ LANGUAGE (ISO-639-1): be
+Спасылкі
+Спасылкі і заўвагі
+Заўвагі і даведкі
+Глядзіце таксама
+Галерэя малюнкаў
+Знешнія спасылкі
+Бібліяграфія
+Выбраная бібліяграфія
+Дадатковая бібліяграфія
+Працы, якія цытуюцца
+Дадатковая бібліяграфія
+Заўвагі
+Дадатковае чытанне
+Каталогі выстаў
+Зборнікі
+Звязаныя гукавыя файлы
+
+
++ LANGUAGE (ISO-639-1): bg
+Препратки
+Литература и бележки
+Бележки и препратки
+Вижте също
+Галерия от изображения
+Външни връзки
+Библиография
+Избрана библиография
+Допълнителна библиография
+Цитирани творби
+Допълнителна библиография
+Бележки
+Допълнителна информация
+Изложбени каталози
+Колекции
+Свързани звукови файлове
+
+
++ LANGUAGE (ISO-639-1): bn
+তথ্যসূত্র
+রেফারেন্স এবং নোট
+নোট এবং রেফারেন্স
+আরো দেখুন
+ছবির গ্যালারি
+বহিরাগত লিঙ্ক
+গ্রন্থপঞ্জি
+নির্বাচিত গ্রন্থপঞ্জি
+পরিপূরক গ্রন্থপঞ্জি
+কাজ উদ্ধৃত
+অতিরিক্ত গ্রন্থপঞ্জি
+মন্তব্য
+আরও পড়া
+প্রদর্শনী ক্যাটালগ
+সংগ্রহ
+সম্পর্কিত শব্দ ফাইল
+
+
++ LANGUAGE (ISO-639-1): ca
+Referències
+Referències i notes
+Notes i referències
+Vegeu també
+Galeria d'imatges
+Enllaços externs
+Bibliografia
+Bibliografia seleccionada
+Bibliografia complementària
+Treballs citats
+Bibliografia addicional
+Notes
+Per llegir més
+Catàlegs d'exposició
+Col·leccions
+Colleccions
+Fitxers de so relacionats
+Arxius de so relacionats
+
+
++ LANGUAGE (ISO-639-1): co
+Referenze
+Riferimenti è note
+Note è referenze
+Vede ancu
+Galleria d'imaghjini
+Ligami esterni
+Bibliografia
+Bibliografia scelta
+Bibliografia cumplementaria
+Opere citate
+Bibliografia supplementu
+Notes
+Lettura in più
+Cataloghi di mostra
+Cullizzioni
+I schedarii di sonu cunnessi
+
+
++ LANGUAGE (ISO-639-1): cs
+Reference
+Reference a poznámky
+Poznámky a odkazy
+Viz také
+Galerie obrázků
+Externí odkazy
+Bibliografie
+Vybraná bibliografie
+Doplňková bibliografie
+Citované práce
+Doplňková bibliografie
+Poznámky
+Další čtení
+Katalogy výstav
+Sbírky
+Související zvukové soubory
+
+
++ LANGUAGE (ISO-639-1): cy
+Cyfeiriadau
+Cyfeiriadau a nodiadau
+Nodiadau a chyfeiriadau
+Gweld hefyd
+Oriel o ddelweddau
+Cysylltiadau Allanol
+Llyfryddiaeth
+Llyfryddiaeth Ddewisol
+Llyfryddiaeth Gyflenwol
+Gwaith a ddyfynnir
+Llyfryddiaeth ychwanegol
+Nodiadau
+Darllen pellach
+Catalogau Arddangosfa
+Casgliadau
+Ffeiliau sain cysylltiedig
+
+
++ LANGUAGE (ISO-639-1): da
+Referencer
+Referencer og noter
+Noter og referencer
+Se også
+Galleri med billeder
+Eksterne links
+Bibliografi
+Udvalgt bibliografi
+Supplerende bibliografi
+Citerede værker
+Yderligere bibliografi
+Noter
+Yderligere læsning
+Udstillingskataloger
+Samlinger
+Relaterede lydfiler
+
+
++ LANGUAGE (ISO-639-1): de
+Verweise
+Referenzen und Notizen
+Hinweise und Referenzen
+Siehe auch
+Bildergalerie
+Externe Links
+Literaturverzeichnis
+Ausgewählte Bibliographie
+Ergänzende Bibliographie
+Zitierte Werke
+Zusätzliche Bibliographie
+Anmerkungen
+Weiterführende Literatur
+Ausstellungskataloge
+Sammlungen
+Verwandte Sounddateien
+
+
++ LANGUAGE (ISO-639-1): el
+βιβλιογραφικές αναφορές
+Παραπομπές και σημειώσεις
+Σημειώσεις και παραπομπές
+Δείτε επίσης
+Γκαλερί εικόνων
+Εξωτερικοί σύνδεσμοι
+Βιβλιογραφία
+Επιλεγμένη Βιβλιογραφία
+Συμπληρωματική Βιβλιογραφία
+Οι εργασίες που αναφέρονται
+Συμπληρωματική βιβλιογραφία
+Σημειώσεις
+Περαιτέρω ανάγνωση
+Κατάλογοι εκθέσεων
+Συλλογές
+Σχετικά αρχεία ήχου
+
+
++ LANGUAGE (ISO-639-1): en
+References
+References and notes
+Notes and references
+See also
+Gallery of images
+External Links
+Bibliography
+Selected Bibliography
+Complementary Bibliography
+Works cited
+Additional bibliography
+Notes
+Further reading
+Exhibition Catalogues
+Collections
+Related sound files
+
+
++ LANGUAGE (ISO-639-1): eo
+Referencoj
+Referencoj kaj notoj
+Notoj kaj referencoj
+Vidu ankaŭ
+Galerio de bildoj
+Eksteraj Ligiloj
+Bibliografio
+Elektita Bibliografio
+Komplementa Bibliografio
+Verkoj cititaj
+Plia bibliografio
+Notoj
+Plia legado
+Ekspoziciaj Katalogoj
+Kolektoj
+Rilataj sondosieroj
+
+
++ LANGUAGE (ISO-639-1): es
+Referencias
+Referencias y notas
+notas y referencias
+Ver también
+galeria de imagenes
+Enlaces externos
+Bibliografía
+Bibliografía seleccionada
+Bibliografía Complementaria
+Trabajos citados
+Bibliografía adicional
+notas
+Otras lecturas
+Catálogos de exposiciones
+Colecciones
+Archivos de sonido relacionados
+Véase también
+
+
+
++ LANGUAGE (ISO-639-1): et
+Viited
+Viited ja märkmed
+Märkused ja viited
+Vaata ka
+Piltide galerii
+Välised lingid
+Bibliograafia
+Valitud bibliograafia
+Täiendav bibliograafia
+Viidatud tööd
+Lisabibliograafia
+Märkmed
+Lisalugemist
+Näituste kataloogid
+Kollektsioonid
+Seotud helifailid
+
+
++ LANGUAGE (ISO-639-1): eu
+Erreferentziak
+Erreferentziak eta oharrak
+Oharrak eta erreferentziak
+Ikusi ere
+Irudien galeria
+Kanpo Estekak
+Bibliografia
+Hautatutako bibliografia
+Bibliografia Osagarria
+Aipatutako lanak
+Bibliografia gehigarria
+Oharrak
+Irakurketa gehiago
+Erakusketen katalogoak
+Bildumak
+Erlazionatutako soinu-fitxategiak
+
+
++ LANGUAGE (ISO-639-1): fa
+منابع
+مراجع و یادداشت ها
+یادداشت ها و مراجع
+همچنین ببینید
+گالری تصاویر
+لینک های خارجی
+کتابشناسی - فهرست کتب
+کتابشناسی برگزیده
+کتابشناسی تکمیلی
+آثار ذکر شده
+کتابشناسی اضافی
+یادداشت
+بیشتر خواندن
+کاتالوگ های نمایشگاهی
+مجموعه ها
+فایل های صوتی مرتبط
+
+
++ LANGUAGE (ISO-639-1): fi
+Viitteet
+Viitteet ja muistiinpanot
+Huomautuksia ja viitteitä
+Katso myös
+Kuvien galleria
+Ulkoiset linkit
+Bibliografia
+Valittu bibliografia
+Täydentävä bibliografia
+Mainitut teokset
+Lisäbibliografia
+Huomautuksia
+Lue lisää
+Näyttelyluettelot
+Kokoelmat
+Aiheeseen liittyvät äänitiedostot
+
+
++ LANGUAGE (ISO-639-1): fr
+Les références
+Références et notes
+Notes et références
+Voir également
+Galerie d'images
+Liens externes
+Bibliographie
+Bibliographie sélective
+Bibliographie complémentaire
+Ouvrages cités
+Bibliographie complémentaire
+Remarques
+Lectures complémentaires
+Catalogues d'exposition
+Collections
+Fichiers audio associés
+
+
++ LANGUAGE (ISO-639-1): fy
+Referinsjes
+Referinsjes en notysjes
+Notysjes en referinsjes
+Sjoch ek
+Galery fan bylden
+Eksterne keppelings
+Bibliografy
+Selected Bibliography
+Oanfoljende bibliografy
+Wurken oanhelle
+Oanfoljende bibliografy
+Notysjes
+Fierder lêzen
+Tentoanstelling Katalogussen
+Samlingen
+Related lûd triemmen
+
+
++ LANGUAGE (ISO-639-1): ga
+Tagairtí
+Tagairtí agus nótaí
+Nótaí agus tagairtí
+Féach freisin
+Gailearaí na n-íomhánna
+Naisc Sheachtracha
+Leabharliosta
+Leabharliosta Roghnaithe
+Leabharliosta Chomhlántach
+Oibreacha a luadh
+Leabharliosta breise
+Nótaí
+Tuilleadh léitheoireachta
+Catalóga Taispeántais
+Bailiúcháin
+Comhaid fuaime gaolmhara
+
+
++ LANGUAGE (ISO-639-1): gd
+Iomraidhean
+Iomraidhean agus notaichean
+Notaichean agus iomraidhean
+Faic cuideachd
+Gailearaidh dhealbhan
+Ceanglaichean a-muigh
+Leabhar-chlàr
+Leabhar-chlàr taghte
+Leabhar-chlàr Co-phàirteach
+Obraichean air an ainmeachadh
+Leabhar-chlàr a bharrachd
+Notaichean
+Leughadh a bharrachd
+Catalogan taisbeanaidhean
+Cruinneachaidhean
+Faidhlichean fuaime co-cheangailte
+
+
++ LANGUAGE (ISO-639-1): gl
+Referencias
+Referencias e notas
+Notas e referencias
+Ver tamén
+Galería de imaxes
+Ligazóns Externas
+Bibliografía
+Bibliografía seleccionada
+Bibliografía complementaria
+Obras citadas
+Bibliografía adicional
+Notas
+Lecturas adicionais
+Catálogos da exposición
+Coleccións
+Ficheiros de son relacionados
+
+
++ LANGUAGE (ISO-639-1): gn
+Umi mba’e oje’éva
+Referencia ha nota-kuéra
+Nota ha referencia-kuéra
+Ehecha avei
+Galería ta’angakuéra rehegua
+Umi Enlace Externo rehegua
+Bibliografía rehegua
+Bibliografía ojeporavóva
+Bibliografía Complementaria rehegua
+Tembiapokuéra oñemombe’úva
+Bibliografía adicional rehegua
+Notas rehegua
+Oñemoñe’ẽve haguã
+Catálogos de Exposición rehegua
+Ñembyatykuéra
+Umi archivo sonido rehegua ojoajúva
+
+
++ LANGUAGE (ISO-639-1): gu
+સંદર્ભ
+સંદર્ભો અને નોંધો
+નોંધો અને સંદર્ભો
+આ પણ જુઓ
+છબીઓની ગેલેરી
+બાહ્ય લિંક્સ
+ગ્રંથસૂચિ
+પસંદ કરેલ ગ્રંથસૂચિ
+પૂરક ગ્રંથસૂચિ
+કૃતિઓ ટાંકવામાં આવી છે
+વધારાની ગ્રંથસૂચિ
+નોંધો
+વધુ વાંચન
+પ્રદર્શન કેટલોગ
+સંગ્રહો
+સંબંધિત ધ્વનિ ફાઇલો
+
+
++ LANGUAGE (ISO-639-1): ha
+Magana
+Nassoshi da bayanin kula
+Bayanan kula da nassoshi
+Duba kuma
+Gallery na hotuna
+Hanyoyin haɗi na waje
+Littafi Mai Tsarki
+Zaɓaɓɓen Littafi Mai Tsarki
+Karin Bayanin Littafi Mai Tsarki
+Ayyukan da aka ambata
+Ƙarin tarihin littafin
+Bayanan kula
+Kara karantawa
+Catalogs nuni
+Tari
+Fayilolin sauti masu alaƙa
+
+
++ LANGUAGE (ISO-639-1): hi
+संदर्भ
+संदर्भ और नोट्स
+नोट्स और संदर्भ
+यह सभी देखें
+छवियों की गैलरी
+बाहरी संबंध
+ग्रन्थसूची
+चयनित ग्रंथ सूची
+पूरक ग्रंथ सूची
+उद्धृत कार्य
+अतिरिक्त ग्रंथ सूची
+टिप्पणियाँ
+अग्रिम पठन
+प्रदर्शनी कैटलॉग
+संग्रह
+संबंधित ध्वनि फ़ाइलें
+
+
++ LANGUAGE (ISO-639-1): hr
+Reference
+Literatura i bilješke
+Bilješke i literatura
+Vidi također
+Galerija slika
+Vanjske poveznice
+Bibliografija
+Odabrana bibliografija
+Dopunska bibliografija
+Navedena djela
+Dodatna bibliografija
+Bilješke
+Daljnje čitanje
+Katalozi izložbi
+Zbirke
+Povezane zvučne datoteke
+
+
++ LANGUAGE (ISO-639-1): hu
+Hivatkozások
+Hivatkozások és jegyzetek
+Jegyzetek és hivatkozások
+Lásd még
+Képgaléria
+Külső linkek
+Bibliográfia
+Válogatott bibliográfia
+Kiegészítő bibliográfia
+Hivatkozott munkák
+Kiegészítő bibliográfia
+Megjegyzések
+További irodalom
+Kiállítási katalógusok
+Gyűjtemények
+Kapcsolódó hangfájlok
+
+
++ LANGUAGE (ISO-639-1): hy
+Հղումներ
+Հղումներ և նշումներ
+Նշումներ և հղումներ
+Տես նաեւ
+Պատկերների պատկերասրահ
+Արտաքին կապեր
+Մատենագիտություն
+Ընտրված մատենագիտություն
+Լրացուցիչ մատենագիտություն
+Մեջբերված աշխատանքները
+Լրացուցիչ մատենագիտություն
+Նշումներ
+Հետագա ընթերցում
+Ցուցահանդեսների կատալոգներ
+Հավաքածուներ
+Առնչվող ձայնային ֆայլեր
+
+
++ LANGUAGE (ISO-639-1): id
+Referensi
+Referensi dan catatan
+Catatan dan referensi
+Lihat juga
+Galeri gambar
+Tautan Eksternal
+Bibliografi
+Bibliografi Terpilih
+Pustaka Pelengkap
+Karya dikutip
+bibliografi tambahan
+Catatan
+Bacaan lebih lanjut
+Katalog Pameran
+Koleksi
+File suara terkait
+
+
++ LANGUAGE (ISO-639-1): is
+Heimildir
+Tilvísanir og athugasemdir
+Skýringar og tilvísanir
+Sjá einnig
+Gallerí með myndum
+Ytri hlekkir
+Heimildaskrá
+Valin heimildaskrá
+Viðbótarritaskrá
+Verk sem vitnað er í
+Viðbótarritaskrá
+Skýringar
+Frekari lestur
+Sýningarskrár
+Söfn
+Tengdar hljóðskrár
+
+
++ LANGUAGE (ISO-639-1): it
+Riferimenti
+Riferimenti e note
+Note e riferimenti
+Guarda anche
+Galleria di immagini
+Link esterno
+Bibliografia
+Bibliografia selezionata
+Bibliografia complementare
+Lavori citati
+Bibliografia aggiuntiva
+Appunti
+Ulteriori letture
+Cataloghi di mostre
+Collezioni
+File audio correlati
+
+
++ LANGUAGE (ISO-639-1): iw
+הפניות
+הפניות והערות
+הערות והפניות
+ראה גם
+גלריית תמונות
+קישורים חיצוניים
+בִּיבּלִיוֹגְרָפִיָה
+ביבליוגרפיה נבחרת
+ביבליוגרפיה משלימה
+עבודות מצוטטות
+ביבליוגרפיה נוספת
+הערות
+לקריאה נוספת
+קטלוגים של תערוכה
+אוספים
+קבצי קול קשורים
+
+
++ LANGUAGE (ISO-639-1): ja
+参考文献
+参考文献とメモ
+メモと参考文献
+こちらも参照
+画像ギャラリー
+外部リンク
+参考文献
+選択された参考文献
+補足参考文献
+引用された作品
+追加の参考文献
+ノート
+参考文献
+展覧会カタログ
+コレクション
+関連サウンドファイル
+
+
++ LANGUAGE (ISO-639-1): jw
+Referensi
+Referensi lan cathetan
+Cathetan lan referensi
+Deloken sisan
+Galeri gambar
+Pranala njaba
+Bibliografi
+Bibliografi sing dipilih
+Daftar Pustaka Pelengkap
+Karya dikutip
+Pustaka tambahan
+Cathetan
+Wacan liyane
+Katalog Pameran
+Koleksi
+File swara sing gegandhengan
+
+
++ LANGUAGE (ISO-639-1): ka
+ცნობები
+ცნობები და შენიშვნები
+შენიშვნები და მითითებები
+Იხილეთ ასევე
+სურათების გალერეა
+გარე ბმულები
+ბიბლიოგრაფია
+რჩეული ბიბლიოგრაფია
+დამატებითი ბიბლიოგრაფია
+ციტირებული ნამუშევრები
+დამატებითი ბიბლიოგრაფია
+შენიშვნები
+შემდგომი კითხვა
+საგამოფენო კატალოგები
+კოლექციები
+დაკავშირებული ხმის ფაილები
+
+
++ LANGUAGE (ISO-639-1): kk
+Анықтамалар
+Анықтамалар мен ескертпелер
+Ескертпелер мен сілтемелер
+Сондай-ақ қараңыз
+Суреттер галереясы
+Сыртқы сілтемелер
+Библиография
+Таңдалған библиография
+Қосымша библиография
+Келтірілген еңбектер
+Қосымша библиография
+Ескертпелер
+Қосымша оқу
+Көрме каталогтары
+Жинақтар
+Қатысты дыбыс файлдары
+
+
++ LANGUAGE (ISO-639-1): km
+ឯកសារយោង
+ឯកសារយោង និងកំណត់ចំណាំ
+កំណត់ចំណាំ និងឯកសារយោង
+សូម​មើល​ផង​ដែរ
+វិចិត្រសាលរូបភាព
+តំណ​ភ្ជាប់​ខាងក្រៅ
+គន្ថនិទ្ទេស
+គន្ថនិទ្ទេសដែលបានជ្រើសរើស
+គន្ថនិទ្ទេសបន្ថែម
+ការងារដែលបានដកស្រង់
+គន្ថនិទ្ទេសបន្ថែម
+កំណត់ចំណាំ
+ការអានបន្ថែម
+កាតាឡុកពិព័រណ៍
+បណ្តុំ
+ឯកសារសំឡេងដែលទាក់ទង
+
+
++ LANGUAGE (ISO-639-1): kn
+ಉಲ್ಲೇಖಗಳು
+ಉಲ್ಲೇಖಗಳು ಮತ್ತು ಟಿಪ್ಪಣಿಗಳು
+ಟಿಪ್ಪಣಿಗಳು ಮತ್ತು ಉಲ್ಲೇಖಗಳು
+ಸಹ ನೋಡಿ
+ಚಿತ್ರಗಳ ಗ್ಯಾಲರಿ
+ಬಾಹ್ಯ ಕೊಂಡಿಗಳು
+ಗ್ರಂಥಸೂಚಿ
+ಆಯ್ದ ಗ್ರಂಥಸೂಚಿ
+ಪೂರಕ ಗ್ರಂಥಸೂಚಿ
+ಕೃತಿಗಳನ್ನು ಉಲ್ಲೇಖಿಸಲಾಗಿದೆ
+ಹೆಚ್ಚುವರಿ ಗ್ರಂಥಸೂಚಿ
+ಟಿಪ್ಪಣಿಗಳು
+ಹೆಚ್ಚಿನ ಓದುವಿಕೆ
+ಪ್ರದರ್ಶನ ಕ್ಯಾಟಲಾಗ್‌ಗಳು
+ಸಂಗ್ರಹಣೆಗಳು
+ಸಂಬಂಧಿತ ಧ್ವನಿ ಫೈಲ್‌ಗಳು
+
+
++ LANGUAGE (ISO-639-1): ko
+참조
+참조 및 메모
+참고 및 참조
+또한보십시오
+이미지 갤러리
+외부 링크
+서지
+선택된 참고 문헌
+보충 참고문헌
+작품 인용
+추가 참고문헌
+노트
+추가 자료
+전시 카탈로그
+컬렉션
+관련 사운드 파일
+
+
++ LANGUAGE (ISO-639-1): ku
+Çavkanî
+Çavkanî û têbînî
+Têbînî û referans
+Binêre jî
+Galeriya wêneyan
+Girêdanên Derveyî
+Bibliography
+Bibliyografyaya Hilbijartî
+Bibliyografya Tevger
+Karên ku hatine destnîşan kirin
+Bibliyografiya Zêdeyî
+Têbînî
+Bêtir xwendina
+Katalogên Pêşangehê
+Collections
+Pelên deng ên têkildar
+
+
++ LANGUAGE (ISO-639-1): ky
+Шилтемелер
+Шилтемелер жана эскертүүлөр
+Эскертүүлөр жана шилтемелер
+Ошондой эле караңыз
+Сүрөттөр галереясы
+Тышкы шилтемелер
+Библиография
+Тандалган библиография
+Кошумча библиография
+Келтирилген эмгектер
+Кошумча библиография
+Эскертүүлөр
+Андан ары окуу
+Көргөзмө каталогдор
+Коллекциялар
+Тиешелүү үн файлдары
+
+
++ LANGUAGE (ISO-639-1): la
+References
+Notae et notae
+Notae et indiciorum
+Vide quoque
+Pinacotheca imaginum
+Vincula externa
+Bibliographia
+Bibliothecae selectae
+Bibliographia completiva
+Works citatis
+Additional bibliography
+Notae
+Nexus externi
+Exhibition Catalogi
+Collectiones
+Related soni
+
+
++ LANGUAGE (ISO-639-1): ln
+Ba références
+Ba références mpe ba notes
+Banote mpe ba références
+Talá mpe
+Galerie ya bilili
+Ba Liens ya libanda
+Bibliographie ya mikanda
+Bibliographie oyo eponami
+Bibliographie complémentaire
+Misala oyo etángamaki
+Bibliographie mosusu
+Maloba ya ntina
+Botangi mosusu
+Ba Catalogues ya ba expositions
+Ba collections ya biloko
+Ba fichiers ya son oyo etali yango
+
+
++ LANGUAGE (ISO-639-1): lo
+ເອກະສານອ້າງອີງ
+ເອກະສານອ້າງອີງ ແລະບັນທຶກ
+ບັນທຶກແລະການອ້າງອີງ
+ເບິ່ງນຳ
+ຄັງຮູບພາບ
+ການເຊື່ອມຕໍ່ພາຍນອກ
+ບັນນານຸກົມ
+Bbliography ທີ່ເລືອກ
+ບັນ​ນາ​ທິ​ການ​ທີ່​ສົມ​ບູນ​ແບບ​
+ວຽກງານອ້າງອີງ
+ບັນນານຸກົມເພີ່ມເຕີມ
+ບັນທຶກ
+ອ່ານ​ເພີ່ມ​ເຕີມ
+ລາຍການວາງສະແດງ
+ຄໍເລັກຊັນ
+ໄຟລ໌ສຽງທີ່ກ່ຽວຂ້ອງ
+
+
++ LANGUAGE (ISO-639-1): lt
+Nuorodos
+Nuorodos ir pastabos
+Pastabos ir nuorodos
+Taip pat žr
+Vaizdų galerija
+Išorinės nuorodos
+Bibliografija
+Pasirinkta bibliografija
+Papildoma bibliografija
+Cituoti darbai
+Papildoma bibliografija
+Pastabos
+Papildoma literatūra
+Parodos katalogai
+Kolekcijos
+Susiję garso failai
+
+
++ LANGUAGE (ISO-639-1): lv
+Atsauces
+Atsauces un piezīmes
+Piezīmes un atsauces
+Skatīt arī
+Attēlu galerija
+Arejas saites
+Bibliogrāfija
+Izvēlētā bibliogrāfija
+Papildu bibliogrāfija
+Darbi citēti
+Papildu bibliogrāfija
+Piezīmes
+Tālāka lasīšana
+Izstāžu katalogi
+Kolekcijas
+Saistītie skaņas faili
+
+
++ LANGUAGE (ISO-639-1): mg
+References
+References sy fanamarihana
+Fanamarihana sy references
+Jereo ihany koa
+Galerie misy sary
+Rohy ivelany
+Bibliographie
+Bibliographie voafantina
+Bibliografia mifameno
+Asa voatonona
+Bibliographie fanampiny
+-tsoratra
+Famakiana fanampiny
+Katalaogy fampirantiana
+Collections
+rakitra feo mifandraika
+
+
++ LANGUAGE (ISO-639-1): mi
+Tohutoro
+Nga tohutoro me nga korero
+Nga korero me nga tohutoro
+Tirohia hoki
+Taiwhanga whakaahua
+Hononga o waho
+pukapuka pukapuka
+Pukapuka Pukapuka kua tohua
+Pukapuka Whakaakoranga
+Nga mahi i whakahuahia
+He pukapuka pukapuka taapiri
+Notes
+Pānuitanga atu
+Putumōhio Whakaaturanga
+Kohinga
+Ko nga konae oro e pa ana
+
+
++ LANGUAGE (ISO-639-1): mk
+Референци
+Референци и белешки
+Белешки и референци
+Исто така види
+Галерија на слики
+Надворешни врски
+Библиографија
+Избрана библиографија
+Дополнителна библиографија
+Цитирани дела
+Дополнителна библиографија
+Белешки
+Понатамошно читање
+Каталози на изложби
+Колекции
+Поврзани звучни датотеки
+
+
++ LANGUAGE (ISO-639-1): ml
+റഫറൻസുകൾ
+റഫറൻസുകളും കുറിപ്പുകളും
+കുറിപ്പുകളും റഫറൻസുകളും
+ഇതും കാണുക
+ചിത്രങ്ങളുടെ ഗാലറി
+ബാഹ്യ ലിങ്കുകൾ
+ഗ്രന്ഥസൂചിക
+തിരഞ്ഞെടുത്ത ഗ്രന്ഥസൂചിക
+കോംപ്ലിമെന്ററി ഗ്രന്ഥസൂചിക
+കൃതികൾ ഉദ്ധരിച്ചു
+അധിക ഗ്രന്ഥസൂചിക
+കുറിപ്പുകൾ
+കൂടുതൽ വായനയ്ക്ക്
+പ്രദർശന കാറ്റലോഗുകൾ
+ശേഖരങ്ങൾ
+ബന്ധപ്പെട്ട ശബ്ദ ഫയലുകൾ
+
+
++ LANGUAGE (ISO-639-1): mn
+Лавлагаа
+Лавлагаа ба тэмдэглэл
+Тэмдэглэл ба лавлагаа
+Мөн үзнэ үү
+Зургийн галерей
+Гадаад холбоосууд
+Ном зүй
+Сонгосон ном зүй
+Нэмэлт ном зүй
+Иш татсан бүтээлүүд
+Нэмэлт ном зүй
+Тэмдэглэл
+Цаашид унших
+Үзэсгэлэнгийн каталог
+Цуглуулга
+Холбогдох дууны файлууд
+
+
++ LANGUAGE (ISO-639-1): mr
+संदर्भ
+संदर्भ आणि नोट्स
+नोट्स आणि संदर्भ
+हे देखील पहा
+प्रतिमांची गॅलरी
+बाह्य दुवे
+संदर्भग्रंथ
+निवडलेली ग्रंथसूची
+पूरक ग्रंथसूची
+कामे उद्धृत केली
+अतिरिक्त ग्रंथसूची
+नोट्स
+पुढील वाचन
+प्रदर्शन कॅटलॉग
+संग्रह
+संबंधित ध्वनी फाइल्स
+
+
++ LANGUAGE (ISO-639-1): ms
+Rujukan
+Rujukan dan nota
+Nota dan rujukan
+Lihat juga
+Galeri imej
+Pautan Luaran
+Bibliografi
+Bibliografi Terpilih
+Bibliografi Pelengkap
+Karya yang dipetik
+bibliografi tambahan
+Nota
+Bacaan lanjut
+Katalog Pameran
+Koleksi
+Fail bunyi yang berkaitan
+
+
++ LANGUAGE (ISO-639-1): mt
+Referenzi
+Referenzi u noti
+Noti u referenzi
+Ara ukoll
+Gallerija ta 'immaġini
+Links Esterni
+Biblijografija
+Biblijografija Magħżula
+Biblijografija Kumplimentari
+Xogħlijiet iċċitati
+Bibljografija addizzjonali
+Noti
+Aktar qari
+Katalgi tal-Wirja
+Kollezzjonijiet
+Fajls tal-ħoss relatati
+
+
++ LANGUAGE (ISO-639-1): my
+ကိုးကား
+အကိုးအကားများနှင့်မှတ်စုများ
+မှတ်စုများနှင့် ကိုးကားချက်များ
+ကြည့်ပါ။
+ရုပ်ပုံများပြခန်း
+ပြင်ပလင့်များ
+ကျမ်းကိုးစာရင်း
+ရွေးချယ်ထားသော ကျမ်းကိုးစာရင်း
+ဖြည့်စွက်ကျမ်းကိုးစာရင်း
+ကိုးကားထားသောလက်ရာများ
+နောက်ထပ် ကျမ်းကိုးစာရင်း
+မှတ်စုများ
+နောက်ထပ်ဖတ်ရန်
+ပြပွဲ ကတ်တလောက်များ
+စုစည်းမှုများ
+ဆက်စပ်အသံဖိုင်များ
+
+
++ LANGUAGE (ISO-639-1): ne
+सन्दर्भहरू
+सन्दर्भ र नोटहरू
+नोटहरू र सन्दर्भहरू
+यो पनि हेर्नुहोस्
+छविहरूको ग्यालेरी
+बाह्य लिङ्कहरू
+बिब्लियोग्राफी
+चयन गरिएको बिब्लियोग्राफी
+पूरक बिब्लियोग्राफी
+काम उद्धृत
+अतिरिक्त ग्रन्थसूची
+नोटहरू
+थप पढाइ
+प्रदर्शनी क्याटलगहरू
+सङ्ग्रहहरू
+सम्बन्धित ध्वनि फाइलहरू
+
+
++ LANGUAGE (ISO-639-1): nl
+Referenties
+Referenties en notities
+Aantekeningen en referenties
+Zie ook
+Galerij van afbeeldingen
+Externe links
+Bibliografie
+Geselecteerde bibliografie
+Aanvullende bibliografie
+Geciteerde werken
+Aanvullende bibliografie
+Notities
+Verder lezen
+Tentoonstellingscatalogi
+Collecties
+Gerelateerde geluidsbestanden
+
+
++ LANGUAGE (ISO-639-1): no
+Referanser
+Referanser og notater
+Notater og referanser
+Se også
+Galleri med bilder
+Eksterne linker
+Bibliografi
+Utvalgt bibliografi
+Utfyllende bibliografi
+Verk som er sitert
+Ytterligere bibliografi
+Notater
+Videre lesning
+Utstillingskataloger
+Samlinger
+Relaterte lydfiler
+
+
++ LANGUAGE (ISO-639-1): om
+Wabiiwwan
+Wabiiwwanii fi yaadannoowwan
+Yaadannoo fi wabiiwwan
+Akkasumas ilaali
+Galmee suuraa
+Hidhamtoota Alaa
+Bibliyoogiraafii
+Bibliyoogiraafii Filatame
+Bibliyoogiraafii Dabalataa
+Hojiiwwan caqasaman
+Bibliyoogiraafii dabalataa
+Hubachiisa
+Dubbisa dabalataa
+Kataloogii Agarsiisaa
+Kuusaawwan
+Faayilota sagalee walqabatan
+
+
++ LANGUAGE (ISO-639-1): or
+ସନ୍ଦର୍ଭ
+ସନ୍ଦର୍ଭ ଏବଂ ଟିପ୍ପଣୀ |
+ଟିପ୍ପଣୀ ଏବଂ ସନ୍ଦର୍ଭ |
+ଏହା କୁ ବି ଦେଖ
+ପ୍ରତିଛବି ଗ୍ୟାଲେରୀ |
+ବାହ୍ୟ ଲିଙ୍କ୍ |
+ଗ୍ରନ୍ଥସମୂହ
+ମନୋନୀତ ଗ୍ରନ୍ଥସମୂହ |
+ସଂପୃକ୍ତ ଗ୍ରନ୍ଥସମୂହ |
+କାର୍ଯ୍ୟଗୁଡିକ ଦର୍ଶାଯାଇଛି |
+ଅତିରିକ୍ତ ଗ୍ରନ୍ଥସମୂହ |
+ଟିପ୍ପଣୀ |
+ଆଗକୁ ପଢିବା
+ପ୍ରଦର୍ଶନୀ କାଟାଲଗ୍ |
+ସଂଗ୍ରହ
+ସମ୍ବନ୍ଧୀୟ ଧ୍ୱନି ଫାଇଲଗୁଡ଼ିକ |
+
+
++ LANGUAGE (ISO-639-1): pa
+ਹਵਾਲੇ
+ਹਵਾਲੇ ਅਤੇ ਨੋਟਸ
+ਨੋਟਸ ਅਤੇ ਹਵਾਲੇ
+ਇਹ ਵੀ ਵੇਖੋ
+ਚਿੱਤਰਾਂ ਦੀ ਗੈਲਰੀ
+ਬਾਹਰੀ ਲਿੰਕ
+ਬਿਬਲੀਓਗ੍ਰਾਫੀ
+ਚੁਣੀ ਗਈ ਬਿਬਲਿਓਗ੍ਰਾਫੀ
+ਪੂਰਕ ਬਿਬਲੀਓਗ੍ਰਾਫੀ
+ਕੰਮਾਂ ਦਾ ਹਵਾਲਾ ਦਿੱਤਾ ਗਿਆ
+ਵਧੀਕ ਪੁਸਤਕ-ਸੂਚੀ
+ਨੋਟਸ
+ਹੋਰ ਪੜ੍ਹਨਾ
+ਪ੍ਰਦਰਸ਼ਨੀ ਕੈਟਾਲਾਗ
+ਸੰਗ੍ਰਹਿ
+ਸੰਬੰਧਿਤ ਸਾਊਂਡ ਫਾਈਲਾਂ
+
+
++ LANGUAGE (ISO-639-1): pl
+Bibliografia
+Referencje i notatki
+Uwagi i odniesienia
+Zobacz też
+Galeria obrazów
+Linki zewnętrzne
+Bibliografia
+Wybrana bibliografia
+Bibliografia uzupełniająca
+Prace cytowane
+Dodatkowa bibliografia
+Notatki
+Dalsza lektura
+Katalogi wystaw
+Kolekcje
+Powiązane pliki dźwiękowe
+
+
++ LANGUAGE (ISO-639-1): ps
+حوالې
+حوالې او یادښتونه
+یادښتونه او اخځونه
+هم وګوره
+د انځورونو ګالري
+بهرنۍ اړیکې
+کتابتون
+ټاکل شوې بیبلیوګرافي
+تکمیلي کتابتون
+اثار نقل شوي دي
+اضافي کتابتون
+یادښتونه
+مخ پر وړاندی لوستل
+د نندارتون کتلاګ
+راټولونه
+اړوند غږ فایلونه
+
+
++ LANGUAGE (ISO-639-1): pt
+Referências
+Referências e notas
+Notas e referências
+Veja também
+Galeria de imagens
+Links externos
+Bibliografia
+Bibliografia Selecionada
+Bibliografia Complementar
+Trabalhos citados
+Bibliografia adicional
+Notas
+Leitura adicional
+Catálogos de exposições
+Coleções
+Arquivos de som relacionados
+
+
++ LANGUAGE (ISO-639-1): qu
+Referenciakuna
+Referenciakuna hinaspa notakuna
+Notas y referencias nisqakuna
+Qawaytaq
+Galería de imágenes
+Hawa T'inkikuna
+Bibliografía nisqa
+Akllasqa Bibliografía
+Bibliografía Complementaria nisqa
+Llamkaykuna citasqa
+Bibliografía adicional nisqa
+Notas
+Astawan ñawinchay
+Rikuchiy Catálogos nisqakuna
+Huñusqakuna
+Chaywan tupaq t’uqyay archivokuna
+
+
++ LANGUAGE (ISO-639-1): ro
+Referințe
+Referințe și note
+Note și referințe
+Vezi si
+Galerie de imagini
+Linkuri externe
+Bibliografie
+Bibliografie aleasă
+Bibliografie complementară
+Lucrari citate
+Bibliografie suplimentară
+Note
+Lectură în continuare
+Cataloage de expoziție
+Colecții
+Fișiere de sunet înrudite
+
+
++ LANGUAGE (ISO-639-1): ru
+Рекомендации
+Ссылки и примечания
+Примечания и ссылки
+Смотрите также
+Галерея изображений
+Внешние ссылки
+Библиография
+Избранная библиография
+Дополнительная библиография
+Процитированные работы
+Дополнительная библиография
+Примечания
+дальнейшее чтение
+Каталоги выставок
+Коллекции
+Связанные звуковые файлы
+
+
++ LANGUAGE (ISO-639-1): rw
+Reba
+Ibisobanuro hamwe ninyandiko
+Inyandiko
+Reba kandi
+Ububiko bw'amashusho
+Ihuza ryo hanze
+Bibliografiya
+Bibliografiya Yatoranijwe
+Bibliografiya yuzuye
+Imirimo yatanzwe
+Bibliografiya yinyongera
+Inyandiko
+Ibindi gusoma
+Cataloge yimurikabikorwa
+Ibyegeranyo
+Bifitanye isano dosiye
+
+
++ LANGUAGE (ISO-639-1): sa
+सन्दर्भाः
+सन्दर्भाः टिप्पण्याः च
+टिप्पण्यानि सन्दर्भाः च
+अपि द्रष्टव्यम्
+चित्राणां गैलरी
+बाह्यलिङ्काः
+ग्रन्थसूची
+चयनित ग्रन्थसूची
+पूरक ग्रन्थसूची
+उद्धृताः कृतयः
+अतिरिक्त ग्रन्थसूची
+टिप्पणियाँ
+अग्रे पठनम्
+प्रदर्शनी सूची
+संग्रह
+सम्बन्धित ध्वनि सञ्चिका
+
+
++ LANGUAGE (ISO-639-1): sd
+حوالا
+حوالا ۽ نوٽس
+نوٽس ۽ حوالا
+پڻ ڏسو
+تصويرن جي گيلري
+خارجي لنڪس
+ببليوگرافي
+منتخب ٿيل ببليوگرافي
+ضمني ببليوگرافي
+ڪم جو حوالو ڏنو ويو آهي
+اضافي ببليوگرافي
+نوٽس
+وڌيڪ پڙهڻ
+نمائش جي فهرست
+مجموعو
+لاڳاپيل آواز فائلون
+
+
++ LANGUAGE (ISO-639-1): si
+යොමු කිරීම්
+යොමු සහ සටහන්
+සටහන් සහ යොමු
+මේකත් බලන්න
+පින්තූර ගැලරිය
+බාහිර සබැඳි
+ග්‍රන්ථ නාමාවලිය
+තෝරාගත් ග්‍රන්ථ නාමාවලිය
+අනුපූරක ග්‍රන්ථ නාමාවලිය
+උපුටා දක්වන කෘති
+අතිරේක ග්‍රන්ථ නාමාවලිය
+සටහන්
+තවදුරටත් කියවීම
+ප්රදර්ශන නාමාවලි
+එකතු කිරීම්
+අදාළ ශබ්ද ගොනු
+
+
++ LANGUAGE (ISO-639-1): sk
+Referencie
+Referencie a poznámky
+Poznámky a referencie
+Pozri tiež
+Galéria obrázkov
+Vonkajšie odkazy
+Bibliografia
+Výberová bibliografia
+Doplnková bibliografia
+Citované práce
+Dodatočná bibliografia
+Poznámky
+Ďalšie čítanie
+Katalógy výstav
+zbierky
+Súvisiace zvukové súbory
+
+
++ LANGUAGE (ISO-639-1): sl
+Reference
+Literatura in opombe
+Opombe in reference
+Poglej tudi
+Galerija slik
+Zunanje povezave
+Bibliografija
+Izbrana bibliografija
+Dopolnilna bibliografija
+Navedena dela
+Dodatna bibliografija
+Opombe
+nadaljnje branje
+Razstavni katalogi
+Zbirke
+Sorodne zvočne datoteke
+
+
++ LANGUAGE (ISO-639-1): sm
+Fa'asinomaga
+Fa'amatalaga ma fa'amatalaga
+Faʻamatalaga ma faʻamatalaga
+Vaai foi
+Fale o ata
+Sootaga i fafo
+Tusitala
+Tusitala Filifilia
+Tusitala lagolago
+Galuega ta'ua
+Tusitala faaopoopo
+Fa'amatalaga
+Faitau atili
+Fa'aaliga Fa'aaliga
+Aoina
+Faila leo fesootai
+
+
++ LANGUAGE (ISO-639-1): sn
+References
+References uye zvinyorwa
+Zvinyorwa uye zvinyorwa
+Onawo
+Gallery yemifananidzo
+External Links
+Bibliography
+Bhaibheri rakasarudzwa
+Complementary Bibliography
+Mabasa akataurwa
+Mamwe mabhiibheri
+Notes
+Kuwedzera kuverenga
+Exhibition Catalogs
+Collections
+Related inzwi mafaira
+
+
++ LANGUAGE (ISO-639-1): so
+Tixraacyo
+Tixraacyo iyo qoraallo
+Qoraalo iyo tixraacyo
+Sidoo kale eeg
+Gallery of images
+Xiriirinta Dibadda
+Buugaag
+Buugaag la doortay
+Buugaag Buugaag ah
+Shaqooyinka la soo xigtay
+Buugaag dheeraad ah
+Xusuusin
+Akhris dheeraad ah
+Buugaagta Bandhiga
+Ururinta
+Galalka dhawaaqa ee la xidhiidha
+
+
++ LANGUAGE (ISO-639-1): sq
+Referencat
+Referencat dhe shënimet
+Shënime dhe referenca
+Shiko gjithashtu
+Galeria e imazheve
+Linqe te jashtme
+Bibliografi
+Bibliografi e zgjedhur
+Bibliografi plotësuese
+Veprat e cituara
+Bibliografi shtesë
+Shënime
+Leximi më tej
+Katalogjet e Ekspozitave
+Koleksionet
+Skedarët zanorë të lidhur
+
+
++ LANGUAGE (ISO-639-1): sr
+Референце
+Референце и напомене
+Напомене и референце
+Такође видети
+Галерија слика
+Спољашње везе
+Библиографија
+Изабрана библиографија
+Комплементарна библиографија
+Радови навео
+Додатна библиографија
+Напомене
+Додатна литература
+Каталози изложбе
+Збирке
+Повезане звучне датотеке
+
+
++ LANGUAGE (ISO-639-1): st
+Litšupiso
+Litšupiso le lintlha
+Lintlha le litšupiso
+Bona hape
+Kalari ea litšoantšo
+Lihokelo tsa Kantle
+Bukana ea libuka
+Libuka tse Khethiloeng
+Libuka tse Tlatsetsang
+Mesebetsi e boletsoeng
+Bibliography e eketsehileng
+Lintlha
+Ho bala ho eketsehileng
+Mananeo a Pontšo
+Lipokello
+Lifaele tsa molumo tse amanang
+
+
++ LANGUAGE (ISO-639-1): su
+Rujukan
+Rujukan jeung catetan
+Catetan jeung rujukan
+Tempo ogé
+Galeri gambar
+Tumbu éksternal
+Bibliografi
+Bibliografi Dipilih
+Daftar Pustaka Pelengkap
+Karya dicutat
+Bibliografi tambahan
+Catetan
+bacaan salajengna
+Katalog Pameran
+Koléksi
+Patali file sora
+
+
++ LANGUAGE (ISO-639-1): sv
+Referenser
+Referenser och anteckningar
+Anteckningar och referenser
+Se även
+Galleri med bilder
+Externa länkar
+Bibliografi
+Utvald bibliografi
+Kompletterande bibliografi
+Anförda verk
+Ytterligare bibliografi
+Anteckningar
+Vidare läsning
+Utställningskataloger
+Samlingar
+Relaterade ljudfiler
+
+
++ LANGUAGE (ISO-639-1): sw
+Marejeleo
+Marejeleo na maelezo
+Vidokezo na marejeleo
+Angalia pia
+Matunzio ya picha
+Viungo vya Nje
+Bibliografia
+Bibliografia Iliyochaguliwa
+Biblia ya Nyongeza
+Kazi zilizotajwa
+Bibliografia ya ziada
+Vidokezo
+Kusoma zaidi
+Katalogi za Maonyesho
+Mikusanyiko
+Faili za sauti zinazohusiana
+
+
++ LANGUAGE (ISO-639-1): ta
+குறிப்புகள்
+குறிப்புகள் மற்றும் குறிப்புகள்
+குறிப்புகள் மற்றும் குறிப்புகள்
+மேலும் பார்க்கவும்
+படங்களின் தொகுப்பு
+வெளி இணைப்புகள்
+நூல் பட்டியல்
+தேர்ந்தெடுக்கப்பட்ட நூல் பட்டியல்
+நிரப்பு நூல் பட்டியல்
+மேற்கோள் நூல்கள்
+கூடுதல் நூலியல்
+குறிப்புகள்
+மேலும் படிக்க
+கண்காட்சி பட்டியல்கள்
+தொகுப்புகள்
+தொடர்புடைய ஒலி கோப்புகள்
+
+
++ LANGUAGE (ISO-639-1): te
+ప్రస్తావనలు
+సూచనలు మరియు గమనికలు
+గమనికలు మరియు సూచనలు
+ఇది కూడ చూడు
+చిత్రాల గ్యాలరీ
+బాహ్య లింకులు
+గ్రంథ పట్టిక
+ఎంచుకున్న గ్రంథ పట్టిక
+కాంప్లిమెంటరీ బిబ్లియోగ్రఫీ
+సూచించన పనులు
+అదనపు గ్రంథ పట్టిక
+గమనికలు
+మరింత చదవడానికి
+ఎగ్జిబిషన్ కేటలాగ్‌లు
+సేకరణలు
+సంబంధిత సౌండ్ ఫైల్స్
+
+
++ LANGUAGE (ISO-639-1): tg
+Иқтибосҳо
+Иқтибосҳо ва қайдҳо
+Қайдҳо ва истинодҳо
+Ҳамчунин нигаред
+Галереяи тасвирҳо
+Пайвандҳои беруна
+Библиография
+Библиографияи интихобшуда
+Библиографияи иловагӣ
+Асархо оварда шудаанд
+Библиографияи иловагӣ
+Қайдҳо
+Хониши минбаъда
+Каталогҳои намоишгоҳ
+Маҷмӯаҳо
+Файлҳои садоии алоқаманд
+
+
++ LANGUAGE (ISO-639-1): th
+อ้างอิง
+การอ้างอิงและบันทึก
+หมายเหตุและการอ้างอิง
+ดูสิ่งนี้ด้วย
+คลังภาพ
+ลิงค์ภายนอก
+บรรณานุกรม
+บรรณานุกรมคัดสรร
+บรรณานุกรมประกอบ
+ผลงานที่อ้างถึง
+บรรณานุกรมเพิ่มเติม
+หมายเหตุ
+อ่านเพิ่มเติม
+แคตตาล็อกนิทรรศการ
+คอลเลกชัน
+ไฟล์เสียงที่เกี่ยวข้อง
+
+
++ LANGUAGE (ISO-639-1): ti
+መወከሲታት
+መወከሲታትን መዘኻኸሪታትን
+መዘኻኸሪታትን መወከሲታትን
+ከምኡውን ርአ
+ጋለሪ ምስልታት
+ናይ ደገ መላግቦታት
+መጽሓፍቲ ዝርዝር
+ዝተመርጸ መጽሓፍቲ ዝርዝር
+መመላእታ መጽሓፍቲ ዝርዝር
+ዝተጠቕሱ ስርሓት
+ተወሳኺ መጽሓፍቲ ዝርዝር
+መተሓሳሰቢ
+ተወሳኺ ንባብ
+ናይ ምርኢት ካታሎግ
+እኩባት
+ተዛመድቲ ናይ ድምጺ ፋይላት
+
+
++ LANGUAGE (ISO-639-1): tk
+Salgylar
+Salgylar we bellikler
+Bellikler we salgylanmalar
+Şeýle-de seret
+Suratlar galereýasy
+Daşarky baglanyşyklar
+Bibliografiýa
+Saýlanan bibliografiýa
+Goşmaça bibliografiýa
+Eserler getirildi
+Goşmaça bibliografiýa
+Bellikler
+Goşmaça okaň
+Sergi kataloglary
+Kolleksiýalar
+Degişli ses faýllary
+
+
++ LANGUAGE (ISO-639-1): tl
+Mga sanggunian
+Mga sanggunian at tala
+Mga tala at sanggunian
+Tingnan din
+Gallery ng mga larawan
+Mga Panlabas na Link
+Bibliograpiya
+Napiling Bibliograpiya
+Komplementaryong Bibliograpiya
+Mga gawang binanggit
+Karagdagang bibliograpiya
+Mga Tala
+Karagdagang pagbabasa
+Mga Katalogo ng Exhibition
+Mga koleksyon
+Mga kaugnay na sound file
+
+
++ LANGUAGE (ISO-639-1): tr
+Referanslar
+Referanslar ve notlar
+Notlar ve referanslar
+Ayrıca bakınız
+resim galerisi
+Dış bağlantılar
+Kaynakça
+Seçilmiş Kaynakça
+Tamamlayıcı Kaynakça
+Alıntı yapılan eserler
+Ek kaynakça
+notlar
+daha fazla okuma
+Sergi Katalogları
+Koleksiyonlar
+İlgili ses dosyaları
+
+
++ LANGUAGE (ISO-639-1): ts
+Swikombo
+Swikombo na tinotsi
+Tinhlamuselo na swikombo
+Nakambe vona
+Gallery ya swifaniso
+Swihlanganisi swa le Handle
+Nxaxamelo wa tibuku
+Nxaxamelo wa Tibuku lowu Hlawuriweke
+Nxaxamelo wa Tibuku wo Engetela
+Mintirho leyi tshahiweke
+Nxaxamelo wa tibuku leti engetelekeke
+Tinhlamuselo
+Ku hlaya loku yaka emahlweni
+Tikhathalogu ta Nkombiso
+Nhlengeleto wa swilo
+Tifayili ta mpfumawulo leti fambelanaka
+
+
++ LANGUAGE (ISO-639-1): tt
+Белешмәләр
+Белешмәләр һәм искәрмәләр
+Искәрмәләр һәм сылтамалар
+Шулай ук ​​кара
+Рәсемнәр галереясе
+Тышкы сылтамалар
+Библиография
+Сайланган Библиография
+Өстәмә библиография
+Эшләр китерелгән
+Өстәмә библиография
+Искәрмәләр
+Киләсе уку
+Күргәзмә каталоглары
+Коллекцияләр
+Бәйләнешле тавыш файллары
+
+
++ LANGUAGE (ISO-639-1): uk
+Список літератури
+Література та примітки
+Примітки та література
+Дивись також
+Галерея зображень
+Зовнішні посилання
+Бібліографія
+Вибрана бібліографія
+Додаткова бібліографія
+Цитовані
+Додаткова бібліографія
+Примітки
+Подальше читання
+Каталоги виставок
+Колекції
+Пов'язані звукові файли
+
+
++ LANGUAGE (ISO-639-1): ur
+حوالہ جات
+حوالہ جات اور نوٹ
+نوٹس اور حوالہ جات
+بھی دیکھو
+تصاویر کی گیلری
+بیرونی روابط
+کتابیات
+منتخب کتابیات
+تکمیلی کتابیات
+کاموں کا حوالہ دیا گیا۔
+اضافی کتابیات
+نوٹس
+مزید پڑھنے
+نمائش کیٹلاگ
+مجموعے
+متعلقہ آواز کی فائلیں۔
+
+
++ LANGUAGE (ISO-639-1): uz
+Ma'lumotnomalar
+Ma'lumotnomalar va eslatmalar
+Eslatmalar va havolalar
+Shuningdek qarang
+Rasmlar galereyasi
+Tashqi havolalar
+Bibliografiya
+Tanlangan bibliografiya
+Qo'shimcha bibliografiya
+Keltirilgan asarlar
+Qo'shimcha bibliografiya
+Eslatmalar
+Qo'shimcha o'qish
+Ko'rgazma kataloglari
+To'plamlar
+Tegishli ovozli fayllar
+
+
++ LANGUAGE (ISO-639-1): vi
+Người giới thiệu
+Tài liệu tham khảo và ghi chú
+Ghi chú và tài liệu tham khảo
+Xem thêm
+Thư viện hình ảnh
+Liện kết ngoại
+Thư mục
+Thư mục đã chọn
+Thư mục bổ sung
+Công trình được trích dẫn
+thư mục bổ sung
+ghi chú
+đọc thêm
+Danh mục triển lãm
+bộ sưu tập
+Tập tin âm thanh liên quan
+
+
++ LANGUAGE (ISO-639-1): xh
+Iimbekiselo
+Iireferensi kunye namanqaku
+Amanqaku kunye neereferensi
+Bona kwakho
+Igalari yemifanekiso
+Unxulumano lwangaphandle
+Uluhlu lweencwadi
+Uluhlu lweencwadi ezikhethiweyo
+I-Bibliography eyongezelelweyo
+Imisebenzi ekhankanyiweyo
+Ibhibliyografi eyongezelelweyo
+Amanqaku
+Ukufunda ngakumbi
+Iikhathalogu zeMiboniso
+Iingqokelela
+Iifayile zesandi ezinxulumeneyo
+
+
++ LANGUAGE (ISO-639-1): yi
+רעפערענצן
+רעפערענצן און הערות
+הערות און רעפערענצן
+זען אויך
+גאַלערי פון בילדער
+פונדרויסנדיק לינקס
+ביבליאגראפיע
+אויסגעקליבענע ביבליאגראפיע
+קאָמפּלעמענטאַרי ביבליאָגראַפי
+ציטירטע ווערק
+נאָך ביבליאָגראַפי
+הערות
+ווייטער לייענען
+עקסהיביטיאָן קאַטאַלאַגז
+זאַמלונגען
+פֿאַרבונדענע געזונט טעקעס
+
+
++ LANGUAGE (ISO-639-1): yo
+Awọn itọkasi
+Awọn itọkasi ati awọn akọsilẹ
+Awọn akọsilẹ ati awọn itọkasi
+Wo eleyi na
+Gallery ti awọn aworan
+Ita Links
+Iwe akosile
+Ti a ti yan Bibliography
+Ibaramu Bibliography
+Awọn iṣẹ toka
+Afikun bibliography
+Awọn akọsilẹ
+Siwaju kika
+aranse Catalogs
+Awọn akojọpọ
+Awọn faili ohun to jọmọ
+
+
++ LANGUAGE (ISO-639-1): zu
+Izithenjwa
+Izinkomba namanothi
+Amanothi nezinkomba
+Bhekafuthi
+Igalari yezithombe
+Izixhumanisi Zangaphandle
+I-Bibliography
+I-Bibliography ekhethiwe
+I-Complementary Bibliography
+Imisebenzi ecashuniwe
+I-bibliography eyengeziwe
+Amanothi
+Ukufunda okwengeziwe
+Amakhathalogi ombukiso
+Amaqoqo
+Amafayela omsindo ahlobene
