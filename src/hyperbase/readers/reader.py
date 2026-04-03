@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import json
 from collections.abc import Iterator
 from typing import Any, TYPE_CHECKING
 
@@ -200,16 +199,11 @@ class Reader:
     ) -> None:
         """Read *source*, parse every block, and write results to a JSONL file.
 
-        Each result dict from the parser is serialized as-is to one
-        JSON line.  Non-serializable values (e.g. Hyperedge objects)
-        are converted to their string representation.
+        Each ParseResult is serialized as one JSON line.
         """
         with open(output, 'w') as f:
             for results in self.read_and_parse(
                 source, parser, batch_size=batch_size, progress=progress,
             ):
                 for result in results:
-                    if 'edge' in result and result['edge'] is not None:
-                        result['edge'] = str(result['edge'])
-                    f.write(json.dumps(result, ensure_ascii=False,
-                                       default=str) + '\n')
+                    f.write(result.to_json() + '\n')

@@ -1,11 +1,12 @@
 # Changelog
 
-## [0.8.1] - work in progress
+## [0.9.0] - work in progress
 
 ### Added
 - readers (txt, url, wikipedia).
 - cli interface with repl, parsers, readers.
 - hyperedge.Hyperedge.match function (calls parsers.match_pattern).
+- ParseResults.
 
 ### Changed
 - added get_parser to main functions (at hyperbase root).

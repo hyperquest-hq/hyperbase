@@ -1,6 +1,7 @@
 from importlib.metadata import entry_points, EntryPoint
 from typing import Any
 
+from hyperbase.parsers.parse_result import ParseResult
 from hyperbase.parsers.parser import Parser
 
 
@@ -36,4 +37,4 @@ def get_parser(name: str, **kwargs: Any) -> Parser:
     return cls(**kwargs)  # type: ignore[no-any-return]
 
 
-__all__ = ["Parser", "get_parser", "list_parsers"]
+__all__ = ["ParseResult", "Parser", "get_parser", "list_parsers"]

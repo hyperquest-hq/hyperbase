@@ -1,30 +1,32 @@
 from __future__ import annotations
 
-import json
 from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hyperbase.parsers.parse_result import ParseResult
 
 
 class Parser:
     def sentensize(self, text: str) -> list[str]:
         raise NotImplementedError
 
-    def parse(self, text: str) -> Iterator[dict[str, Any]]:
+    def parse(self, text: str) -> Iterator[ParseResult]:
         for sentence in self.sentensize(text):
             for parse in self.parse_sentence(sentence):
                 yield parse
 
-    def parse_sentence(self, sentence: str) -> list[dict[str, Any]]:
+    def parse_sentence(self, sentence: str) -> list[ParseResult]:
         raise NotImplementedError
 
-    def parse_batch(self, sentences: list[str]) -> list[list[dict[str, Any]]]:
+    def parse_batch(self, sentences: list[str]) -> list[list[ParseResult]]:
         """Parse multiple sentences. Subclasses may override with a
         true batched implementation (e.g. a single CT2 call)."""
         return [self.parse_sentence(sentence) for sentence in sentences]
 
     def parse_text(
         self, text: str, batch_size: int = 8, progress: bool = False
-    ) -> list[dict[str, Any]]:
+    ) -> list[ParseResult]:
         """Sentensize text, then parse all sentences in batches.
 
         Returns a flat list of parse results across all sentences.
@@ -34,7 +36,7 @@ class Parser:
         if progress:
             from tqdm import tqdm  # type: ignore[import-untyped]
             batch_range = tqdm(batch_range, desc="Parsing batches", leave=False)
-        results: list[dict[str, Any]] = []
+        results: list[ParseResult] = []
         for i in batch_range:
             batch = sentences[i:i + batch_size]
             for sentence_results in self.parse_batch(batch):
@@ -47,7 +49,7 @@ class Parser:
         reader: str = 'auto',
         batch_size: int = 8,
         progress: bool = False,
-    ) -> Iterator[list[dict[str, Any]]]:
+    ) -> Iterator[list[ParseResult]]:
         """Read text blocks from *source* and parse each one.
 
         Automatically selects (or explicitly uses) a reader, then
@@ -70,9 +72,7 @@ class Parser:
     ) -> None:
         """Read *source*, parse every block, and write results to a JSONL file.
 
-        Each result dict is serialized as one JSON line.
-        Non-serializable values (e.g. Hyperedge objects) are converted
-        to their string representation.
+        Each ParseResult is serialized as one JSON line.
         """
         with open(output, 'w') as f:
             for results in self.read_source(
@@ -80,7 +80,4 @@ class Parser:
                 progress=progress,
             ):
                 for result in results:
-                    if 'edge' in result and result['edge'] is not None:
-                        result['edge'] = str(result['edge'])
-                    f.write(json.dumps(result, ensure_ascii=False,
-                                       default=str) + '\n')
+                    f.write(result.to_json() + '\n')

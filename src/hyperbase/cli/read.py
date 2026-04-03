@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 import sys
 
@@ -56,13 +55,11 @@ def run_read(args: argparse.Namespace):
         ):
             for result in results:
                 sentences += 1
-                if result.get('failed'):
+                if result.failed:
                     errors += 1
-                elif result.get('edge') is not None:
+                else:
                     edges += 1
-                    result['edge'] = str(result['edge'])
-                f.write(json.dumps(result, ensure_ascii=False,
-                                   default=str) + '\n')
+                f.write(result.to_json() + '\n')
 
     print(f"\nSentences: {sentences}", file=sys.stderr)
     print(f"Edges:     {edges}", file=sys.stderr)

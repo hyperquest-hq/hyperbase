@@ -532,8 +532,8 @@ class ReplSession:
 
             parse_result = list(self.parser.parse(text))
             if parse_result and len(parse_result) > 0:
-                edge = parse_result[0].get('edge')
-                tokens = parse_result[0].get('tokens')
+                edge = parse_result[0].edge
+                tokens = parse_result[0].tokens
             else:
                 edge = None
                 tokens = None
@@ -576,7 +576,7 @@ class ReplSession:
             self.console.print(result_panel)
 
             # Show raw model output if enabled
-            raw_parse = parse_result[0].get('raw_parse') if parse_result else None
+            raw_parse = parse_result[0].extra.get('raw_parse') if parse_result else None
             if raw_parse and self.settings.get('raw_output', False):
                 self.console.print()
                 self.console.print(Panel(
@@ -587,13 +587,13 @@ class ReplSession:
                 ))
 
             # Show all candidates when constraints are enabled
-            candidates = parse_result[0].get('candidates') if parse_result else None
+            candidates = parse_result[0].extra.get('candidates') if parse_result else None
             if candidates and len(candidates) > 1:
                 self.console.print()
                 for candidate in candidates:
                     idx = candidate['index']
                     score = candidate['badness_score']
-                    c_edge = candidate['edge']
+                    c_edge = hedge(candidate['edge'])
                     is_selected = (edge is not None and str(c_edge) == str(edge))
 
                     formatted = self.formatter.format(c_edge)
@@ -612,11 +612,9 @@ class ReplSession:
                     ))
 
                     if score > 0:
-                        for key, errors in candidate['badness'].items():
-                            if isinstance(errors, list):
-                                for error in errors:
-                                    if isinstance(error, tuple) and len(error) >= 2:
-                                        self.console.print(f"  [dim]{error[0]}:[/dim] {error[1]}")
+                        for error in candidate.get('badness', []):
+                            if isinstance(error, (list, tuple)) and len(error) >= 2:
+                                self.console.print(f"  [dim]{error[0]}:[/dim] {error[1]}")
 
             # Show statistics if enabled and we have a valid edge
             if edge is not None and tokens is not None and self.settings.get('statistics', False):
