@@ -17,9 +17,7 @@ def apply_vars(edge: Hyperedge, variables: dict[str, Hyperedge]) -> Hyperedge:
                 return variables[varname]
         return edge
     else:
-        result = hedge([apply_vars(subedge, variables) for subedge in edge])
-        assert result is not None
-        return result
+        return hedge([apply_vars(subedge, variables) for subedge in edge])
 
 
 def _varname(atom: Hyperedge) -> str:
@@ -47,9 +45,7 @@ def _assign_edge_to_var(
         if cur_edge.not_atom and str(cur_edge[0]) == const.list_or_matches_builder:
             new_edge = (*cur_edge, edge)
         else:
-            result = hedge((hedge(const.list_or_matches_builder), cur_edge, edge))
-            assert result is not None
-            new_edge = result
+            new_edge = hedge((hedge(const.list_or_matches_builder), cur_edge, edge))
     return {var_name: new_edge}
 
 
@@ -105,11 +101,9 @@ def extract_vars_map(
                 ):
                     new_edge = (*cur_edge, new_edge)
                 else:
-                    result = hedge(
+                    new_edge = hedge(
                         (hedge(const.list_or_matches_builder), cur_edge, new_edge)
                     )
-                    assert result is not None
-                    new_edge = result
             _vars[var_name] = new_edge
         for subedge in edge:
             extract_vars_map(subedge, _vars=_vars)
@@ -122,9 +116,7 @@ def remove_variables(edge: Hyperedge) -> Hyperedge:
     if edge.atom:
         return edge
     else:
-        result = hedge([remove_variables(subedge) for subedge in edge])
-        assert result is not None
-        return result
+        return hedge([remove_variables(subedge) for subedge in edge])
 
 
 def apply_variable(
@@ -134,9 +126,7 @@ def apply_variable(
     if clean_edge == var_edge or (
         isinstance(var_edge, list) and clean_edge in var_edge
     ):
-        result = hedge(("var", clean_edge, var_name))
-        assert result is not None
-        return result, True
+        return hedge(("var", clean_edge, var_name)), True
 
     subedges: list[Hyperedge] = []
     found = False
@@ -146,9 +136,7 @@ def apply_variable(
             subedges.append(vedge)
             if vresult:
                 found = True
-        hedge_result = hedge(subedges)
-        assert hedge_result is not None
-        return hedge_result, found
+        return hedge(subedges), found
 
     return edge, False
 

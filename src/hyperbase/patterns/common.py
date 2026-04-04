@@ -30,14 +30,10 @@ def common_pattern_argroles(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | N
             pattern = hedge(f"*/{edge1_.mtype()}")
         else:
             pattern = hedge(subedges)
-            if pattern is None:
-                continue
             pattern = pattern.replace_argroles(f"{{{edge1_[0].argroles()}}}")
 
-        if (
-            pattern is not None
-            and _vars == all_variables(pattern)
-            and (best_pattern is None or more_general(best_pattern, pattern))
+        if _vars == all_variables(pattern) and (
+            best_pattern is None or more_general(best_pattern, pattern)
         ):
             best_pattern = pattern
 
@@ -57,7 +53,7 @@ def common_type(edges: Sequence[Hyperedge]) -> str | None:
     return None
 
 
-def common_pattern_atoms(atoms: Sequence[Hyperedge]) -> Hyperedge | None:
+def common_pattern_atoms(atoms: Sequence[Hyperedge]) -> Hyperedge:
     roots = [atom.root() for atom in atoms]  # type: ignore[attr-defined]
 
     root = "*" if len(set(roots)) != 1 or "*" in roots else roots[0]

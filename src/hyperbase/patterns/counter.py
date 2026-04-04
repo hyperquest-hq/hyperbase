@@ -100,12 +100,10 @@ class PatternCounter:
                     patterns.append([hpat, *pattern])
         return patterns
 
-    def _edge2patterns(self, edge: Hyperedge) -> list[Hyperedge | None]:
+    def _edge2patterns(self, edge: Hyperedge) -> list[Hyperedge]:
         force_subtypes = self._force_subtypes(edge)
         force_root, _ = self._force_root_expansion(edge)
         normalized = edge.normalized()
-        if normalized is None:
-            return []
         return [
             hedge(pattern)
             for pattern in self._list2patterns(
@@ -115,8 +113,6 @@ class PatternCounter:
 
     def count(self, edge: Hyperedge | str) -> None:
         parsed = hedge(edge)
-        if parsed is None:
-            return
         if parsed.not_atom:
             if self._matches_expansions(parsed):
                 for pattern in self._edge2patterns(parsed):
@@ -128,7 +124,7 @@ class PatternCounter:
 
 def _edge2pattern(
     edge: Hyperedge, root: bool = False, subtype: bool = False
-) -> Hyperedge | None:
+) -> Hyperedge:
     root_str = edge.root() if root and edge.atom else "*"  # type: ignore[attr-defined]
     et = edge.type() if subtype else edge.mtype()
     pattern = f"{root_str}/{et}"

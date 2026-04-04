@@ -57,7 +57,7 @@ def _edge_str_has_outer_parens(edge_str: str) -> bool:
     return edge_str[0] == "("
 
 
-def split_edge_str(edge_str: str) -> tuple[str, ...] | None:
+def split_edge_str(edge_str: str) -> tuple[str, ...]:
     """Shallow split into tokens of a string representation of an edge,
     without outer parenthesis.
     """
@@ -83,8 +83,7 @@ def split_edge_str(edge_str: str) -> tuple[str, ...] | None:
                 tokens.append(edge_str[start : i + 1])
                 active = 0
             elif depth < 0:
-                # TODO: throw exception?
-                return None
+                raise ValueError(f"Unbalanced parenthesis in edge string: '{edge_str}'")
         else:
             if not active:
                 active = 1
@@ -92,15 +91,14 @@ def split_edge_str(edge_str: str) -> tuple[str, ...] | None:
 
     if active:
         if depth > 0:
-            # TODO: throw exception?
-            return None
+            raise ValueError(f"Unbalanced parenthesis in edge string: '{edge_str}'")
         else:
             tokens.append(edge_str[start:])
 
     return tuple(tokens)
 
 
-def _parsed_token(token: str) -> Hyperedge | None:
+def _parsed_token(token: str) -> Hyperedge:
     if _edge_str_has_outer_parens(token):
         return hedge(token)
     else:
@@ -145,8 +143,8 @@ def _rebuild_with_text(
 
 
 def hedge(
-    source: str | Hyperedge | list[Any] | tuple[Any] | ParseResult,
-) -> Hyperedge | None:
+    source: str | Hyperedge | list | tuple | ParseResult,
+) -> Hyperedge:
     """Create a hyperedge."""
     # Check for ParseResult via duck typing to avoid circular import
     if (
@@ -169,18 +167,20 @@ def hedge(
 
         tokens = split_edge_str(edge_inner_str)
         if not tokens:
-            return None
+            raise ValueError(f"Edge string is empty: '{source}'")
         edges = tuple(_parsed_token(token) for token in tokens)
         if len(edges) == 1 and isinstance(edges[0], Atom):
             return Atom(edges[0], parens)
         elif len(edges) > 0:
             return Hyperedge(edges)
         else:
-            return None
+            raise ValueError(f"Edge string is empty: '{source}'")
     elif type(source) in {Hyperedge, Atom, UniqueAtom}:
         return source  # type: ignore
     else:
-        return None
+        raise TypeError(
+            f"Cannot create hyperedge from {type(source).__name__}: {source!r}"
+        )
 
 
 def build_atom(text: str, *parts: str) -> Atom:
@@ -498,7 +498,7 @@ class Hyperedge:
 
     def simplify(
         self, subtypes: bool = False, argroles: bool = False, namespaces: bool = True
-    ) -> Hyperedge | None:
+    ) -> Hyperedge:
         """Returns a version of the edge with simplified atoms, for example
         removing subtypes, subroles or namespaces.
 
@@ -689,10 +689,13 @@ class Hyperedge:
             return self.edges_with_argrole("m")
         return []
 
-    def replace_main_concept(self, new_main: Hyperedge) -> Hyperedge | None:
+    def replace_main_concept(self, new_main: Hyperedge) -> Hyperedge:
         """TODO: document and test"""
         if self.mtype() != "C":
-            return None
+            raise ValueError(
+                "replace_main_concept requires type 'C', "
+                f"got '{self.mtype()}': {self!s}"
+            )
         if self[0].mtype() == "M":
             return hedge((self[0], new_main))
         elif self[0].mtype() == "B" and len(self) == 3:
@@ -700,7 +703,7 @@ class Hyperedge:
                 return hedge((self[0], new_main, self[2]))
             elif self[0].argroles() == "am":
                 return hedge((self[0], self[1], new_main))
-        return None
+        raise ValueError(f"Cannot replace main concept in edge: {self!s}")
 
     def check_correctness(self) -> dict[Hyperedge, list[tuple[str, str]]]:
         output: dict[Hyperedge, list[tuple[str, str]]] = {}
@@ -823,7 +826,7 @@ class Hyperedge:
 
         return output
 
-    def normalized(self) -> Hyperedge | None:
+    def normalized(self) -> Hyperedge:
         edge: Hyperedge = self
         conn = edge[0]
         ar = conn.argroles()
@@ -834,12 +837,7 @@ class Hyperedge:
                 zip(ar, edge[1:], strict=False),
                 key=lambda role_edge: argrole_order[role_edge[0]],
             )
-            new_edge = hedge(
-                [conn, *[role_edge[1] for role_edge in roles_edges_sorted]]
-            )
-            if not new_edge:
-                return None
-            edge = new_edge
+            edge = hedge([conn, *[role_edge[1] for role_edge in roles_edges_sorted]])
         return hedge([subedge.normalized() for subedge in edge])
 
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
@@ -1193,10 +1191,13 @@ class Atom(Hyperedge):
         """
         return []
 
-    def replace_main_concept(self, new_main: Hyperedge) -> Hyperedge | None:
+    def replace_main_concept(self, new_main: Hyperedge) -> Hyperedge:
         """TODO: document and test"""
         if self.mtype() != "C":
-            return None
+            raise ValueError(
+                "replace_main_concept requires type 'C', "
+                f"got '{self.mtype()}': {self!s}"
+            )
 
         return new_main
 
@@ -1261,7 +1262,7 @@ class UniqueAtom(Atom):
         return isinstance(other, UniqueAtom) and id(self.atom_obj) == id(other.atom_obj)
 
 
-def unique(edge: Hyperedge) -> Hyperedge | None:
+def unique(edge: Hyperedge) -> Hyperedge:
     if edge.atom:
         if isinstance(edge, UniqueAtom):
             return edge
@@ -1271,7 +1272,7 @@ def unique(edge: Hyperedge) -> Hyperedge | None:
         return hedge([unique(subedge) for subedge in edge])
 
 
-def non_unique(edge: Hyperedge) -> Hyperedge | None:
+def non_unique(edge: Hyperedge) -> Hyperedge:
     if edge.atom:
         if isinstance(edge, UniqueAtom):
             return edge.atom_obj
