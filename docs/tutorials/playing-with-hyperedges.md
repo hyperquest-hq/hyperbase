@@ -13,22 +13,30 @@ from hyperbase import hedge
 The simplest thing we can create is an **atom** -- a single concept:
 
 ```pycon
->>> mary = hedge('mary/Cp')
+>>> mary = hedge('mary/C')
 >>> mary
-mary/Cp
+mary/C
 ```
 
-Here, `mary` is the root (the word itself) and `Cp` is the type: a *proper noun concept*. The `C` stands for "Concept" and the `p` is a subtype meaning "proper noun".
+Here, `mary` is the root (the word itself) and `C` is the type, in this case a concept.
 
 We can also create non-atomic hyperedges -- structures that combine multiple elements:
 
 ```pycon
->>> edge = hedge('(likes/P.so mary/Cp chess/Cc)')
+>>> edge = hedge('(likes/P.so mary/C chess/C)')
 >>> edge
-(likes/P.so mary/Cp chess/Cc)
+(likes/P.so mary/C chess/C)
 ```
 
-This represents the idea "Mary likes chess". The first element (`likes/P.so`) is the **connector** -- it defines the relationship. The remaining elements are **arguments**: the subject and the object.
+This represents the idea "Mary likes chess". The first element (`likes/P.so`) is the **connector** -- it defines the relationship. The remaining elements are **arguments**: the subject and the object. `P` indicates another type, predicate. Notice that the `.so` annotation specifies the argument roles. There is one letter per argument, in this case `s` indicating that the first argument is the subject (`mary/C`) and `o` that the second is the object (`chess/C)`).
+
+Atoms often have subtypes, which are represented by lowercase letters after the uppercase main type. For example, `mary/Cp` indicates a *proper noun concept* and `chess/Cc` a *common noun concept*. Then:
+
+```pycon
+>>> edge = hedge('(likes/P.so mary/Cp chess/Cc)')
+>>> edge
+(likes/P.so mary/C chess/C)
+```
 
 ### From Python lists
 
@@ -60,35 +68,29 @@ True
 
 ## Inspecting atoms
 
-Atoms have a rich internal structure. Let's explore it:
+Here are some often used ways to inspect atoms:
 
 ```pycon
->>> atom = hedge('berlin/Cp.s/en')
+>>> atom = hedge('paris/Cp')
 >>> atom.root()
-'berlin'
+'paris'
 >>> atom.t
 'Cp'
 >>> atom.mt
 'C'
->>> atom.role()
-['Cp', 's']
->>> atom.parts()
-['berlin', 'Cp.s', 'en']
 >>> atom.label()
-'berlin'
+'paris'
 ```
 
 - `root()` -- the word itself
-- `type()` -- the full type string (e.g., `Cp` for proper noun concept)
-- `mtype()` -- just the main type character (`C`)
-- `role()` -- the complete role as a list of subroles
-- `parts()` -- all slash-separated components
+- `t` or `type()` -- the full type string (e.g., `Cp` for proper noun concept)
+- `mt` or `mtype()` -- just the main type character (`C`)
 - `label()` -- a human-readable label (URL-decodes the root)
 
 The label is especially useful when roots contain encoded characters:
 
 ```pycon
->>> hedge('new%20york/Cp.s/en').label()
+>>> hedge('new%20york/Cp').label()
 'new york'
 ```
 
@@ -110,10 +112,10 @@ The first element (`edge[0]`) is always the connector. The rest are arguments. Y
 
 ```pycon
 >>> for element in edge:
-...     print(element, '-- atom' if element.atom else '-- edge')
-likes/P.so -- atom
-mary/Cp -- atom
-chess/Cc -- atom
+...     print(element)
+likes/P.so
+mary/Cp
+chess/Cc
 ```
 
 ## Types and type inference
@@ -140,9 +142,9 @@ The edge has type `R` (Relation), because a predicate (`P`) applied to arguments
 Hyperedges can be nested. Let's work with a richer example:
 
 ```pycon
->>> edge = hedge('(is/P.sc (the/Md sky/Cc) blue/Cc)')
+>>> edge = hedge('(is/P.so (the/Md sky/Cc) blue/Cc)')
 >>> edge
-(is/P.sc (the/Md sky/Cc) blue/Cc)
+(is/P.so (the/Md sky/Cc) blue/Cc)
 ```
 
 This represents "the sky is blue". Notice how `(the/Md sky/Cc)` is itself a hyperedge nested inside the outer one.
@@ -162,9 +164,9 @@ The `size()` counts total atoms (4: `is`, `the`, `sky`, `blue`). The `depth()` m
 
 ```pycon
 >>> edge.atoms()
-{is/P.sc, the/Md, sky/Cc, blue/Cc}
+{is/P.so, the/Md, sky/Cc, blue/Cc}
 >>> edge.all_atoms()
-[is/P.sc, the/Md, sky/Cc, blue/Cc]
+[is/P.so, the/Md, sky/Cc, blue/Cc]
 ```
 
 `atoms()` returns a set (unique atoms), while `all_atoms()` returns a list preserving order and duplicates.
@@ -173,7 +175,7 @@ The `size()` counts total atoms (4: `is`, `the`, `sky`, `blue`). The `depth()` m
 
 ```pycon
 >>> edge.subedges()
-{(is/P.sc (the/Md sky/Cc) blue/Cc), is/P.sc, (the/Md sky/Cc), the/Md, sky/Cc, blue/Cc}
+{(is/P.so (the/Md sky/Cc) blue/Cc), is/P.so, (the/Md sky/Cc), the/Md, sky/Cc, blue/Cc}
 ```
 
 This gives you every subedge at every level, including atoms and the edge itself.
@@ -196,8 +198,8 @@ By default, `contains()` only checks direct children. Use `deep=True` to search 
 The `label()` method produces a human-readable version of a hyperedge, rearranging elements to approximate natural language:
 
 ```pycon
->>> hedge('(is/P.sc berlin/Cp nice/Cc)').label()
-'berlin is nice'
+>>> hedge('(is/P.so paris/Cp nice/Cc)').label()
+'paris is nice'
 >>> hedge('(red/M shoes/Cc)').label()
 'red shoes'
 ```
@@ -209,24 +211,25 @@ Hyperedges are immutable -- every operation returns a new object.
 ### Replacing atoms
 
 ```pycon
->>> edge = hedge('(is/P.sc berlin/Cp nice/Cc)')
->>> edge.replace_atom(hedge('berlin/Cp'), hedge('paris/Cp'))
-(is/P.sc paris/Cp nice/Cc)
+>>> edge = hedge('(is/P.so paris/Cp nice/Cc)')
+>>> edge.replace_atom(hedge('paris/Cp'), hedge('paris/Cp'))
+(is/P.so paris/Cp nice/Cc)
 ```
 
 You can even replace an atom with a non-atomic hyperedge:
 
 ```pycon
->>> edge.replace_atom(hedge('berlin/Cp'), hedge('(the/Md city/Cc)'))
-(is/P.sc (the/Md city/Cc) nice/Cc)
+>>> edge.replace_atom(hedge('paris/Cp'), hedge('(the/Md city/Cc)'))
+(is/P.so (the/Md city/Cc) nice/Cc)
 ```
 
 ### Inserting arguments
 
 ```pycon
->>> edge = hedge('(is/P.sc berlin/Cp nice/Cc)')
->>> edge.insert_first_argument(hedge('really/M'))
-(is/P.sc really/M berlin/Cp nice/Cc)
+>>> edge = hedge('(is/P.so paris/Cp nice/Cc)')
+>>> spec = hedge('(in/T (the/M spring/Cc))')
+>>> edge.insert_edge_with_argrole(spec, 'x', 3)
+(is/P.sox really/M paris/Cp nice/Cc (in/T (the/M spring/Cc)))
 ```
 
 ## Argument roles
@@ -234,7 +237,7 @@ You can even replace an atom with a non-atomic hyperedge:
 The letters after the dot in a predicate encode the **argument roles** -- what role each argument plays:
 
 ```pycon
->>> edge = hedge('(is/P.so berlin/Cp nice/Cc)')
+>>> edge = hedge('(is/P.so paris/Cp nice/Cc)')
 >>> edge.argroles()
 'so'
 ```
@@ -243,7 +246,7 @@ Here, `s` means "subject" and `o` means "object". You can retrieve arguments by 
 
 ```pycon
 >>> edge.edges_with_argrole('s')
-[berlin/Cp]
+[paris/Cp]
 >>> edge.edges_with_argrole('o')
 [nice/Cc]
 ```
@@ -253,10 +256,10 @@ Here, `s` means "subject" and `o` means "object". You can retrieve arguments by 
 You can check whether a hyperedge is structurally correct:
 
 ```pycon
->>> hedge('(is/P.so berlin/Cp nice/Cc)').check_correctness()
+>>> hedge('(is/P.so paris/Cp nice/Cc)').check_correctness()
 {}
->>> hedge('(berlin/Cp nice/Cc)').check_correctness()
-{(berlin/Cp nice/Cc): [('cosnn-bad-type', 'connector has incorrect type: C')]}
+>>> hedge('(paris/Cp nice/Cc)').check_correctness()
+{(paris/Cp nice/Cc): [('cosnn-bad-type', 'connector has incorrect type: C')]}
 ```
 
 An empty dictionary means the edge is well-formed. Otherwise, you get a description of what is wrong -- in this case, a concept (`C`) cannot be used as a connector.
