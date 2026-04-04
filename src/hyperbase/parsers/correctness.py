@@ -27,7 +27,8 @@ def check_structural_quality(
                     current_errors.append(
                         (
                             "bad-argrole",
-                            f"Bad argument role '{ar}'. Should be one of 'mspaoixtjrc'.",
+                            f"Bad argument role '{ar}'. "
+                            "Should be one of 'mspaoixtjrc'.",
                             2,
                         )
                     )
@@ -48,12 +49,13 @@ def check_structural_quality(
         # Junction checks
         try:
             if current_edge[0].mt == "J":
-                types = set([child.mt for child in current_edge[1:]])
+                types = {child.mt for child in current_edge[1:]}
                 if types != {"R"} and types != {"C"} and types != {"R", "S"}:
                     current_errors.append(
                         (
                             "bad-junction-types",
-                            "Junction arguments should ideally be all of type 'R[S]' or all of type 'C'.",
+                            "Junction arguments should ideally be all of type"
+                            " 'R[S]' or all of type 'C'.",
                             3,
                         )
                     )
@@ -74,7 +76,6 @@ def check_structural_quality(
 def badness_check(
     edge: Hyperedge, tokens: list[str]
 ) -> dict[Any, list[tuple[str, str, int]]]:
-
     raw_errors = edge.check_correctness()
     errors: dict[Any, list[tuple[str, str, int]]] = {}
     for k, v in raw_errors.items():
@@ -123,7 +124,7 @@ def badness_check(
                             break
 
                 else:
-                    # Try to find a root that matches this token exactly (case (a))
+                    # Try to find a root that matches this token exactly
                     for root_idx, root in enumerate(roots):
                         if root_idx in matched_roots:
                             continue  # Already matched this root
@@ -133,9 +134,11 @@ def badness_check(
                             matched_roots.add(root_idx)
                             break
 
-                    # If no exact match, try to find combination of roots that form this token (case (b))
+                    # If no exact match, try to find combination of roots that
+                    # form this token
                     if token_idx not in matched_tokens:
-                        # Look for sequence of consecutive roots that concatenate to form the token
+                        # Look for sequence of consecutive roots that concatenate to
+                        # form the token
                         for root_start_idx in range(len(roots)):
                             if root_start_idx in matched_roots:
                                 continue  # This root is already matched
@@ -164,11 +167,13 @@ def badness_check(
                                     break
 
                             if token_idx in matched_tokens:
-                                break  # Found a match, no need to try other starting positions
+                                break  # Found a match
 
-                    # If still no match, try case (c): root that matches this token and subsequent tokens
+                    # If still no match, try:
+                    # root that matches this token and subsequent tokens
                     if token_idx not in matched_tokens:
-                        # Look for a root that can match this token plus some following tokens
+                        # Look for a root that can match this token
+                        # plus some following tokens
                         for root_idx, root in enumerate(roots):
                             if root_idx in matched_roots:
                                 continue  # Already matched
@@ -193,7 +198,8 @@ def badness_check(
                                 if len(concatenated) >= len(root):
                                     break
 
-                    # If still no match, try case (d): multi-token to multi-root concatenation matching
+                    # If still no match, try case:
+                    # multi-token to multi-root concatenation matching
                     if token_idx not in matched_tokens:
                         # First, try positional matching (existing logic)
                         for root_start_idx in range(len(roots)):
@@ -236,7 +242,8 @@ def badness_check(
                                         matched_roots.add(idx)
                                     break
 
-                                # Stop if we've gone too far (tokens longer than reasonable)
+                                # Stop if we've gone too far
+                                # (tokens longer than reasonable)
                                 if (
                                     len(tokens_concatenated) > 10
                                     or len(roots_concatenated) > 10
@@ -244,44 +251,45 @@ def badness_check(
                                     break
 
                             if token_idx in matched_tokens:
-                                break  # Found a match, no need to try other root positions
+                                break  # Found a match
 
-                        # If still no match, try non-positional contraction matching (new logic)
-                        if token_idx not in matched_tokens:
-                            # Look for contractions by trying to combine this token with the next one
-                            # and matching against any two available roots in the roots list (not necessarily consecutive)
-                            if (
-                                token_idx + 1 < len(tokens)
-                                and token_idx + 1 not in matched_tokens
-                            ):
-                                token_concat = tokens[token_idx] + tokens[token_idx + 1]
+                        # If still no match, try non-positional contraction matching
+                        # Look for contractions by trying to combine this token
+                        # with the next one and matching against any two available
+                        # roots in the roots list (not necessarily consecutive)
+                        if (
+                            token_idx not in matched_tokens
+                            and token_idx + 1 < len(tokens)
+                            and token_idx + 1 not in matched_tokens
+                        ):
+                            token_concat = tokens[token_idx] + tokens[token_idx + 1]
 
-                                # Try to find any two available roots (not necessarily consecutive) that concatenate to the same value
-                                for root_idx1 in range(len(roots)):
-                                    if root_idx1 in matched_roots:
+                            # Try to find any two available roots (not necessarily
+                            # consecutive) that concatenate to the same value
+                            for root_idx1 in range(len(roots)):
+                                if root_idx1 in matched_roots:
+                                    continue  # Can't use already matched roots
+
+                                for root_idx2 in range(len(roots)):
+                                    if (
+                                        root_idx2 in matched_roots
+                                        or root_idx2 == root_idx1
+                                    ):
                                         continue  # Can't use already matched roots
+                                        # or same root
 
-                                    for root_idx2 in range(len(roots)):
-                                        if (
-                                            root_idx2 in matched_roots
-                                            or root_idx2 == root_idx1
-                                        ):
-                                            continue  # Can't use already matched roots or same root
+                                    root_concat = roots[root_idx1] + roots[root_idx2]
 
-                                        root_concat = (
-                                            roots[root_idx1] + roots[root_idx2]
-                                        )
+                                    if token_concat == root_concat:
+                                        # Found a contraction match
+                                        matched_tokens.add(token_idx)
+                                        matched_tokens.add(token_idx + 1)
+                                        matched_roots.add(root_idx1)
+                                        matched_roots.add(root_idx2)
+                                        break
 
-                                        if token_concat == root_concat:
-                                            # Found a contraction match!
-                                            matched_tokens.add(token_idx)
-                                            matched_tokens.add(token_idx + 1)
-                                            matched_roots.add(root_idx1)
-                                            matched_roots.add(root_idx2)
-                                            break
-
-                                    if token_idx in matched_tokens:
-                                        break  # Found a match, no need to try other combinations
+                                if token_idx in matched_tokens:
+                                    break  # Found a match
 
             token_matching_errors: list[tuple[str, str, int]] = []
             # Report unmatched roots
@@ -290,7 +298,8 @@ def badness_check(
                     token_matching_errors.append(
                         (
                             "root-without-token",
-                            f"Atom root '{root}' is used more times than it appears in the original text.",
+                            f"Atom root '{root}' is used more times "
+                            "than it appears in the original text.",
                             1,
                         )
                     )
@@ -301,7 +310,8 @@ def badness_check(
                     token_matching_errors.append(
                         (
                             "token-unused",
-                            f"Atom root '{token}' is not used, but it appears in the original text.",
+                            f"Atom root '{token}' is not used, "
+                            "but it appears in the original text.",
                             1,
                         )
                     )

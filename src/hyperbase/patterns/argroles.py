@@ -91,7 +91,7 @@ def edge2rolemap(edge: Hyperedge) -> dict[str, list[Hyperedge]]:
     argroles = edge[0].argroles()
     if argroles[0] == "{":
         argroles = argroles[1:-1]
-    args = list(zip(argroles, edge[1:]))
+    args = list(zip(argroles, edge[1:], strict=False))
     rolemap: dict[str, list[Hyperedge]] = {}
     for role, subedge in args:
         if role not in rolemap:
@@ -136,7 +136,7 @@ def rolemap_pairings(
     for pairing in itertools.product(*pairings):
         rm1_: dict[str, tuple[Hyperedge, ...]] = {}
         rm2_: dict[str, tuple[Hyperedge, ...]] = {}
-        for role, role_pairing in zip(roles, pairing):
+        for role, role_pairing in zip(roles, pairing, strict=False):
             rm1_[role] = role_pairing[0]
             rm2_[role] = role_pairing[1]
         yield rm1_, rm2_

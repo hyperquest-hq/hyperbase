@@ -1,7 +1,7 @@
 from hyperbase.parsers import list_parsers
 
 
-def run_parsers():
+def run_parsers() -> None:
     parsers = list_parsers()
     if parsers:
         for name in sorted(parsers):

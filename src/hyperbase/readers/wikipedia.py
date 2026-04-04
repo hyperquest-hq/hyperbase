@@ -7,15 +7,17 @@ from urllib.parse import urlparse
 
 import mwparserfromhell
 import requests
+from mwparserfromhell.wikicode import Wikicode
 
 from hyperbase.readers.reader import Reader, register_reader
 
 
-def _load_discard_sections():
+def _load_discard_sections() -> dict[str, set]:
     """Load language-specific section names to discard from the data file.
 
     Returns:
-        dict: A dictionary mapping language codes (ISO-639-1) to sets of section names to ignore.
+        dict: A dictionary mapping language codes (ISO-639-1) to sets of section names
+              to ignore.
     """
     discard_sections = {}
     current_lang = None
@@ -24,7 +26,7 @@ def _load_discard_sections():
         Path(__file__).parent.parent / "data" / "wikipedia" / "discard_sections.txt"
     )
 
-    with open(data_file, "r", encoding="utf-8") as f:
+    with open(data_file, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
 
@@ -47,23 +49,23 @@ def _load_discard_sections():
 _DISCARD_SECTIONS = _load_discard_sections()
 
 
-def _url2title_and_lang(url):
+def _url2title_and_lang(url: str) -> tuple[str, str]:
     p = urlparse(url)
 
     netloc = p.netloc.split(".")
     if len(netloc) < 3 or "wikipedia" not in netloc:
-        raise RuntimeError("{} is not a valid wikipedia url.".format(url))
+        raise RuntimeError(f"{url} is not a valid wikipedia url.")
     lang = netloc[0]
 
     path = [part for part in p.path.split("/") if part != ""]
     if len(path) != 2 or path[0] != "wiki":
-        raise RuntimeError("{} is not a valid wikipedia url.".format(url))
+        raise RuntimeError(f"{url} is not a valid wikipedia url.")
     title = path[1]
 
     return title, lang
 
 
-def read_wikipedia(url):
+def read_wikipedia(url: str) -> Wikicode:
     title, lang = _url2title_and_lang(url)
     params = {
         "action": "query",
@@ -81,29 +83,31 @@ def read_wikipedia(url):
     try:
         req = requests.get(api_url, headers=headers, params=params, timeout=30)
         req.raise_for_status()
-    except requests.exceptions.Timeout:
+    except requests.exceptions.Timeout as e:
         raise RuntimeError(
             f"Request to Wikipedia API timed out after 30 seconds. URL: {url}"
-        )
-    except requests.exceptions.ConnectionError:
+        ) from e
+    except requests.exceptions.ConnectionError as e:
         raise RuntimeError(
-            f"Failed to connect to Wikipedia API at {api_url}. Please check your internet connection."
-        )
+            f"Failed to connect to Wikipedia API at {api_url}. "
+            f"Please check your internet connection."
+        ) from e
     except requests.exceptions.HTTPError as e:
         raise RuntimeError(
-            f"Wikipedia API returned HTTP error {e.response.status_code}: {e.response.reason}. URL: {url}"
-        )
+            f"Wikipedia API returned HTTP error {e.response.status_code}: "
+            f"{e.response.reason}. URL: {url}"
+        ) from e
     except requests.exceptions.RequestException as e:
         raise RuntimeError(
-            f"Network error while fetching Wikipedia page: {str(e)}. URL: {url}"
-        )
+            f"Network error while fetching Wikipedia page: {e!s}. URL: {url}"
+        ) from e
 
     try:
         res = req.json()
     except ValueError as e:
         raise RuntimeError(
-            f"Failed to parse Wikipedia API response as JSON: {str(e)}. URL: {url}"
-        )
+            f"Failed to parse Wikipedia API response as JSON: {e!s}. URL: {url}"
+        ) from e
 
     try:
         pages = res.get("query", {}).get("pages", [])
@@ -135,20 +139,20 @@ def read_wikipedia(url):
 
     except (KeyError, IndexError) as e:
         raise RuntimeError(
-            f"Unexpected Wikipedia API response structure: {str(e)}. URL: {url}. Response: {res}"
-        )
+            f"Unexpected Wikipedia API response : {e!s}. URL: {url}. Response: {res}"
+        ) from e
 
     return mwparserfromhell.parse(text)
 
 
 class WikicodeTextExtractor:
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the text extractor."""
         self.cur_section = []
         self.sections = {"": self.cur_section}
         self.section_metadata = {}  # Track ref/link counts per section
 
-    def _extract(self, wikicode, current_section_title=""):
+    def _extract(self, wikicode: Wikicode, current_section_title: str = "") -> None:
         """Extract text and track reference/link density for each section.
 
         Args:
@@ -156,7 +160,7 @@ class WikicodeTextExtractor:
             current_section_title: The title of the current section being processed.
         """
         for node in wikicode.nodes:
-            if type(node) == mwparserfromhell.nodes.heading.Heading:
+            if isinstance(node, mwparserfromhell.nodes.heading.Heading):
                 self.cur_section = []
                 self._extract(node.title, current_section_title)
                 title = "".join(self.cur_section).strip()
@@ -169,9 +173,9 @@ class WikicodeTextExtractor:
                 }
                 # Continue extracting with the new section title
                 current_section_title = title
-            elif type(node) == mwparserfromhell.nodes.text.Text:
+            elif isinstance(node, mwparserfromhell.nodes.text.Text):
                 self.cur_section.append(str(node))
-            elif type(node) == mwparserfromhell.nodes.tag.Tag:
+            elif isinstance(node, mwparserfromhell.nodes.tag.Tag):
                 tag_name = str(node.tag).lower()
                 if tag_name == "ref":
                     # Count <ref> tags but don't include their content
@@ -186,7 +190,7 @@ class WikicodeTextExtractor:
                     text = "".join(self.cur_section).strip()
                     self.cur_section = _cur_section
                     self.cur_section.append(text)
-            elif type(node) == mwparserfromhell.nodes.wikilink.Wikilink:
+            elif isinstance(node, mwparserfromhell.nodes.wikilink.Wikilink):
                 if "File:" not in str(node.title):
                     _wikicode = node.title if node.text is None else node.text
                     _cur_section = self.cur_section
@@ -195,7 +199,7 @@ class WikicodeTextExtractor:
                     text = "".join(self.cur_section).strip()
                     self.cur_section = _cur_section
                     self.cur_section.append(text)
-            elif type(node) == mwparserfromhell.nodes.external_link.ExternalLink:
+            elif isinstance(node, mwparserfromhell.nodes.external_link.ExternalLink):
                 # Count external links
                 if current_section_title in self.section_metadata:
                     self.section_metadata[current_section_title][
@@ -209,31 +213,33 @@ class WikicodeTextExtractor:
                     text = "".join(self.cur_section).strip()
                     self.cur_section = _cur_section
                     self.cur_section.append(text)
-            elif type(node) == mwparserfromhell.nodes.template.Template:
+            elif isinstance(node, mwparserfromhell.nodes.template.Template):
                 # Check for reference/citation templates
                 template_name = str(node.name).strip().lower()
-                if any(
-                    keyword in template_name
-                    for keyword in [
-                        "reflist",
-                        "references",
-                        "notes",
-                        "cite",
-                        "citation",
-                    ]
+                if (
+                    any(
+                        keyword in template_name
+                        for keyword in [
+                            "reflist",
+                            "references",
+                            "notes",
+                            "cite",
+                            "citation",
+                        ]
+                    )
+                    and current_section_title in self.section_metadata
                 ):
-                    if current_section_title in self.section_metadata:
-                        self.section_metadata[current_section_title]["ref_count"] += (
-                            len(str(node))
-                        )
+                    self.section_metadata[current_section_title]["ref_count"] += len(
+                        str(node)
+                    )
 
-    def extract(self, wikicode, lang="en"):
+    def extract(self, wikicode: Wikicode, lang: str = "en") -> dict[str, str]:
         """Extract text from wikicode, filtering out language-specific sections.
 
         Args:
             wikicode: The parsed wikicode to extract text from.
             lang: The language code (ISO-639-1) for language-specific section filtering.
-                  Defaults to 'en' (English).
+                  Defaults to "en" (English).
 
         Returns:
             dict: A dictionary mapping section titles to extracted text content.
@@ -259,9 +265,9 @@ class WikicodeTextExtractor:
 
 
 class WikipediaReader(Reader):
-    more_general = ["url"]
+    more_general = ("url",)
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._blocks: list[str] | None = None
 
     @staticmethod

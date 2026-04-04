@@ -3,13 +3,13 @@ from __future__ import annotations
 from collections.abc import Iterator
 from urllib.parse import urlparse
 
-from trafilatura import fetch_url, extract
+from trafilatura import extract, fetch_url
 
 from hyperbase.readers.reader import Reader, register_reader, split_blocks
 
 
 class UrlReader(Reader):
-    def __init__(self):
+    def __init__(self) -> None:
         self._blocks: list[str] | None = None
 
     @staticmethod

@@ -24,11 +24,13 @@ def _merge_patterns(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
         return None
 
     # edges with no subedge in common are not to be merged
-    if all(subedge1 != subedge2 for subedge1, subedge2 in zip(edge1, edge2)):
+    if all(
+        subedge1 != subedge2 for subedge1, subedge2 in zip(edge1, edge2, strict=False)
+    ):
         return None
 
     merged_edge: list[Hyperedge | list[Any]] = []
-    for subedge1, subedge2 in zip(edge1, edge2):
+    for subedge1, subedge2 in zip(edge1, edge2, strict=False):
         if subedge1 == subedge2:
             merged_edge.append(subedge1)
         else:
@@ -43,7 +45,7 @@ def _merge_patterns(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
                 alternatives = sorted(
                     alternatives, key=lambda x: x.size(), reverse=True
                 )
-                merged_edge.append(["any"] + alternatives)
+                merged_edge.append(["any", *alternatives])
 
     return hedge(merged_edge)
 

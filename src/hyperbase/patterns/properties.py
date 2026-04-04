@@ -1,15 +1,15 @@
 from hyperbase.hyperedge import Hyperedge
 
-
-FUNS: set[str] = {"var", "atoms", "lemma", "any"}  # | SEMSIM_FUNS.keys()
+FUNS: set[str] = {"var", "atoms", "lemma", "any"}
 
 
 def is_wildcard(atom: Hyperedge) -> bool:
     """Check if this atom defines a wildcard, i.e. if its root is a pattern matcher.
-    (\\*, ., ..., if it is surrounded by parenthesis or variable label starting with an uppercase letter)
+    (\\*, ., ..., if it is surrounded by parenthesis or variable label starting with an
+    uppercase letter)
     """
     if atom.atom:
-        return atom.parens or atom[0][0] in {"*", "."} or atom[0][0].isupper()  # type: ignore[attr-defined]
+        return atom.parens or atom[0][0] in {"*", "."} or atom[0][0].isupper()
     else:
         return False
 

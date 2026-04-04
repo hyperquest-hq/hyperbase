@@ -1,4 +1,4 @@
-from importlib.metadata import entry_points, EntryPoint
+from importlib.metadata import EntryPoint, entry_points
 from typing import Any
 
 from hyperbase.parsers.parse_result import ParseResult
@@ -18,7 +18,7 @@ def list_parsers() -> dict[str, EntryPoint]:
     return {ep.name: ep for ep in eps}
 
 
-def get_parser(name: str, **kwargs: Any) -> Parser:
+def get_parser(name: str, **kwargs: Any) -> Parser:  # noqa: ANN401
     """Instantiate a parser plugin by name.
 
     Looks up *name* in the ``hyperbase.parsers`` entry-point group and

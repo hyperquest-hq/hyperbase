@@ -7,9 +7,9 @@ from hyperbase import hedge
 from hyperbase.hyperedge import Atom, Hyperedge
 from hyperbase.patterns.argroles import _match_by_argroles
 from hyperbase.patterns.atoms import _matches_atomic_pattern
-from hyperbase.patterns.properties import is_fun_pattern, is_pattern, FUNS
-from hyperbase.patterns.utils import _defun_pattern_argroles, _atoms_and_tok_pos
-from hyperbase.patterns.variables import _varname, _assign_edge_to_var
+from hyperbase.patterns.properties import FUNS, is_fun_pattern, is_pattern
+from hyperbase.patterns.utils import _atoms_and_tok_pos, _defun_pattern_argroles
+from hyperbase.patterns.variables import _assign_edge_to_var, _varname
 
 # tok_pos can be nested lists/ints matching the edge structure
 TokPos = Any
@@ -111,10 +111,10 @@ class Matcher:
                         if tok_pos is not None:
                             try:
                                 assert len(tok_pos) > i
-                            except AssertionError:
+                            except AssertionError as e:
                                 raise RuntimeError(
-                                    f"Index '{i}' in tok_pos '{tok_pos}' is out of range"
-                                )
+                                    f"Index '{i}' in tok_pos '{tok_pos}' out of range"
+                                ) from e
                             tok_pos_item = tok_pos[i]
                         _result += self.match(
                             eitem, pitem, {**curvars, **variables}, tok_pos=tok_pos_item
@@ -131,7 +131,7 @@ class Matcher:
                 if unknown_roles > 0:
                     role_counts.append(("*", unknown_roles))
                 # add connector pseudo-argrole
-                role_counts = [("X", 1)] + role_counts
+                role_counts = [("X", 1), *role_counts]
                 result = _match_by_argroles(
                     self,
                     edge,
@@ -176,7 +176,7 @@ class Matcher:
                         atoms,
                         {**curvars, **variables},
                         atoms_tok_pos=atoms_tok_pos,
-                        matched_atoms=matched_atoms + [atom],
+                        matched_atoms=[*matched_atoms, atom],
                     )
 
         return results
@@ -192,8 +192,8 @@ class Matcher:
 
         try:
             assert fun in FUNS
-        except AssertionError:
-            raise ValueError(f"Unknown pattern function: {fun}")
+        except AssertionError as e:
+            raise ValueError(f"Unknown pattern function: {fun}") from e
 
         if fun == "var":
             if len(fun_pattern) != 3:

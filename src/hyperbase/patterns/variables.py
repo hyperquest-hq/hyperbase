@@ -3,10 +3,10 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any
 
+import hyperbase.constants as const
 from hyperbase import hedge
 from hyperbase.hyperedge import Hyperedge
 from hyperbase.patterns.properties import is_pattern
-import hyperbase.constants as const
 
 
 def apply_vars(edge: Hyperedge, variables: dict[str, Hyperedge]) -> Hyperedge:
@@ -45,7 +45,7 @@ def _assign_edge_to_var(
     if var_name in curvars:
         cur_edge = curvars[var_name]
         if cur_edge.not_atom and str(cur_edge[0]) == const.list_or_matches_builder:
-            new_edge = cur_edge + (edge,)
+            new_edge = (*cur_edge, edge)
         else:
             result = hedge((hedge(const.list_or_matches_builder), cur_edge, edge))
             assert result is not None
@@ -103,7 +103,7 @@ def extract_vars_map(
                     cur_edge.not_atom
                     and str(cur_edge[0]) == const.list_or_matches_builder
                 ):
-                    new_edge = cur_edge + (new_edge,)
+                    new_edge = (*cur_edge, new_edge)
                 else:
                     result = hedge(
                         (hedge(const.list_or_matches_builder), cur_edge, new_edge)
@@ -131,7 +131,9 @@ def apply_variable(
     edge: Hyperedge, var_name: str, var_edge: Hyperedge | list[Hyperedge]
 ) -> tuple[Hyperedge, bool]:
     clean_edge = remove_variables(edge)
-    if clean_edge == var_edge or (type(var_edge) == list and clean_edge in var_edge):
+    if clean_edge == var_edge or (
+        isinstance(var_edge, list) and clean_edge in var_edge
+    ):
         result = hedge(("var", clean_edge, var_name))
         assert result is not None
         return result, True

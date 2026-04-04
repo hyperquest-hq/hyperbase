@@ -262,7 +262,7 @@ class TestBadnessCheck:
         # We look for 'bad-argrole' in the errors
 
         found = False
-        for k, v in errors.items():
+        for _k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
                     if isinstance(err, tuple) and err[0] == "bad-argrole":
@@ -279,7 +279,7 @@ class TestBadnessCheck:
         errors = badness_check(edge, [])
 
         found = False
-        for k, v in errors.items():
+        for _k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
                     if isinstance(err, tuple) and err[0] == "duplicate-argrole-s":
@@ -297,7 +297,7 @@ class TestBadnessCheck:
         errors = badness_check(edge, [])
 
         found = False
-        for k, v in errors.items():
+        for _k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
                     if isinstance(err, tuple) and err[0] == "bad-junction-types":
@@ -316,7 +316,7 @@ class TestBadnessCheck:
         # Ignore token matching errors if any (tokens is empty so maybe some?)
         # But structural errors should be absent.
         structural_errors = []
-        for k, v in errors.items():
+        for _k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
                     if isinstance(err, tuple) and err[0] in [
@@ -352,7 +352,7 @@ class TestBadnessCheck:
         errors = badness_check(edge, [])
 
         found = False
-        for k, v in errors.items():
+        for _k, v in errors.items():
             for err in v:
                 if err[0] == "build-2-args":
                     assert err[2] == 0

@@ -6,7 +6,7 @@ from hyperbase.parsers import get_parser
 from hyperbase.readers import get_reader
 
 
-def run_read(args: argparse.Namespace):
+def run_read(args: argparse.Namespace) -> None:
     ext = os.path.splitext(args.output)[1].lower()
 
     if ext == ".txt":

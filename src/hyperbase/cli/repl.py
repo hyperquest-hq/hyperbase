@@ -3,22 +3,24 @@ import json
 import re
 import time
 import traceback
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
-from prompt_toolkit.history import FileHistory
+from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.history import FileHistory
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich import box
 from rich.tree import Tree
 
-from hyperbase.hyperedge import Atom, hedge
-from hyperbase.parsers import get_parser, list_parsers
+from hyperbase.hyperedge import Atom, Hyperedge, hedge
+from hyperbase.parsers import Parser, get_parser, list_parsers
 from hyperbase.parsers.correctness import badness_check
 
 SETTINGS_FILE = Path.home() / ".hyperbase_repl_settings.json"
@@ -38,6 +40,18 @@ DEFAULTS = {
 }
 
 
+TYPE_COLORS = {
+    "C": "#4A9EFF",
+    "M": "#00E5CC",
+    "B": "#5DC4FF",
+    "P": "#FF8C42",
+    "T": "#00CDB8",
+    "J": "#00FF87",
+    "R": "#FFD700",
+    "S": "#FF6EC7",
+}
+
+
 def load_saved_settings() -> dict:
     try:
         return json.loads(SETTINGS_FILE.read_text())
@@ -45,12 +59,14 @@ def load_saved_settings() -> dict:
         return {}
 
 
-def save_settings(settings: dict):
+def save_settings(settings: dict) -> None:
     SETTINGS_FILE.write_text(json.dumps(settings, indent=2, default=str) + "\n")
 
 
 def print_dependency_tree(
-    token: Any, console: Console, visited: set | None = None
+    token: Any,  # noqa: ANN401
+    console: Console,
+    visited: set | None = None,
 ) -> Tree | None:
     """Print dependency parse tree with dep_ and tag_ labels as a rich tree."""
     if visited is None:
@@ -81,7 +97,7 @@ def print_dependency_tree(
 class FilteredFileHistory(FileHistory):
     """Custom history that filters out commands and duplicates."""
 
-    def __init__(self, filename: str):
+    def __init__(self, filename: str) -> None:
         super().__init__(filename)
         self.last_saved: str | None = None
 
@@ -99,18 +115,7 @@ class FilteredFileHistory(FileHistory):
 class HyperedgeFormatter:
     """Formats Hyperedges with LISP-style indentation and rich colors."""
 
-    TYPE_COLORS = {
-        "C": "#4A9EFF",
-        "M": "#00E5CC",
-        "B": "#5DC4FF",
-        "P": "#FF8C42",
-        "T": "#00CDB8",
-        "J": "#00FF87",
-        "R": "#FFD700",
-        "S": "#FF6EC7",
-    }
-
-    def __init__(self, console: Console):
+    def __init__(self, console: Console) -> None:
         self.console = console
 
     def format_atom(self, atom: Atom) -> Text:
@@ -121,7 +126,7 @@ class HyperedgeFormatter:
             return result
 
         mtype = atom.mtype()
-        type_color = self.TYPE_COLORS.get(mtype, "white")
+        type_color = TYPE_COLORS.get(mtype, "white")
 
         root = parts[0]
         result.append(root, style="white")
@@ -141,18 +146,19 @@ class HyperedgeFormatter:
         return result
 
     def format_hyperedge(
-        self, edge: Any, indent_level: int = 0, inline: bool = False
+        self, edge: Hyperedge, indent_level: int = 0, inline: bool = False
     ) -> Text:
         if edge is None:
             return Text("None", style="dim red")
 
         if edge.atom:
-            return self.format_atom(edge)
+            atom = cast(Atom, edge)
+            return self.format_atom(atom)
 
         result = Text()
 
         edge_type = edge.mtype()
-        paren_color = self.TYPE_COLORS.get(edge_type, "white")
+        paren_color = TYPE_COLORS.get(edge_type, "white")
 
         result.append("(", style=f"bold {paren_color}")
 
@@ -178,17 +184,21 @@ class HyperedgeFormatter:
 
         return result
 
-    def format(self, edge: Any) -> Text:
+    def format(self, edge: Hyperedge) -> Text:
         return self.format_hyperedge(edge, indent_level=0, inline=False)
 
 
 class CommandCompleter(Completer):
     """Auto-completer for slash commands."""
 
-    def __init__(self, commands: dict):
+    def __init__(self, commands: dict) -> None:
         self.commands = commands
 
-    def get_completions(self, document: Any, complete_event: Any):
+    def get_completions(
+        self,
+        document: Document,
+        complete_event: Any,  # noqa: ANN401
+    ) -> Iterable[Completion]:
         text = document.text_before_cursor
         if text.startswith("/"):
             word = text[1:]
@@ -230,7 +240,9 @@ def _parser_kwargs(settings: dict) -> dict:
 class ReplSession:
     """Enhanced REPL session with modern TUI features."""
 
-    def __init__(self, parser: Any, parser_name: str, args: argparse.Namespace):
+    def __init__(
+        self, parser: Parser, parser_name: str, args: argparse.Namespace
+    ) -> None:
         self.parser = parser
         self.parser_name = parser_name
         self.console = Console(force_terminal=True, color_system="auto")
@@ -281,15 +293,17 @@ class ReplSession:
             complete_while_typing=False,
         )
 
-    def show_banner(self):
+    def show_banner(self) -> None:
         available = sorted(list_parsers().keys())
         banner = Panel(
             Text.from_markup(
                 "[bold cyan]Hyperbase REPL[/bold cyan]\n"
                 "[dim]Interactive Semantic Hypergraph Parser[/dim]\n\n"
                 f"[yellow]Parser:[/yellow] [green]{self.parser_name}[/green]\n"
-                f"[yellow]Language:[/yellow] [green]{self.settings['language'] or 'N/A'}[/green]\n"
-                f"[yellow]Installed parsers:[/yellow] [green]{', '.join(available) or 'none'}[/green]\n\n"
+                "[yellow]Language:[/yellow] "
+                f"[green]{self.settings['language'] or 'N/A'}[/green]\n"
+                "[yellow]Installed parsers:[/yellow] "
+                f"[green]{', '.join(available) or 'none'}[/green]\n\n"
                 "[dim]Type [bold]/help[/bold] to see available commands[/dim]"
             ),
             box=box.DOUBLE,
@@ -299,7 +313,7 @@ class ReplSession:
         self.console.print(banner)
         self.console.print()
 
-    def show_command_hints(self):
+    def show_command_hints(self) -> None:
         table = Table(
             show_header=True,
             header_style="bold magenta",
@@ -349,7 +363,8 @@ class ReplSession:
     def cmd_set(self, args: list) -> bool:
         if len(args) < 2:
             self.console.print(
-                "[red]Error:[/red] /set requires two arguments: [cyan]/set <setting> <value>[/cyan]"
+                "[red]Error:[/red] /set requires two arguments: "
+                "[cyan]/set <setting> <value>[/cyan]"
             )
             self.console.print("[dim]Example:[/dim] /set language en")
             return False
@@ -369,9 +384,11 @@ class ReplSession:
         try:
             if setting_name in ["max_length", "num_beams", "num_candidates"]:
                 setting_value = int(setting_value)
-            elif setting_name == "use_constraints":
-                setting_value = setting_value.lower() in ["true", "1", "yes"]
-            elif setting_name in ("check_badness", "statistics", "raw_output"):
+            elif setting_name == "use_constraints" or setting_name in (
+                "check_badness",
+                "statistics",
+                "raw_output",
+            ):
                 setting_value = setting_value.lower() in ["true", "1", "yes"]
             elif setting_name == "parser":
                 available = list_parsers()
@@ -385,7 +402,8 @@ class ReplSession:
             self.settings[setting_name] = setting_value
             save_settings(self.settings)
             self.console.print(
-                f"[green]✓[/green] Set [cyan]{setting_name}[/cyan] = [green]{setting_value}[/green]"
+                f"[green]✓[/green] Set [cyan]{setting_name}[/cyan] = "
+                f"[green]{setting_value}[/green]"
             )
 
             if setting_name not in ("check_badness", "statistics", "raw_output"):
@@ -423,7 +441,7 @@ class ReplSession:
 
         current_key = self._get_cache_key()
 
-        for cache_key in self.parser_cache.keys():
+        for cache_key in self.parser_cache:
             parser_name = cache_key[0]
             settings_str = self._format_cache_key_settings(cache_key)
             is_current = "✓" if cache_key == current_key else ""
@@ -444,10 +462,12 @@ class ReplSession:
         self.parser_cache = {current_key: self.parser}
         cleared_count = old_count - 1
         self.console.print(
-            f"[green]✓[/green] Cleared [cyan]{cleared_count}[/cyan] parser(s) from cache"
+            f"[green]✓[/green] Cleared [cyan]{cleared_count}[/cyan] "
+            "parser(s) from cache"
         )
         self.console.print(
-            f"[dim]Kept current parser: {self._format_cache_key_settings(current_key)}[/dim]\n"
+            "[dim]Kept current parser: "
+            f"{self._format_cache_key_settings(current_key)}[/dim]\n"
         )
         return False
 
@@ -491,7 +511,7 @@ class ReplSession:
         else:
             return str(cache_key[1:])
 
-    def _get_or_create_parser(self) -> Any | None:
+    def _get_or_create_parser(self) -> Parser | None:
         cache_key = self._get_cache_key()
 
         if cache_key in self.parser_cache:
@@ -525,13 +545,14 @@ class ReplSession:
                 f"[red]Error:[/red] Unknown command '[cyan]/{cmd_name}[/cyan]'"
             )
             self.console.print(
-                "[dim]Type[/dim] [bold]/help[/bold] [dim]to see available commands[/dim]"
+                "[dim]Type[/dim] [bold]/help[/bold] "
+                "[dim]to see available commands[/dim]"
             )
             return False
 
         return self.commands[cmd_name]["handler"](cmd_args)
 
-    def parse_text(self, text: str):
+    def parse_text(self, text: str) -> None:
         try:
             start_time = time.perf_counter()
 
@@ -544,19 +565,22 @@ class ReplSession:
                 tokens = None
 
             # Print dependency tree for alphabeta parser
-            if self.parser_name == "alphabeta":
-                if hasattr(self.parser, "doc") and self.parser.doc:
-                    for sent in self.parser.doc.sents:
-                        dep_tree = print_dependency_tree(sent.root, self.console)
-                        if dep_tree:
-                            self.console.print()
-                            tree_panel = Panel(
-                                dep_tree,
-                                title="[bold cyan]Dependency Parse Tree[/bold cyan]",
-                                border_style="cyan",
-                                box=box.ROUNDED,
-                            )
-                            self.console.print(tree_panel)
+            if (
+                self.parser_name == "alphabeta"
+                and hasattr(self.parser, "doc")
+                and self.parser.doc
+            ):
+                for sent in self.parser.doc.sents:
+                    dep_tree = print_dependency_tree(sent.root, self.console)
+                    if dep_tree:
+                        self.console.print()
+                        tree_panel = Panel(
+                            dep_tree,
+                            title="[bold cyan]Dependency Parse Tree[/bold cyan]",
+                            border_style="cyan",
+                            box=box.ROUNDED,
+                        )
+                        self.console.print(tree_panel)
 
             elapsed_time = time.perf_counter() - start_time
 
@@ -690,10 +714,7 @@ class ReplSession:
             ):
                 self.console.print()
                 _edge = hedge(edge)
-                if _edge:
-                    badness_errors = badness_check(_edge, tokens)
-                else:
-                    badness_errors = None
+                badness_errors = badness_check(_edge, tokens) if _edge else None
 
                 if _edge and not badness_errors:
                     self.console.print(
@@ -723,7 +744,8 @@ class ReplSession:
                                         code, msg = error[0], error[1]
                                         sev = error[2] if len(error) > 2 else "?"
                                         error_table.add_row(
-                                            f"{code} [dim](sev:{sev})[/dim]\n[dim]({context})[/dim]",
+                                            f"{code} [dim](sev:{sev})[/dim]\n[dim]"
+                                            f"({context})[/dim]",
                                             msg,
                                         )
                                     else:
@@ -766,13 +788,13 @@ class ReplSession:
                 traceback.print_exc()
             self.console.print()
 
-    def get_bottom_toolbar(self):
+    def get_bottom_toolbar(self) -> HTML:
         return HTML(
             "<b>Commands:</b> /help, /settings, /quit  |  "
             "<b>History:</b> up/down arrows"
         )
 
-    def run(self):
+    def run(self) -> None:
         self.show_banner()
 
         while True:
@@ -801,7 +823,7 @@ class ReplSession:
                 break
 
 
-def run_repl(args: argparse.Namespace):
+def run_repl(args: argparse.Namespace) -> None:
     # Merge: CLI args > saved settings > hardcoded defaults
     saved = load_saved_settings()
     for key in DEFAULTS:

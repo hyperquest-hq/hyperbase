@@ -7,7 +7,7 @@ from hyperbase.readers.reader import Reader, register_reader, split_blocks
 
 
 class TxtReader(Reader):
-    def __init__(self):
+    def __init__(self) -> None:
         self._blocks: list[str] | None = None
 
     @staticmethod
@@ -16,7 +16,7 @@ class TxtReader(Reader):
 
     def _load(self, source: str) -> list[str]:
         if self._blocks is None:
-            with open(source, "rt") as f:
+            with open(source) as f:
                 self._blocks = split_blocks(f.read())
         return self._blocks
 

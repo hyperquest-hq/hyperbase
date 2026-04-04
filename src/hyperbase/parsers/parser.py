@@ -13,8 +13,7 @@ class Parser:
 
     def parse(self, text: str) -> Iterator[ParseResult]:
         for sentence in self.sentensize(text):
-            for parse in self.parse_sentence(sentence):
-                yield parse
+            yield from self.parse_sentence(sentence)
 
     def parse_sentence(self, sentence: str) -> list[ParseResult]:
         raise NotImplementedError

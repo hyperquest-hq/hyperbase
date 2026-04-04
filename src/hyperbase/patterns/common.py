@@ -4,9 +4,9 @@ from collections.abc import Sequence
 
 from hyperbase import hedge
 from hyperbase.hyperedge import Hyperedge
-from hyperbase.patterns.argroles import edge2rolemap, rolemap_pairings, rolemap2edge
-from hyperbase.patterns.utils import more_general, is_valid
-from hyperbase.patterns.variables import all_variables, is_variable, contains_variable
+from hyperbase.patterns.argroles import edge2rolemap, rolemap2edge, rolemap_pairings
+from hyperbase.patterns.utils import is_valid, more_general
+from hyperbase.patterns.variables import all_variables, contains_variable, is_variable
 
 
 def common_pattern_argroles(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
@@ -19,22 +19,27 @@ def common_pattern_argroles(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | N
         edge1_ = rolemap2edge(edge1[0], rm1_)
         edge2_ = rolemap2edge(edge2[0], rm2_)
 
-        subedges = [_common_pattern(se1, se2) for se1, se2 in zip(edge1_, edge2_)]
+        subedges = [
+            _common_pattern(se1, se2) for se1, se2 in zip(edge1_, edge2_, strict=False)
+        ]
         if any(subedge is None for subedge in subedges):
             continue
         argroles = edge1_[0].argroles()
         if argroles == "":
             # deal with (*/P.{} or */B.{})
-            pattern = hedge("*/{}".format(edge1_.mtype()))
+            pattern = hedge(f"*/{edge1_.mtype()}")
         else:
             pattern = hedge(subedges)
             if pattern is None:
                 continue
-            pattern = pattern.replace_argroles("{{{}}}".format(edge1_[0].argroles()))
+            pattern = pattern.replace_argroles(f"{{{edge1_[0].argroles()}}}")
 
-        if pattern is not None and _vars == all_variables(pattern):
-            if best_pattern is None or more_general(best_pattern, pattern):
-                best_pattern = pattern
+        if (
+            pattern is not None
+            and _vars == all_variables(pattern)
+            and (best_pattern is None or more_general(best_pattern, pattern))
+        ):
+            best_pattern = pattern
 
     if best_pattern is None:
         return None
@@ -55,10 +60,7 @@ def common_type(edges: Sequence[Hyperedge]) -> str | None:
 def common_pattern_atoms(atoms: Sequence[Hyperedge]) -> Hyperedge | None:
     roots = [atom.root() for atom in atoms]  # type: ignore[attr-defined]
 
-    if len(set(roots)) != 1 or "*" in roots:
-        root = "*"
-    else:
-        root = roots[0]
+    root = "*" if len(set(roots)) != 1 or "*" in roots else roots[0]
 
     if any(len(str(atom).split("/")) == 1 for atom in atoms):
         atype: str | None = None
@@ -90,7 +92,7 @@ def common_pattern_atoms(atoms: Sequence[Hyperedge]) -> Hyperedge | None:
             if final_role2 is not None:
                 role_parts.append(final_role2)
         role_str = ".".join(role_parts)
-        atom_str = "{}/{}".format(root, role_str)
+        atom_str = f"{root}/{role_str}"
 
     return hedge(atom_str)
 
@@ -100,10 +102,7 @@ def _common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
     nedge2 = edge2
 
     # variables
-    if is_variable(nedge1):
-        var1 = nedge1[2]
-    else:
-        var1 = None
+    var1 = nedge1[2] if is_variable(nedge1) else None
     if is_variable(nedge2):
         var2 = nedge2[2]
         if var1 is None:
@@ -143,11 +142,10 @@ def _common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
             and nedge2.not_atom
             and nedge1.has_argroles()
             and nedge2.has_argroles()
-        ):
-            if nedge1.mt == nedge2.mt:
-                common = common_pattern_argroles(nedge1, nedge2)
-                if common:
-                    return common
+        ) and nedge1.mt == nedge2.mt:
+            common = common_pattern_argroles(nedge1, nedge2)
+            if common:
+                return common
 
         # do not combine edges with argroles and edges without them
         perform_ordered_match = not (
@@ -163,7 +161,7 @@ def _common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
         ):
             subedges = [
                 _common_pattern(subedge1, subedge2)
-                for subedge1, subedge2 in zip(nedge1, nedge2)
+                for subedge1, subedge2 in zip(nedge1, nedge2, strict=False)
             ]
             if any(subedge is None for subedge in subedges):
                 return None
@@ -174,7 +172,7 @@ def _common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
                 return None
             etype = common_type((nedge1, nedge2))
             if etype:
-                return hedge("*/{}".format(etype))
+                return hedge(f"*/{etype}")
             else:
                 return hedge("*")
 

@@ -32,10 +32,7 @@ class PatternCounter:
             self.match_subtypes = match_subtypes
 
     def _matches_expansions(self, edge: Hyperedge) -> bool:
-        for expansion in self.expansions:
-            if edge.match(expansion):
-                return True
-        return False
+        return any(edge.match(expansion) for expansion in self.expansions)
 
     def _force_subtypes(self, edge: Hyperedge) -> bool:
         force_subtypes = False
@@ -100,7 +97,7 @@ class PatternCounter:
                 force_subtypes=force_subtypes,
             ):
                 for hpat in hpats:
-                    patterns.append([hpat] + pattern)
+                    patterns.append([hpat, *pattern])
         return patterns
 
     def _edge2patterns(self, edge: Hyperedge) -> list[Hyperedge | None]:
@@ -132,20 +129,14 @@ class PatternCounter:
 def _edge2pattern(
     edge: Hyperedge, root: bool = False, subtype: bool = False
 ) -> Hyperedge | None:
-    if root and edge.atom:
-        root_str = edge.root()  # type: ignore[attr-defined]
-    else:
-        root_str = "*"
-    if subtype:
-        et = edge.type()
-    else:
-        et = edge.mtype()
-    pattern = "{}/{}".format(root_str, et)
+    root_str = edge.root() if root and edge.atom else "*"  # type: ignore[attr-defined]
+    et = edge.type() if subtype else edge.mtype()
+    pattern = f"{root_str}/{et}"
     ar = edge.argroles()
     if ar == "":
         return hedge(pattern)
     else:
-        return hedge("{}.{}".format(pattern, ar))
+        return hedge(f"{pattern}.{ar}")
 
 
 def _inner_edge_matches_pattern(edge: Hyperedge, pattern: str) -> bool:
@@ -154,7 +145,4 @@ def _inner_edge_matches_pattern(edge: Hyperedge, pattern: str) -> bool:
     for subedge in edge:
         if subedge.match(pattern):
             return True
-    for subedge in edge:
-        if _inner_edge_matches_pattern(subedge, pattern):
-            return True
-    return False
+    return any(_inner_edge_matches_pattern(subedge, pattern) for subedge in edge)

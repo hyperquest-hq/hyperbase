@@ -71,7 +71,10 @@ strict = true
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["Q"]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "Q", "C4", "PT", "N", "ANN"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501", "ANN201", "D100", "D101", "D102", "D400", "D415"]
 
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "double"

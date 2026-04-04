@@ -26,7 +26,7 @@ def _defun_pattern_argroles(edge: Hyperedge) -> Hyperedge:
             # if no atom with argroles is found, just return the first one
             return edge[1]  # type: ignore[no-any-return]
         else:
-            result = hedge([edge[0], _defun_pattern_argroles(edge[1])] + list(edge[2:]))
+            result = hedge([edge[0], _defun_pattern_argroles(edge[1]), *list(edge[2:])])
             assert result is not None
             return result
     else:
@@ -35,14 +35,14 @@ def _defun_pattern_argroles(edge: Hyperedge) -> Hyperedge:
         return result
 
 
-def _atoms_and_tok_pos(edge: Hyperedge, tok_pos: Any) -> tuple[list[Atom], list[Any]]:
+def _atoms_and_tok_pos(edge: Hyperedge, tok_pos: int) -> tuple[list[Atom], list[Any]]:
     if edge.atom:
         return [edge], [tok_pos]  # type: ignore[list-item]
     atoms: list[Atom] = []
     atoms_tok_pos: list[Any] = []
-    for edge_item, tok_pos_item in zip(edge, tok_pos):
+    for edge_item, tok_pos_item in zip(edge, tok_pos, strict=False):
         _atoms, _atoms_tok_pos = _atoms_and_tok_pos(edge_item, tok_pos_item)
-        for _atom, _atom_tok_pos in zip(_atoms, _atoms_tok_pos):
+        for _atom, _atom_tok_pos in zip(_atoms, _atoms_tok_pos, strict=False):
             if _atom not in atoms:
                 atoms.append(_atom)
                 atoms_tok_pos.append(_atom_tok_pos)
@@ -57,15 +57,18 @@ def _normalize_fun_patterns(pattern: Hyperedge) -> Hyperedge:
     assert normalized is not None
     pattern = normalized
 
-    if is_fun_pattern(pattern):
-        if str(pattern[0]) == "lemma":
-            if is_fun_pattern(pattern[1]) and str(pattern[1][0]) == "any":
-                new_pattern: list[str | Hyperedge | list[Any]] = ["any"]
-                for alternative in pattern[1][1:]:
-                    new_pattern.append(["lemma", alternative])
-                result = hedge(new_pattern)
-                assert result is not None
-                return result
+    if (
+        is_fun_pattern(pattern)
+        and str(pattern[0]) == "lemma"
+        and is_fun_pattern(pattern[1])
+        and str(pattern[1][0]) == "any"
+    ):
+        new_pattern: list[str | Hyperedge | list[Any]] = ["any"]
+        for alternative in pattern[1][1:]:
+            new_pattern.append(["lemma", alternative])
+        result = hedge(new_pattern)
+        assert result is not None
+        return result
 
     return pattern
 

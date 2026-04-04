@@ -5,20 +5,20 @@ from hyperbase.patterns.common import common_pattern
 from hyperbase.patterns.matcher import Matcher
 from hyperbase.patterns.merge import merge_patterns
 from hyperbase.patterns.properties import (
-    is_wildcard,
-    is_pattern,
     is_full_pattern,
     is_fun_pattern,
+    is_pattern,
     is_unordered_pattern,
+    is_wildcard,
 )
 from hyperbase.patterns.utils import _normalize_fun_patterns, more_general
 from hyperbase.patterns.variables import (
     all_variables,
-    apply_vars,
     apply_variables,
+    apply_vars,
+    contains_variable,
     extract_vars_map,
     is_variable,
-    contains_variable,
     remove_variables,
 )
 
@@ -77,8 +77,8 @@ def match_pattern(
 
 __all__ = [
     "all_variables",
-    "apply_vars",
     "apply_variables",
+    "apply_vars",
     "common_pattern",
     "contains_variable",
     "extract_vars_map",

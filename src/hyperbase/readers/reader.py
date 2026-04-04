@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from hyperbase.parsers.parser import Parser
@@ -112,7 +112,7 @@ class Reader:
     accepting reader) is chosen.
     """
 
-    more_general: list[str] = []
+    more_general: tuple[str, ...] = ()
 
     @staticmethod
     def accepts(source: str) -> bool:
