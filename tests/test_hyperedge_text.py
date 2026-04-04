@@ -59,7 +59,7 @@ class TestHyperedgeText(unittest.TestCase):
             tok_pos=hedge('(2 (0 1) 3)'),
         )
         result = hedge(pr)
-        self.assertEqual(result.to_str(), '(is/P.so (the/M sky/C) blue/C)')
+        self.assertEqual(str(result), '(is/P.so (the/M sky/C) blue/C)')
 
     def test_hedge_parse_result_neg_pos(self):
         pr = ParseResult(
@@ -98,7 +98,7 @@ class TestHyperedgeText(unittest.TestCase):
         result = hedge(pr)
         self.assertEqual(result.text, 'Hello')
         self.assertTrue(result.atom)
-        self.assertEqual(result.to_str(), 'hello/C')
+        self.assertEqual(str(result), 'hello/C')
 
     def test_hedge_parse_result_nested(self):
         pr = ParseResult(
@@ -128,7 +128,7 @@ class TestHyperedgeText(unittest.TestCase):
             tok_pos=hedge('(1 (0) 2)'),
         )
         result = hedge(pr)
-        self.assertEqual(result.to_str(), '(is/P.sc (X/C) good/C)')
+        self.assertEqual(str(result), '(is/P.sc (X/C) good/C)')
         self.assertTrue(result[1].atom)
         self.assertTrue(result[1].parens)
         self.assertEqual(result[1].text, 'X')

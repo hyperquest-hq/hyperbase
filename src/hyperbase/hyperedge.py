@@ -230,15 +230,6 @@ class Hyperedge(tuple):  # type: ignore[type-arg]
         """
         return self.connector_mtype()
 
-    def is_atom(self) -> bool:
-        """
-        .. deprecated:: 0.6.0
-            Please use the properties .atom and .not_atom instead.
-
-        Checks if edge is an atom.
-        """
-        return False
-
     def match(
         self,
         pattern: Hyperedge | str | list[object] | tuple[object, ...]
@@ -277,16 +268,6 @@ class Hyperedge(tuple):  # type: ignore[type-arg]
         """
         from hyperbase.patterns import match_pattern
         return match_pattern(self, pattern)
-
-    def to_str(self, roots_only: bool = False) -> str:
-        """Converts edge to its string representation.
-
-        Keyword argument:
-        roots_only -- only the roots of the atoms will be used to create
-        the string representation.
-        """
-        s = ' '.join([edge.to_str(roots_only=roots_only) for edge in self if edge])
-        return ''.join(('(', s, ')'))
 
     def label(self) -> str:
         """Generate human-readable label for edge."""
@@ -683,7 +664,7 @@ class Hyperedge(tuple):  # type: ignore[type-arg]
             for arg in self[1:]:
                 at = arg.mtype()
                 if at != 'C':
-                    e = 'builder argument {} has incorrect type: {}'.format(arg.to_str(), at)
+                    e = 'builder argument {} has incorrect type: {}'.format(str(arg), at)
                     errors.append(('build-arg-bad-type', e))
         # check if trigger structure is correct
         elif ct == 'T':
@@ -692,14 +673,14 @@ class Hyperedge(tuple):  # type: ignore[type-arg]
             for arg in self[1:]:
                 at = arg.mtype()
                 if at not in {'C', 'R'}:
-                    e = 'trigger argument {} has incorrect type: {}'.format(arg.to_str(), at)
+                    e = 'trigger argument {} has incorrect type: {}'.format(str(arg), at)
                     errors.append(('trig-bad-arg-type', e))
         # check if predicate structure is correct
         elif ct == 'P':
             for arg in self[1:]:
                 at = arg.mtype()
                 if at not in {'C', 'R', 'S'}:
-                    e = 'predicate argument {} has incorrect type: {}'.format(arg.to_str(), at)
+                    e = 'predicate argument {} has incorrect type: {}'.format(str(arg), at)
                     errors.append(('pred-arg-bad-type', e))
         # check if conjunction structure is correct
         elif ct == 'J':
@@ -773,10 +754,11 @@ class Hyperedge(tuple):  # type: ignore[type-arg]
             return Hyperedge(tuple.__add__(self, tuple(other)))
 
     def __str__(self) -> str:
-        return self.to_str()
+        s = " ".join([str(edge) for edge in self if edge])
+        return (f"({s})")
 
     def __repr__(self) -> str:
-        return self.to_str()
+        return str(self)
 
 
 # Store parens attribute in a dict by id since we can't add attributes to tuple subclasses
@@ -805,15 +787,6 @@ class Atom(Hyperedge):
         """True if edge is not an atom."""
         return False
 
-    def is_atom(self) -> bool:
-        """
-        .. deprecated:: 0.6.0
-            Please use the properties .atom and .not_atom instead.
-
-        Checks if edge is an atom.
-        """
-        return True
-
     def parts(self) -> list[str]:
         """Splits atom into its parts."""
         return self[0].split('/')  # type: ignore[no-any-return]
@@ -829,22 +802,6 @@ class Atom(Hyperedge):
         parts[part_pos] = part
         atom = '/'.join([part for part in parts if part])
         return Atom((atom,))
-
-    def to_str(self, roots_only: bool = False) -> str:
-        """Converts atom to its string representation.
-
-        Keyword argument:
-        roots_only -- only the roots of the atoms will be used to create
-        the string representation.
-        """
-        if roots_only:
-            atom_str = self.root()
-        else:
-            atom_str = str(self[0])
-        if self.parens:
-            return '({})'.format(atom_str)
-        else:
-            return atom_str
 
     def label(self) -> str:
         """Generate human-readable label from entity."""
@@ -1180,6 +1137,13 @@ class Atom(Hyperedge):
             return Hyperedge((self, other))
         else:
             return Hyperedge(tuple.__add__((self,), tuple(other)))
+
+    def __str__(self) -> str:
+        atom_str = str(self[0])
+        if self.parens:
+            return '({})'.format(atom_str)
+        else:
+            return atom_str
 
 
 class UniqueAtom(Atom):

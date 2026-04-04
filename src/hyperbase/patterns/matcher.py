@@ -63,7 +63,7 @@ class Matcher:
         min_len = len(pattern)
         max_len: int | float = min_len
         # open-ended?
-        if pattern[-1].to_str() == '...':
+        if str(pattern[-1]) == '...':
             new_pattern = hedge(pattern[:-1])
             if new_pattern is None:
                 return []

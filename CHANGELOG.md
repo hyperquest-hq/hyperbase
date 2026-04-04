@@ -17,6 +17,7 @@
 
 ### Removed
 - function patterns.edge_matches_pattern.
+- deprecated and obsolete methods from Hyperedge: is_atom, to_str, 
 
 ## [0.8.0] - 26-03-2026 - hyperbase is the successor of graphbrain
 

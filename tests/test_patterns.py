@@ -792,62 +792,62 @@ class TestPatterns(unittest.TestCase):
     def test_common_pattern1(self):
         edge1 = hedge('(likes/P.so mary/C chess/C)')
         edge2 = hedge('(likes/P.so john/C mary/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(likes/P.{so} */C */C)')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(likes/P.{so} */C */C)')
 
     def test_common_pattern2(self):
         edge1 = hedge('(likes/P.so mary/C chess/C)')
         edge2 = hedge('(likes/P.sox john/C mary/C x/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(likes/P.{so} */C */C)')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(likes/P.{so} */C */C)')
 
     def test_common_pattern3(self):
         edge1 = hedge('(likes/P mary/C chess/C)')
         edge2 = hedge('(likes/P john/C mary/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(likes/P */C */C)')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(likes/P */C */C)')
 
     def test_common_pattern4(self):
         edge1 = hedge('(likes/P.so mary/C chess/C)')
         edge2 = hedge('(loves/P.so john/C mary/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(*/P.{so} */C */C)')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(*/P.{so} */C */C)')
 
     def test_common_pattern5(self):
         edge1 = hedge('(likes/P.so mary/C chess/C)')
         edge2 = hedge('(loves/P.so mary/C mary/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(*/P.{so} mary/C */C)')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(*/P.{so} mary/C */C)')
 
     def test_common_pattern6(self):
         edge1 = hedge('(loves/P.so mary/C chess/C)')
         edge2 = hedge('(loves/P.so mary/C mary/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(loves/P.{so} mary/C */C)')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(loves/P.{so} mary/C */C)')
 
     def test_common_pattern7(self):
         edge1 = hedge('mary/C')
         edge2 = hedge('john/C')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '*/C')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '*/C')
 
     def test_common_pattern8(self):
         edge1 = hedge('mary/C')
         edge2 = hedge('red/M')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '*')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '*')
 
     def test_common_pattern9(self):
         edge1 = hedge('mary/C')
         edge2 = hedge('(loves/P.so mary/C mary/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '*')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '*')
 
     def test_common_pattern10(self):
         edge1 = hedge('(likes/P mary/C chess/C)')
         edge2 = hedge('(likes/P john/C mary/C x/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '*/R')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '*/R')
 
     def test_common_pattern11(self):
         edge1 = hedge('(likes/P.so mary/C (of/B.ma games/C chess/C))')
         edge2 = hedge('(likes/P.sox john/C (of/B.ma games/C go/C) x/C)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(likes/P.{so} */C (of/B.{ma} games/C */C))')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(likes/P.{so} */C (of/B.{ma} games/C */C))')
 
     def test_common_pattern12(self):
         edge1 = hedge('(likes/P.so/en mary/C/en (of/B.ma/en games/C/en chess/C/en))')
         edge2 = hedge('(likes/P.sox/en joe/C/en (of/B.ma/en games/C/en go/C/en) x/C/en)')
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(likes/P.{so} */C (of/B.{ma} games/C */C))')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(likes/P.{so} */C (of/B.{ma} games/C */C))')
 
     def test_common_pattern13(self):
         edge1 = hedge(
@@ -877,7 +877,7 @@ class TestPatterns(unittest.TestCase):
             (+/B.am/. telecom/Cc.s/en operators/Cc.p/en))))) ((n’t/Mn/en
             were/P.c.<f-----/en) overwhelmed/Ca/en))
             """)
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(said/Pd.{sr}.<f----- */Cp.s (*/P.{c} */C))')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(said/Pd.{sr}.<f----- */Cp.s (*/P.{c} */C))')
 
     def test_common_pattern14(self):
         edge1 = hedge(
@@ -899,7 +899,7 @@ class TestPatterns(unittest.TestCase):
             (said/Pd.sr.<f-----/en he/Ci/en ((again/M/en (would/Mm/en
             speak/P.sx.-i-----/en)) he/Ci/en (with/T/en hastings/Cp.s/en)))
             """)
-        self.assertEqual(common_pattern(edge1, edge2).to_str(), '(said/Pd.{sr}.<f----- he/Ci (*/P.{s} */Ci))')
+        self.assertEqual(str(common_pattern(edge1, edge2)), '(said/Pd.{sr}.<f----- he/Ci (*/P.{s} */Ci))')
 
     def test_common_pattern_var1(self):
         edge1 = hedge(
@@ -917,7 +917,7 @@ class TestPatterns(unittest.TestCase):
             """)
         edge2 = hedge("""(said/Pd.sr.<f-----/en he/Ci/en ((again/M/en (would/Mm/en
                       speak/P.sx.-i-----/en)) (var he/Ci/en SUBJ) (with/T/en hastings/Cp.s/en)))""")
-        self.assertEqual(common_pattern(edge1, edge2).to_str(),
+        self.assertEqual(str(common_pattern(edge1, edge2)),
                          '(said/Pd.{sr}.<f----- he/Ci (*/P.{s} (var */Ci SUBJ)))')
 
     def test_common_pattern_var2(self):
