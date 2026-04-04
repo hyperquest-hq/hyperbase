@@ -28,7 +28,7 @@ valid_p_argroles: set[str] = {'s', 'p', 'a', 'c', 'o', 'i', 't', 'j', 'x', 'r', 
 valid_b_argroles: set[str] = {'m', 'a'}
 
 
-def str2atom(s: str) -> str:
+def str_to_atom(s: str) -> str:
     """Converts a string into a valid atom."""
     atom = s.lower()
 
@@ -178,7 +178,7 @@ def hedge(source: str | Hyperedge | list[Any] | tuple[Any] | ParseResult) -> Hyp
 
 def build_atom(text: str, *parts: str) -> Atom:
     """Build an atom from text and other parts."""
-    atom = str2atom(text)
+    atom = str_to_atom(text)
     parts_str = '/'.join([part for part in parts if part])
     if len(parts_str) > 0:
         atom = ''.join((atom, '/', parts_str))

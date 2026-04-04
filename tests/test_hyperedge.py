@@ -1,6 +1,6 @@
 import unittest
 
-from hyperbase.hyperedge import hedge, build_atom, str2atom, split_edge_str
+from hyperbase.hyperedge import hedge, build_atom, str_to_atom, split_edge_str
 
 
 class TestHyperedge(unittest.TestCase):
@@ -71,38 +71,38 @@ class TestHyperedge(unittest.TestCase):
     def test_replace_atom_part3(self):
         self.assertEqual(hedge('(XXX/1/yyy)').replace_atom_part(1, '77'), hedge('(XXX/77/yyy)'))
 
-    def test_str2atom1(self):
-        self.assertEqual(str2atom('abc'), 'abc')
+    def test_str_to_atom1(self):
+        self.assertEqual(str_to_atom('abc'), 'abc')
 
-    def test_str2atom2(self):
-        self.assertEqual(str2atom('abc%'), 'abc%25')
+    def test_str_to_atom2(self):
+        self.assertEqual(str_to_atom('abc%'), 'abc%25')
 
-    def test_str2atom3(self):
-        self.assertEqual(str2atom('/abc'), '%2fabc')
+    def test_str_to_atom3(self):
+        self.assertEqual(str_to_atom('/abc'), '%2fabc')
 
-    def test_str2atom4(self):
-        self.assertEqual(str2atom('a bc'), 'a%20bc')
+    def test_str_to_atom4(self):
+        self.assertEqual(str_to_atom('a bc'), 'a%20bc')
 
-    def test_str2atom5(self):
-        self.assertEqual(str2atom('ab(c'), 'ab%28c')
+    def test_str_to_atom5(self):
+        self.assertEqual(str_to_atom('ab(c'), 'ab%28c')
 
-    def test_str2atom6(self):
-        self.assertEqual(str2atom('abc)'), 'abc%29')
+    def test_str_to_atom6(self):
+        self.assertEqual(str_to_atom('abc)'), 'abc%29')
 
-    def test_str2atom7(self):
-        self.assertEqual(str2atom('.abc'), '%2eabc')
+    def test_str_to_atom7(self):
+        self.assertEqual(str_to_atom('.abc'), '%2eabc')
 
-    def test_str2atom8(self):
-        self.assertEqual(str2atom('a*bc'), 'a%2abc')
+    def test_str_to_atom8(self):
+        self.assertEqual(str_to_atom('a*bc'), 'a%2abc')
 
-    def test_str2atom9(self):
-        self.assertEqual(str2atom('ab&c'), 'ab%26c')
+    def test_str_to_atom9(self):
+        self.assertEqual(str_to_atom('ab&c'), 'ab%26c')
 
-    def test_str2atom10(self):
-        self.assertEqual(str2atom('abc@'), 'abc%40')
+    def test_str_to_atom10(self):
+        self.assertEqual(str_to_atom('abc@'), 'abc%40')
 
-    def test_str2atom11(self):
-        self.assertEqual(str2atom('graph brain/(1).'), 'graph%20brain%2f%281%29%2e')
+    def test_str_to_atom11(self):
+        self.assertEqual(str_to_atom('graph brain/(1).'), 'graph%20brain%2f%281%29%2e')
 
     def test_split_edge_str1(self):
         self.assertEqual(split_edge_str('is hyperbase/1 great/1'), ('is', 'hyperbase/1', 'great/1'))

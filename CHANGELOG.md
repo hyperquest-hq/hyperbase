@@ -13,6 +13,7 @@
 - added get_parser to main functions (at hyperbase root).
 - improved documentation.
 - hedge now accepts ParseResults and can recursively add Hyperedge.text strings.
+- renamed function hyperedge.str2atom to str_to_atom.
 
 ### Removed
 - function patterns.edge_matches_pattern.
