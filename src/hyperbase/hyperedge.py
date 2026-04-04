@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, overload
 
 if TYPE_CHECKING:
     from hyperbase.parsers.parse_result import ParseResult
@@ -154,7 +155,7 @@ def hedge(
         and hasattr(source, "edge")
     ):
         edge = _rebuild_with_text(source.edge, source.tok_pos, source.tokens)
-        edge.text = source.text
+        object.__setattr__(edge, "text", source.text)
         return edge
     if type(source) in {tuple, list}:
         return Hyperedge(tuple(hedge(item) for item in source))
@@ -191,15 +192,45 @@ def build_atom(text: str, *parts: str) -> Atom:
     return Atom((atom,))
 
 
-class Hyperedge(tuple):  # type: ignore[type-arg]
+@dataclass(frozen=True, init=False, eq=False, repr=False)
+class Hyperedge:
     """Non-atomic hyperedge."""
 
-    def __new__(
-        cls, edges: Iterable[Hyperedge | None], text: str | None = None
-    ) -> Hyperedge:
-        edge = super().__new__(cls, tuple(edges))
-        edge.text = text
-        return edge
+    _edges: tuple[Hyperedge | None, ...]
+    text: str | None
+
+    def __init__(
+        self, edges: Iterable[Hyperedge | None], text: str | None = None
+    ) -> None:
+        object.__setattr__(self, "_edges", tuple(edges))
+        object.__setattr__(self, "text", text)
+
+    def __iter__(self) -> Iterator[Hyperedge | None]:
+        return iter(self._edges)
+
+    @overload
+    def __getitem__(self, key: int) -> Hyperedge: ...
+    @overload
+    def __getitem__(self, key: slice) -> tuple[Hyperedge | None, ...]: ...
+
+    def __getitem__(self, key):
+        return self._edges[key]
+
+    def __len__(self) -> int:
+        return len(self._edges)
+
+    def __hash__(self) -> int:
+        return hash(self._edges)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Hyperedge):
+            return self._edges == other._edges
+        if isinstance(other, tuple):
+            return self._edges == other
+        return NotImplemented
+
+    def __bool__(self) -> bool:
+        return True
 
     @property
     def atom(self) -> bool:
@@ -813,33 +844,35 @@ class Hyperedge(tuple):  # type: ignore[type-arg]
 
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
         if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
-            return Hyperedge(tuple.__add__(self, tuple(other)))
+            return Hyperedge(self._edges + tuple(other))
         elif isinstance(other, Hyperedge) and other.atom:
-            return Hyperedge(tuple.__add__(self, (other,)))
+            return Hyperedge((*self._edges, other))
         else:
-            return Hyperedge(tuple.__add__(self, tuple(other)))
+            return Hyperedge(self._edges + tuple(other))
 
     def __str__(self) -> str:
-        s = " ".join([str(edge) for edge in self if edge])
+        s = " ".join([str(edge) for edge in self._edges if edge])
         return f"({s})"
 
     def __repr__(self) -> str:
         return str(self)
 
 
+@dataclass(frozen=True, init=False, eq=False, repr=False)
 class Atom(Hyperedge):
     """Atomic hyperedge."""
 
     parens: bool
-    text: str | None
 
-    def __new__(
-        cls, edge: tuple[str, ...] | Atom, parens: bool = False, text: str | None = None
-    ) -> Atom:
-        atom = super(Hyperedge, cls).__new__(cls, tuple(edge))
-        atom.parens = parens
-        atom.text = text
-        return atom
+    def __init__(
+        self,
+        edge: tuple[str, ...] | Atom | Any,  # noqa: ANN401
+        parens: bool = False,
+        text: str | None = None,
+    ) -> None:
+        object.__setattr__(self, "_edges", tuple(edge))
+        object.__setattr__(self, "parens", parens)
+        object.__setattr__(self, "text", text)
 
     @property
     def atom(self) -> bool:
@@ -1197,17 +1230,17 @@ class Atom(Hyperedge):
 
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
         if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
-            return Hyperedge(tuple.__add__((self,), tuple(other)))
+            return Hyperedge((self, *tuple(other)))
         elif isinstance(other, Hyperedge) and other.atom:
             return Hyperedge((self, other))
         else:
-            return Hyperedge(tuple.__add__((self,), tuple(other)))
+            return Hyperedge((self, *tuple(other)))
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        atom_str = str(self[0])
+        atom_str = str(self._edges[0])
         if self.parens:
             return f"({atom_str})"
         else:
@@ -1215,8 +1248,11 @@ class Atom(Hyperedge):
 
 
 class UniqueAtom(Atom):
+    atom_obj: Atom
+
     def __init__(self, atom: Atom) -> None:
-        self.atom_obj = atom
+        super().__init__(atom._edges)
+        object.__setattr__(self, "atom_obj", atom)
 
     def __hash__(self) -> int:
         return id(self.atom_obj)
