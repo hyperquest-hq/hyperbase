@@ -16,7 +16,7 @@ class TxtReader(Reader):
 
     def _load(self, source: str) -> list[str]:
         if self._blocks is None:
-            with open(source, 'rt') as f:
+            with open(source, "rt") as f:
                 self._blocks = split_blocks(f.read())
         return self._blocks
 
@@ -27,4 +27,4 @@ class TxtReader(Reader):
         yield from self._load(source)
 
 
-register_reader('plain_text', TxtReader)
+register_reader("plain_text", TxtReader)

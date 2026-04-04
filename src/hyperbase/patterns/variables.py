@@ -24,24 +24,22 @@ def apply_vars(edge: Hyperedge, variables: dict[str, Hyperedge]) -> Hyperedge:
 
 def _varname(atom: Hyperedge) -> str:
     if not atom.atom:
-        return ''
+        return ""
     label: str = atom.parts()[0]  # type: ignore[attr-defined]
     if len(label) == 0:
         return label
-    elif label[0] in {'*', '.'}:
+    elif label[0] in {"*", "."}:
         return label[1:]
-    elif label[:3] == '...':
+    elif label[:3] == "...":
         return label[3:]
     elif label[0].isupper():
         return label
     else:
-        return ''
+        return ""
 
 
 def _assign_edge_to_var(
-        curvars: dict[str, Hyperedge],
-        var_name: str,
-        edge: Hyperedge
+    curvars: dict[str, Hyperedge], var_name: str, edge: Hyperedge
 ) -> dict[str, Hyperedge]:
     new_edge: Hyperedge = edge
     if var_name in curvars:
@@ -57,7 +55,7 @@ def _assign_edge_to_var(
 
 def is_variable(edge: Hyperedge) -> bool:
     if edge.not_atom:
-        return edge[0].atom and edge[0].root() == 'var'  # type: ignore[no-any-return]
+        return edge[0].atom and edge[0].root() == "var"  # type: ignore[no-any-return]
     return False
 
 
@@ -70,7 +68,9 @@ def contains_variable(edge: Hyperedge) -> bool:
         return any(contains_variable(subedge) for subedge in edge)
 
 
-def all_variables(edge: Hyperedge | None, _vars: Counter[Any] | None = None) -> Counter[Any]:
+def all_variables(
+    edge: Hyperedge | None, _vars: Counter[Any] | None = None
+) -> Counter[Any]:
     if _vars is None:
         _vars = Counter()
     if edge is None:
@@ -86,8 +86,7 @@ def all_variables(edge: Hyperedge | None, _vars: Counter[Any] | None = None) -> 
 
 
 def extract_vars_map(
-        edge: Hyperedge | None,
-        _vars: dict[str, Hyperedge] | None = None
+    edge: Hyperedge | None, _vars: dict[str, Hyperedge] | None = None
 ) -> dict[str, Hyperedge]:
     if _vars is None:
         _vars = {}
@@ -100,10 +99,15 @@ def extract_vars_map(
             var_name = str(edge[2])
             if var_name in _vars:
                 cur_edge = _vars[var_name]
-                if cur_edge.not_atom and str(cur_edge[0]) == const.list_or_matches_builder:
+                if (
+                    cur_edge.not_atom
+                    and str(cur_edge[0]) == const.list_or_matches_builder
+                ):
                     new_edge = cur_edge + (new_edge,)
                 else:
-                    result = hedge((hedge(const.list_or_matches_builder), cur_edge, new_edge))
+                    result = hedge(
+                        (hedge(const.list_or_matches_builder), cur_edge, new_edge)
+                    )
                     assert result is not None
                     new_edge = result
             _vars[var_name] = new_edge
@@ -124,13 +128,11 @@ def remove_variables(edge: Hyperedge) -> Hyperedge:
 
 
 def apply_variable(
-        edge: Hyperedge,
-        var_name: str,
-        var_edge: Hyperedge | list[Hyperedge]
+    edge: Hyperedge, var_name: str, var_edge: Hyperedge | list[Hyperedge]
 ) -> tuple[Hyperedge, bool]:
     clean_edge = remove_variables(edge)
     if clean_edge == var_edge or (type(var_edge) == list and clean_edge in var_edge):
-        result = hedge(('var', clean_edge, var_name))
+        result = hedge(("var", clean_edge, var_name))
         assert result is not None
         return result, True
 
@@ -150,8 +152,7 @@ def apply_variable(
 
 
 def apply_variables(
-        edge: Hyperedge,
-        variables: dict[str, Hyperedge | list[Hyperedge]]
+    edge: Hyperedge, variables: dict[str, Hyperedge | list[Hyperedge]]
 ) -> Hyperedge | None:
     new_edge = edge
     for var_name, var_edge in variables.items():

@@ -26,7 +26,8 @@ def main():
         help="Source to read (file path or URL)",
     )
     read_parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=str,
         required=True,
         help="Output file path (.jsonl for parsed output, .txt for raw text)",
@@ -144,14 +145,17 @@ def main():
 
     if args.command == "parsers":
         from hyperbase.cli.parsers import run_parsers
+
         run_parsers()
         sys.exit(0)
 
     if args.command == "read":
         from hyperbase.cli.read import run_read
+
         run_read(args)
         sys.exit(0)
 
     if args.command == "repl":
         from hyperbase.cli.repl import run_repl
+
         run_repl(args)

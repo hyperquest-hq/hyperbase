@@ -30,8 +30,7 @@ def get_parser(name: str, **kwargs: Any) -> Parser:
     if name not in parsers:
         available = ", ".join(sorted(parsers)) or "(none)"
         raise ValueError(
-            f"Parser {name!r} is not installed. "
-            f"Available parsers: {available}"
+            f"Parser {name!r} is not installed. Available parsers: {available}"
         )
     cls = parsers[name].load()
     return cls(**kwargs)  # type: ignore[no-any-return]

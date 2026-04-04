@@ -4,17 +4,29 @@ from hyperbase.hyperedge import Hyperedge, hedge
 from hyperbase.patterns.common import common_pattern
 from hyperbase.patterns.matcher import Matcher
 from hyperbase.patterns.merge import merge_patterns
-from hyperbase.patterns.properties import (is_wildcard, is_pattern, is_full_pattern, is_fun_pattern,
-                                            is_unordered_pattern)
+from hyperbase.patterns.properties import (
+    is_wildcard,
+    is_pattern,
+    is_full_pattern,
+    is_fun_pattern,
+    is_unordered_pattern,
+)
 from hyperbase.patterns.utils import _normalize_fun_patterns, more_general
-from hyperbase.patterns.variables import (all_variables, apply_vars, apply_variables, extract_vars_map, is_variable,
-                                           contains_variable, remove_variables)
+from hyperbase.patterns.variables import (
+    all_variables,
+    apply_vars,
+    apply_variables,
+    extract_vars_map,
+    is_variable,
+    contains_variable,
+    remove_variables,
+)
 
 
 def match_pattern(
-        edge: Hyperedge | str | list[object] | tuple[object, ...],
-        pattern: Hyperedge | str | list[object] | tuple[object, ...],
-        curvars: dict[str, Hyperedge] | None = None
+    edge: Hyperedge | str | list[object] | tuple[object, ...],
+    pattern: Hyperedge | str | list[object] | tuple[object, ...],
+    curvars: dict[str, Hyperedge] | None = None,
 ) -> list[dict[str, Hyperedge]]:
     """
     Matches an edge to a pattern. This means that, if the edge fits the
@@ -64,20 +76,20 @@ def match_pattern(
 
 
 __all__ = [
-    'all_variables',
-    'apply_vars',
-    'apply_variables',
-    'common_pattern',
-    'contains_variable',
-    'extract_vars_map',
-    'is_full_pattern',
-    'is_fun_pattern',
-    'is_pattern',
-    'is_unordered_pattern',
-    'is_variable',
-    'is_wildcard',
-    'match_pattern',
-    'merge_patterns',
-    'more_general',
-    'remove_variables'
+    "all_variables",
+    "apply_vars",
+    "apply_variables",
+    "common_pattern",
+    "contains_variable",
+    "extract_vars_map",
+    "is_full_pattern",
+    "is_fun_pattern",
+    "is_pattern",
+    "is_unordered_pattern",
+    "is_variable",
+    "is_wildcard",
+    "match_pattern",
+    "merge_patterns",
+    "more_general",
+    "remove_variables",
 ]

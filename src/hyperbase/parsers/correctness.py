@@ -7,7 +7,9 @@ from hyperbase.hyperedge import Hyperedge
 from hyperbase.parsers.utils import filter_alphanumeric_strings
 
 
-def check_structural_quality(edge: Hyperedge) -> dict[Hyperedge, list[tuple[str, str, int]]]:
+def check_structural_quality(
+    edge: Hyperedge,
+) -> dict[Hyperedge, list[tuple[str, str, int]]]:
     errors: dict[Hyperedge, list[tuple[str, str, int]]] = {}
 
     def _visit(current_edge: Hyperedge) -> None:
@@ -21,22 +23,40 @@ def check_structural_quality(edge: Hyperedge) -> dict[Hyperedge, list[tuple[str,
             ars = current_edge.argroles()
             ar_counts: Counter[str] = Counter()
             for ar in ars:
-                if ar not in 'mspaoixtjrc':
-                    current_errors.append(('bad-argrole', f"Bad argument role '{ar}'. Should be one of 'mspaoixtjrc'.", 2))
+                if ar not in "mspaoixtjrc":
+                    current_errors.append(
+                        (
+                            "bad-argrole",
+                            f"Bad argument role '{ar}'. Should be one of 'mspaoixtjrc'.",
+                            2,
+                        )
+                    )
                 ar_counts[ar] += 1
 
-            for role in 'spoiamc':
-                 if ar_counts[role] > 1:
-                     current_errors.append((f'duplicate-argrole-{role}', f"Argument role '{role}' should only be used once.", 2))
+            for role in "spoiamc":
+                if ar_counts[role] > 1:
+                    current_errors.append(
+                        (
+                            f"duplicate-argrole-{role}",
+                            f"Argument role '{role}' should only be used once.",
+                            2,
+                        )
+                    )
         except Exception:
             pass
 
         # Junction checks
         try:
-            if current_edge[0].mt == 'J':
+            if current_edge[0].mt == "J":
                 types = set([child.mt for child in current_edge[1:]])
-                if types != {'R'} and types != {'C'} and types != {'R', 'S'}:
-                     current_errors.append(('bad-junction-types', "Junction arguments should ideally be all of type 'R[S]' or all of type 'C'.", 3))
+                if types != {"R"} and types != {"C"} and types != {"R", "S"}:
+                    current_errors.append(
+                        (
+                            "bad-junction-types",
+                            "Junction arguments should ideally be all of type 'R[S]' or all of type 'C'.",
+                            3,
+                        )
+                    )
         except Exception:
             pass
 
@@ -52,8 +72,7 @@ def check_structural_quality(edge: Hyperedge) -> dict[Hyperedge, list[tuple[str,
 
 
 def badness_check(
-    edge: Hyperedge,
-    tokens: list[str]
+    edge: Hyperedge, tokens: list[str]
 ) -> dict[Any, list[tuple[str, str, int]]]:
 
     raw_errors = edge.check_correctness()
@@ -72,8 +91,9 @@ def badness_check(
     if edge:
         try:
             tokens = filter_alphanumeric_strings(tokens)
-            roots = filter_alphanumeric_strings([atom.label() for atom in edge.all_atoms()])
-
+            roots = filter_alphanumeric_strings(
+                [atom.label() for atom in edge.all_atoms()]
+            )
 
             # Track which tokens and roots have been matched
             matched_tokens: set[int] = set()
@@ -185,13 +205,18 @@ def badness_check(
                             token_sequence = []
                             root_sequence = []
 
-                            max_tokens = min(len(tokens) - token_idx, len(roots) - root_start_idx)
+                            max_tokens = min(
+                                len(tokens) - token_idx, len(roots) - root_start_idx
+                            )
 
                             for i in range(max_tokens):
                                 current_token_idx = token_idx + i
                                 current_root_idx = root_start_idx + i
 
-                                if current_token_idx in matched_tokens or current_root_idx in matched_roots:
+                                if (
+                                    current_token_idx in matched_tokens
+                                    or current_root_idx in matched_roots
+                                ):
                                     break  # Can't use already matched items
 
                                 tokens_concatenated += tokens[current_token_idx]
@@ -200,7 +225,10 @@ def badness_check(
                                 root_sequence.append(current_root_idx)
 
                                 # Check if concatenations match
-                                if tokens_concatenated == roots_concatenated and tokens_concatenated:
+                                if (
+                                    tokens_concatenated == roots_concatenated
+                                    and tokens_concatenated
+                                ):
                                     # Found a match - mark all as matched
                                     for idx in token_sequence:
                                         matched_tokens.add(idx)
@@ -209,7 +237,10 @@ def badness_check(
                                     break
 
                                 # Stop if we've gone too far (tokens longer than reasonable)
-                                if len(tokens_concatenated) > 10 or len(roots_concatenated) > 10:
+                                if (
+                                    len(tokens_concatenated) > 10
+                                    or len(roots_concatenated) > 10
+                                ):
                                     break
 
                             if token_idx in matched_tokens:
@@ -219,7 +250,10 @@ def badness_check(
                         if token_idx not in matched_tokens:
                             # Look for contractions by trying to combine this token with the next one
                             # and matching against any two available roots in the roots list (not necessarily consecutive)
-                            if token_idx + 1 < len(tokens) and token_idx + 1 not in matched_tokens:
+                            if (
+                                token_idx + 1 < len(tokens)
+                                and token_idx + 1 not in matched_tokens
+                            ):
                                 token_concat = tokens[token_idx] + tokens[token_idx + 1]
 
                                 # Try to find any two available roots (not necessarily consecutive) that concatenate to the same value
@@ -228,10 +262,15 @@ def badness_check(
                                         continue  # Can't use already matched roots
 
                                     for root_idx2 in range(len(roots)):
-                                        if root_idx2 in matched_roots or root_idx2 == root_idx1:
+                                        if (
+                                            root_idx2 in matched_roots
+                                            or root_idx2 == root_idx1
+                                        ):
                                             continue  # Can't use already matched roots or same root
 
-                                        root_concat = roots[root_idx1] + roots[root_idx2]
+                                        root_concat = (
+                                            roots[root_idx1] + roots[root_idx2]
+                                        )
 
                                         if token_concat == root_concat:
                                             # Found a contraction match!
@@ -248,15 +287,27 @@ def badness_check(
             # Report unmatched roots
             for root_idx, root in enumerate(roots):
                 if root_idx not in matched_roots:
-                    token_matching_errors.append(('root-without-token', f"Atom root '{root}' is used more times than it appears in the original text.", 1))
+                    token_matching_errors.append(
+                        (
+                            "root-without-token",
+                            f"Atom root '{root}' is used more times than it appears in the original text.",
+                            1,
+                        )
+                    )
 
             # Report unmatched tokens
             for token_idx, token in enumerate(tokens):
                 if token_idx not in matched_tokens:
-                    token_matching_errors.append(('token-unused', f"Atom root '{token}' is not used, but it appears in the original text.", 1))
+                    token_matching_errors.append(
+                        (
+                            "token-unused",
+                            f"Atom root '{token}' is not used, but it appears in the original text.",
+                            1,
+                        )
+                    )
 
             if len(token_matching_errors) > 0:
-                errors['token-matching'] = token_matching_errors
+                errors["token-matching"] = token_matching_errors
 
         except (AttributeError, Exception):
             # If token counting fails (e.g., edge is invalid), skip it

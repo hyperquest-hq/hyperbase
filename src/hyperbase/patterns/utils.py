@@ -13,15 +13,15 @@ def _defun_pattern_argroles(edge: Hyperedge) -> Hyperedge:
     if edge.atom:
         return edge
 
-    if edge[0].argroles() != '':
+    if edge[0].argroles() != "":
         return edge
 
     if is_fun_pattern(edge):
         fun: str = edge[0].root()
-        if fun == 'atoms':
+        if fun == "atoms":
             for atom in edge.atoms():
                 argroles = atom.argroles()
-                if argroles != '':
+                if argroles != "":
                     return atom
             # if no atom with argroles is found, just return the first one
             return edge[1]  # type: ignore[no-any-return]
@@ -35,10 +35,7 @@ def _defun_pattern_argroles(edge: Hyperedge) -> Hyperedge:
         return result
 
 
-def _atoms_and_tok_pos(
-        edge: Hyperedge,
-        tok_pos: Any
-) -> tuple[list[Atom], list[Any]]:
+def _atoms_and_tok_pos(edge: Hyperedge, tok_pos: Any) -> tuple[list[Atom], list[Any]]:
     if edge.atom:
         return [edge], [tok_pos]  # type: ignore[list-item]
     atoms: list[Atom] = []
@@ -61,11 +58,11 @@ def _normalize_fun_patterns(pattern: Hyperedge) -> Hyperedge:
     pattern = normalized
 
     if is_fun_pattern(pattern):
-        if str(pattern[0]) == 'lemma':
-            if is_fun_pattern(pattern[1]) and str(pattern[1][0]) == 'any':
-                new_pattern: list[str | Hyperedge | list[Any]] = ['any']
+        if str(pattern[0]) == "lemma":
+            if is_fun_pattern(pattern[1]) and str(pattern[1][0]) == "any":
+                new_pattern: list[str | Hyperedge | list[Any]] = ["any"]
                 for alternative in pattern[1][1:]:
-                    new_pattern.append(['lemma', alternative])
+                    new_pattern.append(["lemma", alternative])
                 result = hedge(new_pattern)
                 assert result is not None
                 return result
@@ -103,7 +100,7 @@ def more_general(edge1: Hyperedge, edge2: Hyperedge) -> bool:
 def atom_pattern_counts(edge: Hyperedge) -> tuple[int, int, int]:
     if edge.atom:
         parts: list[str] = edge.parts()  # type: ignore[attr-defined]
-        roots = 1 if parts[0] != '*' else 0
+        roots = 1 if parts[0] != "*" else 0
         subtyped = 1 if len(edge.type()) > 1 else 0
         typed = 1 if len(parts) > 1 else 0
     else:

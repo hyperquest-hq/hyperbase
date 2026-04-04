@@ -12,14 +12,14 @@ if TYPE_CHECKING:
 
 
 def _match_by_argroles(
-        matcher: Matcher,
-        edge: Hyperedge,
-        pattern: Hyperedge,
-        role_counts: list[tuple[str, int]],
-        min_vars: int,
-        matched: tuple[Hyperedge, ...] = (),
-        curvars: dict[str, Hyperedge] | None = None,
-        tok_pos: list[int] | None = None
+    matcher: Matcher,
+    edge: Hyperedge,
+    pattern: Hyperedge,
+    role_counts: list[tuple[str, int]],
+    min_vars: int,
+    matched: tuple[Hyperedge, ...] = (),
+    curvars: dict[str, Hyperedge] | None = None,
+    tok_pos: list[int] | None = None,
 ) -> list[dict[str, Hyperedge]]:
     if curvars is None:
         curvars = {}
@@ -30,11 +30,11 @@ def _match_by_argroles(
     argrole, n = role_counts[0]
 
     # match connector
-    if argrole == 'X':
+    if argrole == "X":
         eitems = [edge[0]]
         pitems = [pattern[0]]
     # match any argrole
-    elif argrole == '*':
+    elif argrole == "*":
         eitems = [e for e in edge if e not in matched]
         pitems = list(pattern[-n:])
     # match specific argrole
@@ -51,7 +51,9 @@ def _match_by_argroles(
     result: list[dict[str, Hyperedge]] = []
 
     if tok_pos:
-        tok_pos_items = [tok_pos[i] for i, subedge in enumerate(edge) if subedge in eitems]
+        tok_pos_items = [
+            tok_pos[i] for i, subedge in enumerate(edge) if subedge in eitems
+        ]
         tok_pos_perms = tuple(itertools.permutations(tok_pos_items, r=n))
 
     for perm_n, perm in enumerate(tuple(itertools.permutations(eitems, r=n))):
@@ -64,10 +66,7 @@ def _match_by_argroles(
             item_result: list[dict[str, Hyperedge]] = []
             for variables in perm_result:
                 item_result += matcher.match(
-                    eitem,
-                    pitem,
-                    {**curvars, **variables},
-                    tok_pos=tok_pos_item
+                    eitem, pitem, {**curvars, **variables}, tok_pos=tok_pos_item
                 )
             perm_result = item_result
             if len(item_result) == 0:
@@ -82,7 +81,7 @@ def _match_by_argroles(
                 min_vars,
                 matched + perm,
                 {**curvars, **variables},
-                tok_pos=tok_pos
+                tok_pos=tok_pos,
             )
 
     return result
@@ -90,7 +89,7 @@ def _match_by_argroles(
 
 def edge2rolemap(edge: Hyperedge) -> dict[str, list[Hyperedge]]:
     argroles = edge[0].argroles()
-    if argroles[0] == '{':
+    if argroles[0] == "{":
         argroles = argroles[1:-1]
     args = list(zip(argroles, edge[1:]))
     rolemap: dict[str, list[Hyperedge]] = {}
@@ -103,7 +102,7 @@ def edge2rolemap(edge: Hyperedge) -> dict[str, list[Hyperedge]]:
 
 def rolemap2edge(pred: Hyperedge, rm: Mapping[str, Sequence[Hyperedge]]) -> Hyperedge:
     roles = list(rm.keys())
-    argroles = ''
+    argroles = ""
     subedges: list[Hyperedge] = [pred]
     for role in roles:
         for arg in rm[role]:
@@ -115,9 +114,10 @@ def rolemap2edge(pred: Hyperedge, rm: Mapping[str, Sequence[Hyperedge]]) -> Hype
 
 
 def rolemap_pairings(
-        rm1: dict[str, list[Hyperedge]],
-        rm2: dict[str, list[Hyperedge]]
-) -> Iterator[tuple[dict[str, tuple[Hyperedge, ...]], dict[str, tuple[Hyperedge, ...]]]]:
+    rm1: dict[str, list[Hyperedge]], rm2: dict[str, list[Hyperedge]]
+) -> Iterator[
+    tuple[dict[str, tuple[Hyperedge, ...]], dict[str, tuple[Hyperedge, ...]]]
+]:
     roles = list(set(rm1.keys()) & set(rm2.keys()))
     role_counts: dict[str, int] = {}
     for role in roles:

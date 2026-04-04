@@ -15,13 +15,13 @@ class UrlReader(Reader):
     @staticmethod
     def accepts(source: str) -> bool:
         parsed = urlparse(source)
-        return parsed.scheme in ('http', 'https')
+        return parsed.scheme in ("http", "https")
 
     def _fetch(self, source: str) -> list[str]:
         if self._blocks is None:
             document = fetch_url(source)
             if not document:
-                raise RuntimeError(f'Could not read data from URL: {source}')
+                raise RuntimeError(f"Could not read data from URL: {source}")
 
             text = extract(document)
             if not text:
@@ -37,4 +37,4 @@ class UrlReader(Reader):
         yield from self._fetch(source)
 
 
-register_reader('url', UrlReader)
+register_reader("url", UrlReader)

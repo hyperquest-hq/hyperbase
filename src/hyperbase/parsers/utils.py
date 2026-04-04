@@ -12,7 +12,7 @@ def filter_alphanumeric_strings(strings: list[str]) -> list[str]:
     filtered: list[str] = []
     for s in strings:
         # Remove non-alphanumeric characters and lowercase
-        cleaned = ''.join(c.lower() for c in s if c.isalnum())
+        cleaned = "".join(c.lower() for c in s if c.isalnum())
         # Only include if result is non-empty
         if cleaned:
             filtered.append(cleaned)

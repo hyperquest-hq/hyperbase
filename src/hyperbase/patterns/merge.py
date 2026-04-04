@@ -8,7 +8,7 @@ from hyperbase.patterns.utils import is_valid
 
 
 def _extract_any_edges(edge: Hyperedge) -> list[Hyperedge]:
-    if edge.not_atom and str(edge[0]) == 'any':
+    if edge.not_atom and str(edge[0]) == "any":
         return list(edge[1:])
     else:
         return [edge]
@@ -36,10 +36,14 @@ def _merge_patterns(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
             if submerged:
                 merged_edge.append(submerged)
             else:
-                alternatives = _extract_any_edges(subedge1) + _extract_any_edges(subedge2)
+                alternatives = _extract_any_edges(subedge1) + _extract_any_edges(
+                    subedge2
+                )
                 # heuristic: more complex edges first, likely to be more specific
-                alternatives = sorted(alternatives, key=lambda x: x.size(), reverse=True)
-                merged_edge.append(['any'] + alternatives)
+                alternatives = sorted(
+                    alternatives, key=lambda x: x.size(), reverse=True
+                )
+                merged_edge.append(["any"] + alternatives)
 
     return hedge(merged_edge)
 

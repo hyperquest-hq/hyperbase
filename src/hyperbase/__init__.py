@@ -3,6 +3,6 @@ from hyperbase.parsers import get_parser
 
 
 __all__ = [
-    'hedge',
-    'get_parser',
+    "hedge",
+    "get_parser",
 ]

@@ -35,10 +35,11 @@ class Parser:
         batch_range = range(0, len(sentences), batch_size)
         if progress:
             from tqdm import tqdm  # type: ignore[import-untyped]
+
             batch_range = tqdm(batch_range, desc="Parsing batches", leave=False)
         results: list[ParseResult] = []
         for i in batch_range:
-            batch = sentences[i:i + batch_size]
+            batch = sentences[i : i + batch_size]
             for sentence_results in self.parse_batch(batch):
                 results.extend(sentence_results)
         return results
@@ -46,7 +47,7 @@ class Parser:
     def read_source(
         self,
         source: str,
-        reader: str = 'auto',
+        reader: str = "auto",
         batch_size: int = 8,
         progress: bool = False,
     ) -> Iterator[list[ParseResult]]:
@@ -59,14 +60,17 @@ class Parser:
 
         rdr = get_reader(source, reader=reader)
         yield from rdr.read_and_parse(
-            source, self, batch_size=batch_size, progress=progress,
+            source,
+            self,
+            batch_size=batch_size,
+            progress=progress,
         )
 
     def read_source_to_jsonl(
         self,
         source: str,
         output: str,
-        reader: str = 'auto',
+        reader: str = "auto",
         batch_size: int = 8,
         progress: bool = False,
     ) -> None:
@@ -74,10 +78,12 @@ class Parser:
 
         Each ParseResult is serialized as one JSON line.
         """
-        with open(output, 'w') as f:
+        with open(output, "w") as f:
             for results in self.read_source(
-                source, reader=reader, batch_size=batch_size,
+                source,
+                reader=reader,
+                batch_size=batch_size,
                 progress=progress,
             ):
                 for result in results:
-                    f.write(result.to_json() + '\n')
+                    f.write(result.to_json() + "\n")

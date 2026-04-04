@@ -8,18 +8,18 @@ from hyperbase.hyperedge import Hyperedge
 
 class PatternCounter:
     def __init__(
-            self,
-            depth: int = 2,
-            count_subedges: bool = True,
-            expansions: set[str] | None = None,
-            match_roots: set[str] | None = None,
-            match_subtypes: set[str] | None = None
+        self,
+        depth: int = 2,
+        count_subedges: bool = True,
+        expansions: set[str] | None = None,
+        match_roots: set[str] | None = None,
+        match_subtypes: set[str] | None = None,
     ) -> None:
         self.patterns: Counter[Hyperedge | None] = Counter()
         self.depth = depth
         self.count_subedges = count_subedges
         if expansions is None:
-            self.expansions: set[str] = {'*'}
+            self.expansions: set[str] = {"*"}
         else:
             self.expansions = expansions
         if match_roots is None:
@@ -56,12 +56,12 @@ class PatternCounter:
         return force_root, force_expansion
 
     def _list2patterns(
-            self,
-            ledge: list[Hyperedge],
-            depth: int = 1,
-            force_expansion: bool = False,
-            force_root: bool = False,
-            force_subtypes: bool = False
+        self,
+        ledge: list[Hyperedge],
+        depth: int = 1,
+        force_expansion: bool = False,
+        force_root: bool = False,
+        force_subtypes: bool = False,
     ) -> list[list[Hyperedge | None]]:
         if depth > self.depth:
             return []
@@ -80,20 +80,24 @@ class PatternCounter:
         else:
             hpats = [_edge2pattern(first, root=root, subtype=f_force_subtypes)]
 
-        if not first.atom and (self._matches_expansions(first) or
-                                    f_force_expansion):
-            hpats += self._list2patterns(list(first), depth + 1, force_expansion=f_force_expansion,  # type: ignore[arg-type]
-                                         force_root=f_force_root, force_subtypes=f_force_subtypes)
+        if not first.atom and (self._matches_expansions(first) or f_force_expansion):
+            hpats += self._list2patterns(
+                list(first),
+                depth + 1,
+                force_expansion=f_force_expansion,  # type: ignore[arg-type]
+                force_root=f_force_root,
+                force_subtypes=f_force_subtypes,
+            )
         if len(ledge) == 1:
             patterns: list[list[Hyperedge | None]] = [[hpat] for hpat in hpats]
         else:
             patterns = []
             for pattern in self._list2patterns(
-                    ledge[1:],
-                    depth=depth,
-                    force_expansion=force_expansion,
-                    force_root=force_root,
-                    force_subtypes=force_subtypes
+                ledge[1:],
+                depth=depth,
+                force_expansion=force_expansion,
+                force_root=force_root,
+                force_subtypes=force_subtypes,
             ):
                 for hpat in hpats:
                     patterns.append([hpat] + pattern)
@@ -106,9 +110,11 @@ class PatternCounter:
         if normalized is None:
             return []
         return [
-            hedge(pattern) for pattern in self._list2patterns(
+            hedge(pattern)
+            for pattern in self._list2patterns(
                 list(normalized), force_subtypes=force_subtypes, force_root=force_root
-            )]
+            )
+        ]
 
     def count(self, edge: Hyperedge | str) -> None:
         parsed = hedge(edge)
@@ -123,21 +129,23 @@ class PatternCounter:
                     self.count(subedge)
 
 
-def _edge2pattern(edge: Hyperedge, root: bool = False, subtype: bool = False) -> Hyperedge | None:
+def _edge2pattern(
+    edge: Hyperedge, root: bool = False, subtype: bool = False
+) -> Hyperedge | None:
     if root and edge.atom:
         root_str = edge.root()  # type: ignore[attr-defined]
     else:
-        root_str = '*'
+        root_str = "*"
     if subtype:
         et = edge.type()
     else:
         et = edge.mtype()
-    pattern = '{}/{}'.format(root_str, et)
+    pattern = "{}/{}".format(root_str, et)
     ar = edge.argroles()
-    if ar == '':
+    if ar == "":
         return hedge(pattern)
     else:
-        return hedge('{}.{}'.format(pattern, ar))
+        return hedge("{}.{}".format(pattern, ar))
 
 
 def _inner_edge_matches_pattern(edge: Hyperedge, pattern: str) -> bool:

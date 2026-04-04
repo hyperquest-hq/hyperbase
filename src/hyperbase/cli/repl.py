@@ -21,20 +21,20 @@ from hyperbase.hyperedge import Atom, hedge
 from hyperbase.parsers import get_parser, list_parsers
 from hyperbase.parsers.correctness import badness_check
 
-SETTINGS_FILE = Path.home() / '.hyperbase_repl_settings.json'
+SETTINGS_FILE = Path.home() / ".hyperbase_repl_settings.json"
 
 DEFAULTS = {
-    'parser': 'generative',
-    'model_path': '',
-    'language': None,
-    'max_length': 256,
-    'num_beams': 1,
-    'num_candidates': 1,
-    'use_constraints': False,
-    'check_badness': False,
-    'statistics': False,
-    'raw_output': False,
-    'device': None,
+    "parser": "generative",
+    "model_path": "",
+    "language": None,
+    "max_length": 256,
+    "num_beams": 1,
+    "num_candidates": 1,
+    "use_constraints": False,
+    "check_badness": False,
+    "statistics": False,
+    "raw_output": False,
+    "device": None,
 }
 
 
@@ -46,10 +46,12 @@ def load_saved_settings() -> dict:
 
 
 def save_settings(settings: dict):
-    SETTINGS_FILE.write_text(json.dumps(settings, indent=2, default=str) + '\n')
+    SETTINGS_FILE.write_text(json.dumps(settings, indent=2, default=str) + "\n")
 
 
-def print_dependency_tree(token: Any, console: Console, visited: set | None = None) -> Tree | None:
+def print_dependency_tree(
+    token: Any, console: Console, visited: set | None = None
+) -> Tree | None:
     """Print dependency parse tree with dep_ and tag_ labels as a rich tree."""
     if visited is None:
         visited = set()
@@ -84,7 +86,7 @@ class FilteredFileHistory(FileHistory):
         self.last_saved: str | None = None
 
     def store_string(self, string: str) -> None:
-        if string.startswith('/'):
+        if string.startswith("/"):
             return
         if string == self.last_saved:
             return
@@ -119,26 +121,28 @@ class HyperedgeFormatter:
             return result
 
         mtype = atom.mtype()
-        type_color = self.TYPE_COLORS.get(mtype, 'white')
+        type_color = self.TYPE_COLORS.get(mtype, "white")
 
         root = parts[0]
         result.append(root, style="white")
 
         if len(parts) >= 2:
-            result.append('/', style=f"{type_color}")
-            role_parts = parts[1].split('.')
+            result.append("/", style=f"{type_color}")
+            role_parts = parts[1].split(".")
             result.append(role_parts[0], style=f"{type_color}")
             if len(role_parts) > 1:
-                result.append('.', style=f'dim {type_color}')
+                result.append(".", style=f"dim {type_color}")
                 result.append(role_parts[1], style=f"italic {type_color}")
 
         for i in range(2, len(parts)):
-            result.append('/', style='dim white')
-            result.append(parts[i], style='dim white')
+            result.append("/", style="dim white")
+            result.append(parts[i], style="dim white")
 
         return result
 
-    def format_hyperedge(self, edge: Any, indent_level: int = 0, inline: bool = False) -> Text:
+    def format_hyperedge(
+        self, edge: Any, indent_level: int = 0, inline: bool = False
+    ) -> Text:
         if edge is None:
             return Text("None", style="dim red")
 
@@ -148,25 +152,29 @@ class HyperedgeFormatter:
         result = Text()
 
         edge_type = edge.mtype()
-        paren_color = self.TYPE_COLORS.get(edge_type, 'white')
+        paren_color = self.TYPE_COLORS.get(edge_type, "white")
 
-        result.append('(', style=f'bold {paren_color}')
+        result.append("(", style=f"bold {paren_color}")
 
         should_inline = inline or (edge.depth() <= 1 and edge.size() <= 3)
 
         if should_inline:
             for i, sub_edge in enumerate(edge):
                 if i > 0:
-                    result.append(' ')
-                result.append(self.format_hyperedge(sub_edge, indent_level + 1, inline=True))
+                    result.append(" ")
+                result.append(
+                    self.format_hyperedge(sub_edge, indent_level + 1, inline=True)
+                )
         else:
             for i, sub_edge in enumerate(edge):
                 if i > 0:
-                    result.append('\n')
-                    result.append(' ' * (indent_level + 1) * 2)
-                result.append(self.format_hyperedge(sub_edge, indent_level + 1, inline=False))
+                    result.append("\n")
+                    result.append(" " * (indent_level + 1) * 2)
+                result.append(
+                    self.format_hyperedge(sub_edge, indent_level + 1, inline=False)
+                )
 
-        result.append(')', style=f'bold {paren_color}')
+        result.append(")", style=f"bold {paren_color}")
 
         return result
 
@@ -182,39 +190,39 @@ class CommandCompleter(Completer):
 
     def get_completions(self, document: Any, complete_event: Any):
         text = document.text_before_cursor
-        if text.startswith('/'):
+        if text.startswith("/"):
             word = text[1:]
             for cmd_name in self.commands:
                 if cmd_name.startswith(word):
                     yield Completion(
                         cmd_name,
                         start_position=-len(word),
-                        display=f'/{cmd_name}',
-                        display_meta=self.commands[cmd_name]['help']
+                        display=f"/{cmd_name}",
+                        display_meta=self.commands[cmd_name]["help"],
                     )
 
 
 def _parser_kwargs(settings: dict) -> dict:
     """Build keyword arguments for get_parser() from current settings."""
-    parser_name = settings['parser']
+    parser_name = settings["parser"]
     kwargs: dict[str, Any] = {}
 
-    if parser_name == 'generative':
-        if settings.get('model_path'):
-            kwargs['model_path'] = settings['model_path']
-        if settings.get('device'):
-            kwargs['device'] = settings['device']
-        if settings.get('max_length'):
-            kwargs['max_length'] = settings['max_length']
-        if settings.get('num_beams'):
-            kwargs['num_beams'] = settings['num_beams']
-        if settings.get('num_candidates'):
-            kwargs['num_candidates'] = settings['num_candidates']
-        if settings.get('use_constraints'):
-            kwargs['use_constraints'] = settings['use_constraints']
-    elif parser_name == 'alphabeta':
-        if settings.get('language'):
-            kwargs['lang'] = settings['language']
+    if parser_name == "generative":
+        if settings.get("model_path"):
+            kwargs["model_path"] = settings["model_path"]
+        if settings.get("device"):
+            kwargs["device"] = settings["device"]
+        if settings.get("max_length"):
+            kwargs["max_length"] = settings["max_length"]
+        if settings.get("num_beams"):
+            kwargs["num_beams"] = settings["num_beams"]
+        if settings.get("num_candidates"):
+            kwargs["num_candidates"] = settings["num_candidates"]
+        if settings.get("use_constraints"):
+            kwargs["use_constraints"] = settings["use_constraints"]
+    elif parser_name == "alphabeta":
+        if settings.get("language"):
+            kwargs["lang"] = settings["language"]
 
     return kwargs
 
@@ -230,58 +238,40 @@ class ReplSession:
         self.formatter = HyperedgeFormatter(self.console)
 
         self.settings = {
-            'parser': parser_name,
-            'language': args.language,
-            'max_length': args.max_length,
-            'num_beams': args.num_beams,
-            'num_candidates': args.num_candidates,
-            'use_constraints': args.use_constraints,
-            'model_path': args.model_path,
-            'check_badness': args.check_badness,
-            'statistics': args.statistics,
-            'raw_output': False,
-            'device': args.device,
+            "parser": parser_name,
+            "language": args.language,
+            "max_length": args.max_length,
+            "num_beams": args.num_beams,
+            "num_candidates": args.num_candidates,
+            "use_constraints": args.use_constraints,
+            "model_path": args.model_path,
+            "check_badness": args.check_badness,
+            "statistics": args.statistics,
+            "raw_output": False,
+            "device": args.device,
         }
 
         self.parser_cache: dict[tuple, Any] = {}
         cache_key = self._get_cache_key()
         self.parser_cache[cache_key] = parser
 
-        history_file = Path.home() / '.hyperbase_repl_history'
+        history_file = Path.home() / ".hyperbase_repl_history"
         self.history = FilteredFileHistory(str(history_file))
 
         self.commands = {
-            'quit': {
-                'help': 'Exit the REPL',
-                'handler': self.cmd_quit
+            "quit": {"help": "Exit the REPL", "handler": self.cmd_quit},
+            "exit": {"help": "Exit the REPL", "handler": self.cmd_quit},
+            "help": {"help": "Show available commands", "handler": self.cmd_help},
+            "settings": {"help": "Show current settings", "handler": self.cmd_settings},
+            "set": {
+                "help": "Change a setting (e.g., /set parser generative)",
+                "handler": self.cmd_set,
             },
-            'exit': {
-                'help': 'Exit the REPL',
-                'handler': self.cmd_quit
-            },
-            'help': {
-                'help': 'Show available commands',
-                'handler': self.cmd_help
-            },
-            'settings': {
-                'help': 'Show current settings',
-                'handler': self.cmd_settings
-            },
-            'set': {
-                'help': 'Change a setting (e.g., /set parser generative)',
-                'handler': self.cmd_set
-            },
-            'clear': {
-                'help': 'Clear the screen',
-                'handler': self.cmd_clear
-            },
-            'parsers': {
-                'help': 'List all cached parsers',
-                'handler': self.cmd_parsers
-            },
-            'clear-parsers': {
-                'help': 'Clear all parsers from cache except the current one',
-                'handler': self.cmd_clear_parsers
+            "clear": {"help": "Clear the screen", "handler": self.cmd_clear},
+            "parsers": {"help": "List all cached parsers", "handler": self.cmd_parsers},
+            "clear-parsers": {
+                "help": "Clear all parsers from cache except the current one",
+                "handler": self.cmd_clear_parsers,
             },
         }
 
@@ -304,7 +294,7 @@ class ReplSession:
             ),
             box=box.DOUBLE,
             border_style="cyan",
-            padding=(1, 2)
+            padding=(1, 2),
         )
         self.console.print(banner)
         self.console.print()
@@ -314,13 +304,13 @@ class ReplSession:
             show_header=True,
             header_style="bold magenta",
             box=box.SIMPLE,
-            padding=(0, 1)
+            padding=(0, 1),
         )
         table.add_column("Command", style="cyan")
         table.add_column("Description", style="white")
 
         for cmd_name, cmd_info in self.commands.items():
-            table.add_row(f"/{cmd_name}", cmd_info['help'])
+            table.add_row(f"/{cmd_name}", cmd_info["help"])
 
         self.console.print("\n[bold]Available Commands:[/bold]")
         self.console.print(table)
@@ -340,7 +330,7 @@ class ReplSession:
             show_header=True,
             header_style="bold magenta",
             box=box.ROUNDED,
-            padding=(0, 1)
+            padding=(0, 1),
         )
         table.add_column("Setting", style="cyan")
         table.add_column("Value", style="green")
@@ -350,17 +340,17 @@ class ReplSession:
                 table.add_row(key, str(value))
 
         self.console.print()
-        self.console.print(Panel(
-            table,
-            title="[bold]Current Settings[/bold]",
-            border_style="blue"
-        ))
+        self.console.print(
+            Panel(table, title="[bold]Current Settings[/bold]", border_style="blue")
+        )
         self.console.print()
         return False
 
     def cmd_set(self, args: list) -> bool:
         if len(args) < 2:
-            self.console.print("[red]Error:[/red] /set requires two arguments: [cyan]/set <setting> <value>[/cyan]")
+            self.console.print(
+                "[red]Error:[/red] /set requires two arguments: [cyan]/set <setting> <value>[/cyan]"
+            )
             self.console.print("[dim]Example:[/dim] /set language en")
             return False
 
@@ -368,21 +358,25 @@ class ReplSession:
         setting_value: Any = args[1]
 
         if setting_name not in self.settings:
-            self.console.print(f"[red]Error:[/red] Unknown setting '[cyan]{setting_name}[/cyan]'")
-            self.console.print(f"[dim]Available settings:[/dim] {', '.join(self.settings.keys())}")
+            self.console.print(
+                f"[red]Error:[/red] Unknown setting '[cyan]{setting_name}[/cyan]'"
+            )
+            self.console.print(
+                f"[dim]Available settings:[/dim] {', '.join(self.settings.keys())}"
+            )
             return False
 
         try:
-            if setting_name in ['max_length', 'num_beams', 'num_candidates']:
+            if setting_name in ["max_length", "num_beams", "num_candidates"]:
                 setting_value = int(setting_value)
-            elif setting_name == 'use_constraints':
-                setting_value = setting_value.lower() in ['true', '1', 'yes']
-            elif setting_name in ('check_badness', 'statistics', 'raw_output'):
-                setting_value = setting_value.lower() in ['true', '1', 'yes']
-            elif setting_name == 'parser':
+            elif setting_name == "use_constraints":
+                setting_value = setting_value.lower() in ["true", "1", "yes"]
+            elif setting_name in ("check_badness", "statistics", "raw_output"):
+                setting_value = setting_value.lower() in ["true", "1", "yes"]
+            elif setting_name == "parser":
                 available = list_parsers()
                 if setting_value not in available:
-                    avail_str = ', '.join(sorted(available)) or '(none)'
+                    avail_str = ", ".join(sorted(available)) or "(none)"
                     self.console.print(
                         f"[red]Error:[/red] parser must be one of: {avail_str}"
                     )
@@ -390,18 +384,24 @@ class ReplSession:
 
             self.settings[setting_name] = setting_value
             save_settings(self.settings)
-            self.console.print(f"[green]✓[/green] Set [cyan]{setting_name}[/cyan] = [green]{setting_value}[/green]")
+            self.console.print(
+                f"[green]✓[/green] Set [cyan]{setting_name}[/cyan] = [green]{setting_value}[/green]"
+            )
 
-            if setting_name not in ('check_badness', 'statistics', 'raw_output'):
+            if setting_name not in ("check_badness", "statistics", "raw_output"):
                 new_parser = self._get_or_create_parser()
                 if new_parser:
                     self.parser = new_parser
-                    self.parser_name = self.settings['parser']
+                    self.parser_name = self.settings["parser"]
                 else:
-                    self.console.print("[red]Failed to reload parser. Keeping previous parser.[/red]")
+                    self.console.print(
+                        "[red]Failed to reload parser. Keeping previous parser.[/red]"
+                    )
 
         except ValueError as e:
-            self.console.print(f"[red]Error:[/red] Invalid value for {setting_name}: {e}")
+            self.console.print(
+                f"[red]Error:[/red] Invalid value for {setting_name}: {e}"
+            )
 
         return False
 
@@ -415,7 +415,7 @@ class ReplSession:
             show_header=True,
             header_style="bold magenta",
             box=box.ROUNDED,
-            padding=(0, 1)
+            padding=(0, 1),
         )
         table.add_column("Type", style="cyan")
         table.add_column("Settings", style="white")
@@ -430,12 +430,12 @@ class ReplSession:
             table.add_row(parser_name, settings_str, is_current)
 
         self.console.print()
-        self.console.print(Panel(
-            table,
-            title="[bold]Cached Parsers[/bold]",
-            border_style="blue"
-        ))
-        self.console.print(f"[dim]Total: {len(self.parser_cache)} parser(s) in cache[/dim]\n")
+        self.console.print(
+            Panel(table, title="[bold]Cached Parsers[/bold]", border_style="blue")
+        )
+        self.console.print(
+            f"[dim]Total: {len(self.parser_cache)} parser(s) in cache[/dim]\n"
+        )
         return False
 
     def cmd_clear_parsers(self, args: list) -> bool:
@@ -443,28 +443,29 @@ class ReplSession:
         old_count = len(self.parser_cache)
         self.parser_cache = {current_key: self.parser}
         cleared_count = old_count - 1
-        self.console.print(f"[green]✓[/green] Cleared [cyan]{cleared_count}[/cyan] parser(s) from cache")
-        self.console.print(f"[dim]Kept current parser: {self._format_cache_key_settings(current_key)}[/dim]\n")
+        self.console.print(
+            f"[green]✓[/green] Cleared [cyan]{cleared_count}[/cyan] parser(s) from cache"
+        )
+        self.console.print(
+            f"[dim]Kept current parser: {self._format_cache_key_settings(current_key)}[/dim]\n"
+        )
         return False
 
     def _get_cache_key(self) -> tuple:
-        parser_name = self.settings['parser']
+        parser_name = self.settings["parser"]
 
-        if parser_name == 'generative':
+        if parser_name == "generative":
             return (
                 parser_name,
-                self.settings['model_path'],
-                self.settings['max_length'],
-                self.settings['num_beams'],
-                self.settings['num_candidates'],
-                self.settings['use_constraints'],
-                self.settings['device']
+                self.settings["model_path"],
+                self.settings["max_length"],
+                self.settings["num_beams"],
+                self.settings["num_candidates"],
+                self.settings["use_constraints"],
+                self.settings["device"],
             )
-        elif parser_name == 'alphabeta':
-            return (
-                parser_name,
-                self.settings['language']
-            )
+        elif parser_name == "alphabeta":
+            return (parser_name, self.settings["language"])
         else:
             # Generic key for unknown parser plugins
             return (parser_name,)
@@ -472,8 +473,8 @@ class ReplSession:
     def _format_cache_key_settings(self, cache_key: tuple) -> str:
         parser_name = cache_key[0]
 
-        if parser_name == 'generative' and len(cache_key) == 7:
-            model_path = cache_key[1] or 'default'
+        if parser_name == "generative" and len(cache_key) == 7:
+            model_path = cache_key[1] or "default"
             max_length = cache_key[2]
             num_beams = cache_key[3]
             num_candidates = cache_key[4]
@@ -484,7 +485,7 @@ class ReplSession:
                 f"candidates={num_candidates}, use_constraints={use_constraints}, "
                 f"device={device}"
             )
-        elif parser_name == 'alphabeta' and len(cache_key) == 2:
+        elif parser_name == "alphabeta" and len(cache_key) == 2:
             language = cache_key[1]
             return f"language={language}"
         else:
@@ -500,7 +501,7 @@ class ReplSession:
         self.console.print("[yellow]Initializing new parser...[/yellow]")
         try:
             kwargs = _parser_kwargs(self.settings)
-            new_parser = get_parser(self.settings['parser'], **kwargs)
+            new_parser = get_parser(self.settings["parser"], **kwargs)
             self.parser_cache[cache_key] = new_parser
             self.console.print("[green]✓[/green] Parser initialized and cached")
             return new_parser
@@ -509,7 +510,7 @@ class ReplSession:
             return None
 
     def handle_command(self, text: str) -> bool:
-        if not text.startswith('/'):
+        if not text.startswith("/"):
             return False
 
         parts = text[1:].split()
@@ -520,11 +521,15 @@ class ReplSession:
         cmd_args = parts[1:]
 
         if cmd_name not in self.commands:
-            self.console.print(f"[red]Error:[/red] Unknown command '[cyan]/{cmd_name}[/cyan]'")
-            self.console.print("[dim]Type[/dim] [bold]/help[/bold] [dim]to see available commands[/dim]")
+            self.console.print(
+                f"[red]Error:[/red] Unknown command '[cyan]/{cmd_name}[/cyan]'"
+            )
+            self.console.print(
+                "[dim]Type[/dim] [bold]/help[/bold] [dim]to see available commands[/dim]"
+            )
             return False
 
-        return self.commands[cmd_name]['handler'](cmd_args)
+        return self.commands[cmd_name]["handler"](cmd_args)
 
     def parse_text(self, text: str):
         try:
@@ -539,8 +544,8 @@ class ReplSession:
                 tokens = None
 
             # Print dependency tree for alphabeta parser
-            if self.parser_name == 'alphabeta':
-                if hasattr(self.parser, 'doc') and self.parser.doc:
+            if self.parser_name == "alphabeta":
+                if hasattr(self.parser, "doc") and self.parser.doc:
                     for sent in self.parser.doc.sents:
                         dep_tree = print_dependency_tree(sent.root, self.console)
                         if dep_tree:
@@ -549,7 +554,7 @@ class ReplSession:
                                 dep_tree,
                                 title="[bold cyan]Dependency Parse Tree[/bold cyan]",
                                 border_style="cyan",
-                                box=box.ROUNDED
+                                box=box.ROUNDED,
                             )
                             self.console.print(tree_panel)
 
@@ -562,7 +567,7 @@ class ReplSession:
                     Text("FAILED", style="bold red"),
                     title="[yellow]Parse Result[/yellow]",
                     border_style="red",
-                    box=box.ROUNDED
+                    box=box.ROUNDED,
                 )
             else:
                 formatted_edge = self.formatter.format(edge)
@@ -570,31 +575,35 @@ class ReplSession:
                     formatted_edge,
                     title="[yellow]Parse Result[/yellow]",
                     border_style="green",
-                    box=box.ROUNDED
+                    box=box.ROUNDED,
                 )
 
             self.console.print(result_panel)
 
             # Show raw model output if enabled
-            raw_parse = parse_result[0].extra.get('raw_parse') if parse_result else None
-            if raw_parse and self.settings.get('raw_output', False):
+            raw_parse = parse_result[0].extra.get("raw_parse") if parse_result else None
+            if raw_parse and self.settings.get("raw_output", False):
                 self.console.print()
-                self.console.print(Panel(
-                    Text(raw_parse, style="dim"),
-                    title="[bold yellow]Raw Model Output[/bold yellow]",
-                    border_style="yellow",
-                    box=box.ROUNDED
-                ))
+                self.console.print(
+                    Panel(
+                        Text(raw_parse, style="dim"),
+                        title="[bold yellow]Raw Model Output[/bold yellow]",
+                        border_style="yellow",
+                        box=box.ROUNDED,
+                    )
+                )
 
             # Show all candidates when constraints are enabled
-            candidates = parse_result[0].extra.get('candidates') if parse_result else None
+            candidates = (
+                parse_result[0].extra.get("candidates") if parse_result else None
+            )
             if candidates and len(candidates) > 1:
                 self.console.print()
                 for candidate in candidates:
-                    idx = candidate['index']
-                    score = candidate['badness_score']
-                    c_edge = hedge(candidate['edge'])
-                    is_selected = (edge is not None and str(c_edge) == str(edge))
+                    idx = candidate["index"]
+                    score = candidate["badness_score"]
+                    c_edge = hedge(candidate["edge"])
+                    is_selected = edge is not None and str(c_edge) == str(edge)
 
                     formatted = self.formatter.format(c_edge)
                     score_style = "green" if score == 0 else "red"
@@ -604,20 +613,28 @@ class ReplSession:
                         title += " [selected]"
                     title += f" (badness: {score})"
 
-                    self.console.print(Panel(
-                        formatted,
-                        title=f"[bold {score_style}]{title}[/bold {score_style}]",
-                        border_style="dim" if not is_selected else score_style,
-                        box=box.ROUNDED
-                    ))
+                    self.console.print(
+                        Panel(
+                            formatted,
+                            title=f"[bold {score_style}]{title}[/bold {score_style}]",
+                            border_style="dim" if not is_selected else score_style,
+                            box=box.ROUNDED,
+                        )
+                    )
 
                     if score > 0:
-                        for error in candidate.get('badness', []):
+                        for error in candidate.get("badness", []):
                             if isinstance(error, (list, tuple)) and len(error) >= 2:
-                                self.console.print(f"  [dim]{error[0]}:[/dim] {error[1]}")
+                                self.console.print(
+                                    f"  [dim]{error[0]}:[/dim] {error[1]}"
+                                )
 
             # Show statistics if enabled and we have a valid edge
-            if edge is not None and tokens is not None and self.settings.get('statistics', False):
+            if (
+                edge is not None
+                and tokens is not None
+                and self.settings.get("statistics", False)
+            ):
                 self.console.print()
                 stats_table = Table(
                     show_header=False,
@@ -630,33 +647,47 @@ class ReplSession:
                 stats_table.add_row("External tokens", str(len(tokens)))
 
                 # Model input width and output length -- generative parser only
-                if self.parser_name == 'generative':
-                    _sentence = re.sub(r'\s+', ' ', text.strip())
-                    if hasattr(self.parser, 'external_tokenizer') and hasattr(self.parser, 'tokenizer'):
-                        external_tokens = self.parser.external_tokenizer.tokenize(_sentence)
+                if self.parser_name == "generative":
+                    _sentence = re.sub(r"\s+", " ", text.strip())
+                    if hasattr(self.parser, "external_tokenizer") and hasattr(
+                        self.parser, "tokenizer"
+                    ):
+                        external_tokens = self.parser.external_tokenizer.tokenize(
+                            _sentence
+                        )
                         input_text = f"parse to SH: {' '.join(external_tokens)}"
                         source_tokens = self.parser.tokenizer.convert_ids_to_tokens(
                             self.parser.tokenizer.encode(input_text)
                         )
-                        stats_table.add_row("Model input width", str(len(source_tokens)))
+                        stats_table.add_row(
+                            "Model input width", str(len(source_tokens))
+                        )
 
-                    output_length = parse_result[0].get('output_length')
+                    output_length = parse_result[0].get("output_length")
                     if output_length:
-                        stats_table.add_row("Output sequence length", str(output_length))
+                        stats_table.add_row(
+                            "Output sequence length", str(output_length)
+                        )
 
                 _edge = hedge(edge)
                 if _edge:
                     stats_table.add_row("Atoms", str(len(_edge.all_atoms())))
 
-                self.console.print(Panel(
-                    stats_table,
-                    title="[bold blue]Statistics[/bold blue]",
-                    border_style="blue",
-                    box=box.ROUNDED
-                ))
+                self.console.print(
+                    Panel(
+                        stats_table,
+                        title="[bold blue]Statistics[/bold blue]",
+                        border_style="blue",
+                        box=box.ROUNDED,
+                    )
+                )
 
             # Perform badness check if enabled and we have a valid edge
-            if edge is not None and tokens is not None and self.settings.get('check_badness', False):
+            if (
+                edge is not None
+                and tokens is not None
+                and self.settings.get("check_badness", False)
+            ):
                 self.console.print()
                 _edge = hedge(edge)
                 if _edge:
@@ -665,18 +696,20 @@ class ReplSession:
                     badness_errors = None
 
                 if _edge and not badness_errors:
-                    self.console.print(Panel(
-                        Text("No errors found", style="green"),
-                        title="[bold green]Badness Check[/bold green]",
-                        border_style="green",
-                        box=box.ROUNDED
-                    ))
+                    self.console.print(
+                        Panel(
+                            Text("No errors found", style="green"),
+                            title="[bold green]Badness Check[/bold green]",
+                            border_style="green",
+                            box=box.ROUNDED,
+                        )
+                    )
                 elif _edge:
                     error_table = Table(
                         show_header=True,
                         header_style="bold red",
                         box=box.SIMPLE,
-                        padding=(0, 1)
+                        padding=(0, 1),
                     )
                     error_table.add_column("Type", style="cyan")
                     error_table.add_column("Message", style="white")
@@ -691,17 +724,21 @@ class ReplSession:
                                         sev = error[2] if len(error) > 2 else "?"
                                         error_table.add_row(
                                             f"{code} [dim](sev:{sev})[/dim]\n[dim]({context})[/dim]",
-                                            msg
+                                            msg,
                                         )
                                     else:
-                                        error_table.add_row(f"[dim]({context})[/dim]", str(error))
+                                        error_table.add_row(
+                                            f"[dim]({context})[/dim]", str(error)
+                                        )
 
-                    self.console.print(Panel(
-                        error_table,
-                        title="[bold red]Badness Check Failed[/bold red]",
-                        border_style="red",
-                        box=box.ROUNDED
-                    ))
+                    self.console.print(
+                        Panel(
+                            error_table,
+                            title="[bold red]Badness Check Failed[/bold red]",
+                            border_style="red",
+                            box=box.ROUNDED,
+                        )
+                    )
 
             # Display timing
             if elapsed_time < 0.1:
@@ -713,7 +750,7 @@ class ReplSession:
 
             time_text = Text()
             time_text.append("Parse time: ", style="dim")
-            time_text.append(f"{elapsed_time*1000:.2f}ms", style=f"bold {time_color}")
+            time_text.append(f"{elapsed_time * 1000:.2f}ms", style=f"bold {time_color}")
             time_text.append(f" ({elapsed_time:.4f}s)", style="dim")
 
             self.console.print(time_text)
@@ -723,7 +760,7 @@ class ReplSession:
             self.console.print("\n[yellow]Interrupted[/yellow]\n")
         except Exception as e:
             self.console.print(f"\n[red]Error:[/red] {e}\n")
-            if hasattr(self.console, 'print_exception'):
+            if hasattr(self.console, "print_exception"):
                 self.console.print_exception()
             else:
                 traceback.print_exc()
@@ -731,8 +768,8 @@ class ReplSession:
 
     def get_bottom_toolbar(self):
         return HTML(
-            '<b>Commands:</b> /help, /settings, /quit  |  '
-            '<b>History:</b> up/down arrows'
+            "<b>Commands:</b> /help, /settings, /quit  |  "
+            "<b>History:</b> up/down arrows"
         )
 
     def run(self):
@@ -741,14 +778,14 @@ class ReplSession:
         while True:
             try:
                 text = self.session.prompt(
-                    HTML('<ansigreen><b>></b></ansigreen> '),
+                    HTML("<ansigreen><b>></b></ansigreen> "),
                     bottom_toolbar=self.get_bottom_toolbar,
                 ).strip()
 
                 if not text:
                     continue
 
-                if text.startswith('/'):
+                if text.startswith("/"):
                     should_quit = self.handle_command(text)
                     if should_quit:
                         break
@@ -777,16 +814,18 @@ def run_repl(args: argparse.Namespace):
             setattr(args, key, DEFAULTS[key])
 
     # Initialize parser
-    kwargs = _parser_kwargs({
-        'parser': args.parser,
-        'model_path': args.model_path,
-        'language': args.language,
-        'device': args.device,
-        'max_length': args.max_length,
-        'num_beams': args.num_beams,
-        'num_candidates': args.num_candidates,
-        'use_constraints': args.use_constraints,
-    })
+    kwargs = _parser_kwargs(
+        {
+            "parser": args.parser,
+            "model_path": args.model_path,
+            "language": args.language,
+            "device": args.device,
+            "max_length": args.max_length,
+            "num_beams": args.num_beams,
+            "num_candidates": args.num_candidates,
+            "use_constraints": args.use_constraints,
+        }
+    )
     sh_parser = get_parser(args.parser, **kwargs)
 
     session = ReplSession(sh_parser, args.parser, args)

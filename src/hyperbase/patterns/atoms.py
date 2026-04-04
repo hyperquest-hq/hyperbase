@@ -9,13 +9,13 @@ def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Hyperedge) -> bool:
 
     # structural match
     struct_code = ap_parts[0][0]
-    if struct_code == '.':
+    if struct_code == ".":
         if edge.not_atom:
             return False
     elif atomic_pattern.parens:  # type: ignore[attr-defined]
         if edge.atom:
             return False
-    elif struct_code != '*' and not struct_code.isupper():
+    elif struct_code != "*" and not struct_code.isupper():
         if edge.not_atom:
             return False
         if edge.root() != atomic_pattern.root():  # type: ignore[attr-defined]
@@ -43,25 +43,25 @@ def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Hyperedge) -> bool:
                 return False
 
             # argroles match
-            if ap_type[0] in {'B', 'P'}:
-                ap_argroles_parts = ap_role[1].split('-')
+            if ap_type[0] in {"B", "P"}:
+                ap_argroles_parts = ap_role[1].split("-")
                 if len(ap_argroles_parts) == 1:
-                    ap_argroles_parts.append('')
+                    ap_argroles_parts.append("")
                 ap_negroles = ap_argroles_parts[1]
 
                 # fixed order?
                 ap_argroles_posopt = ap_argroles_parts[0]
                 e_argroles = e_role[1]
-                if len(ap_argroles_posopt) > 0 and ap_argroles_posopt[0] == '{':
+                if len(ap_argroles_posopt) > 0 and ap_argroles_posopt[0] == "{":
                     ap_argroles_posopt = ap_argroles_posopt[1:-1]
                 else:
-                    ap_argroles_posopt = ap_argroles_posopt.replace(',', '')
+                    ap_argroles_posopt = ap_argroles_posopt.replace(",", "")
                     if len(e_argroles) > len(ap_argroles_posopt):
                         return False
                     else:
                         return ap_argroles_posopt.startswith(e_argroles)  # type: ignore[no-any-return]
 
-                ap_argroles_parts = ap_argroles_posopt.split(',')
+                ap_argroles_parts = ap_argroles_posopt.split(",")
                 ap_posroles = ap_argroles_parts[0]
                 ap_argroles = set(ap_posroles) | set(ap_negroles)
                 for argrole in ap_argroles:

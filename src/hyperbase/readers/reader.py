@@ -22,14 +22,14 @@ def split_blocks(text: str) -> list[str]:
     Otherwise, each non-empty line is treated as its own paragraph.
     """
     # Normalize line endings to \n
-    text = text.replace('\r\n', '\n').replace('\r', '\n')
-    if re.search(r'\n[ \t]*\n', text):
-        blocks = re.split(r'\n[ \t]*\n', text)
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    if re.search(r"\n[ \t]*\n", text):
+        blocks = re.split(r"\n[ \t]*\n", text)
         # In typewriter-style text, single newlines within a block are
         # just line wrapping — collapse them into spaces.
-        blocks = [re.sub(r'\s*\n\s*', ' ', b) for b in blocks]
+        blocks = [re.sub(r"\s*\n\s*", " ", b) for b in blocks]
     else:
-        blocks = text.split('\n')
+        blocks = text.split("\n")
     return [b for block in blocks if (b := block.strip())]
 
 
@@ -50,7 +50,7 @@ def list_readers() -> dict[str, type[Reader]]:
 
 def get_reader(
     source: str | None = None,
-    reader: str = 'auto',
+    reader: str = "auto",
 ) -> Reader:
     """Return an appropriate reader instance.
 
@@ -67,19 +67,16 @@ def get_reader(
     Raises :class:`ValueError` if no reader is found or if neither
     *source* nor *reader* is provided.
     """
-    if reader != 'auto':
+    if reader != "auto":
         if reader not in _REGISTRY:
-            available = ', '.join(sorted(_REGISTRY)) or '(none)'
+            available = ", ".join(sorted(_REGISTRY)) or "(none)"
             raise ValueError(
-                f"Reader {reader!r} is not registered. "
-                f"Available readers: {available}"
+                f"Reader {reader!r} is not registered. Available readers: {available}"
             )
         return _REGISTRY[reader]()
 
     if source is None:
-        raise ValueError(
-            "Either 'source' or a named 'reader' must be provided."
-        )
+        raise ValueError("Either 'source' or a named 'reader' must be provided.")
 
     # Collect all readers that accept this source.
     candidates: dict[str, type[Reader]] = {
@@ -87,9 +84,7 @@ def get_reader(
     }
 
     if not candidates:
-        raise ValueError(
-            f"No reader found that accepts source: {source!r}"
-        )
+        raise ValueError(f"No reader found that accepts source: {source!r}")
 
     # Remove readers that a more-specific candidate declares as more general.
     general_names: set[str] = set()
@@ -97,8 +92,7 @@ def get_reader(
         general_names.update(cls.more_general)
 
     specific = {
-        name: cls for name, cls in candidates.items()
-        if name not in general_names
+        name: cls for name, cls in candidates.items() if name not in general_names
     }
 
     # Pick the first surviving candidate (or first overall as fallback).
@@ -149,18 +143,19 @@ class Reader:
         """
         if progress:
             from tqdm import tqdm
+
             total = self.block_count(source)
-            pbar = tqdm(total=total, desc='Reading', unit='block')
+            pbar = tqdm(total=total, desc="Reading", unit="block")
         first = True
-        with open(output, 'w') as f:
+        with open(output, "w") as f:
             for block in self.read(source):
                 if not first:
-                    f.write('\n\n')
+                    f.write("\n\n")
                 f.write(block)
                 first = False
                 if progress:
                     pbar.update(1)
-            f.write('\n')
+            f.write("\n")
         if progress:
             pbar.close()
 
@@ -178,8 +173,9 @@ class Reader:
         """
         if progress:
             from tqdm import tqdm
+
             total = self.block_count(source)
-            pbar = tqdm(total=total, desc='Parsing', unit='block')
+            pbar = tqdm(total=total, desc="Parsing", unit="block")
         for block in self.read(source):
             results = parser.parse_text(block, batch_size=batch_size)
             if progress:
@@ -201,9 +197,12 @@ class Reader:
 
         Each ParseResult is serialized as one JSON line.
         """
-        with open(output, 'w') as f:
+        with open(output, "w") as f:
             for results in self.read_and_parse(
-                source, parser, batch_size=batch_size, progress=progress,
+                source,
+                parser,
+                batch_size=batch_size,
+                progress=progress,
             ):
                 for result in results:
-                    f.write(result.to_json() + '\n')
+                    f.write(result.to_json() + "\n")

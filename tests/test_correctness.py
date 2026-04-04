@@ -1,8 +1,5 @@
 from hyperbase.hyperedge import hedge
-from hyperbase.parsers.correctness import (
-    badness_check,
-    filter_alphanumeric_strings
-)
+from hyperbase.parsers.correctness import badness_check, filter_alphanumeric_strings
 
 
 class TestFilterAlphanumericStrings:
@@ -143,7 +140,18 @@ class TestBadnessCheck:
         # Tokens: 'u' and 's' (from U.S.) and 's' (from boy's)
         # Root: 'us' (combined) and 's' (possessive marker)
         parse = "(regrets/P.sr russia/C (pressing/P.so us/C (over/B.ma charges/C (s/B.am boy/C death/C))))"
-        tokens = ["russia", "regrets", "u", "s", "pressing", "charges", "over", "boy", "s", "death"]
+        tokens = [
+            "russia",
+            "regrets",
+            "u",
+            "s",
+            "pressing",
+            "charges",
+            "over",
+            "boy",
+            "s",
+            "death",
+        ]
         edge = hedge(parse)
         assert edge
         errors = badness_check(edge, tokens)
@@ -152,7 +160,17 @@ class TestBadnessCheck:
     def test_tokenization_mismatch_us_case_error1(self):
         """Test U.S. case: tokens ['u', 's'] should match root 'us' even if 's' appears elsewhere (error 1)"""
         parse = "(regrets/P.sr russia/C (pressing/P.so us/C (over/B.ma charges/C (s/B.am boy/C death/C))))"
-        tokens = ["russia", "regrets", "u", "pressing", "charges", "over", "boy", "s", "death"]
+        tokens = [
+            "russia",
+            "regrets",
+            "u",
+            "pressing",
+            "charges",
+            "over",
+            "boy",
+            "s",
+            "death",
+        ]
         edge = hedge(parse)
         assert edge
         errors = badness_check(edge, tokens)
@@ -161,7 +179,18 @@ class TestBadnessCheck:
     def test_tokenization_mismatch_us_case_error2(self):
         """Test U.S. case: tokens ['u', 's'] should match root 'us' even if 's' appears elsewhere (error 2)"""
         parse = "(regrets/P.sr russia/C (pressing/P us/C (over/B.ma charges/C (s/B.am boy/C death/C))))"
-        tokens = ["russia", "regrets", "u", "s", "pressing", "charges", "over", "boy", "s", "death"]
+        tokens = [
+            "russia",
+            "regrets",
+            "u",
+            "s",
+            "pressing",
+            "charges",
+            "over",
+            "boy",
+            "s",
+            "death",
+        ]
         edge = hedge(parse)
         assert edge
         errors = badness_check(edge, tokens)
@@ -196,8 +225,10 @@ class TestBadnessCheck:
     def test_contraction_case_d(self):
         """Test case (d): multi-token to multi-root concatenation matching"""
         # Don't contraction case: tokens ['don', 't'] should match roots ['do', 'nt']
-        parse = "((off/Ml/en (do/Mv.-i-----/en (n't/Mn/en rip/P!.o.-i-----/en))) me/Ci/en)"
-        tokens = ['don', 't', 'rip', 'me', 'off']
+        parse = (
+            "((off/Ml/en (do/Mv.-i-----/en (n't/Mn/en rip/P!.o.-i-----/en))) me/Ci/en)"
+        )
+        tokens = ["don", "t", "rip", "me", "off"]
         edge = hedge(parse)
         assert edge
         errors = badness_check(edge, tokens)
@@ -207,34 +238,34 @@ class TestBadnessCheck:
         """Test a simple contraction case"""
         # Simple contraction: tokens ['don', 't'] should match roots ['do', 'nt']
         parse = "((do/Mv.-i-----/en (n't/Mn/en is/P.c)) blue/C)"
-        tokens = ['don', 't', 'is', 'blue']
+        tokens = ["don", "t", "is", "blue"]
         edge = hedge(parse)
         assert edge
         errors = badness_check(edge, tokens)
         assert len(errors) == 0
 
     def test_valid_edge(self):
-        edge = hedge('(is/P.s bob/C)')
+        edge = hedge("(is/P.s bob/C)")
         assert edge
         errors = badness_check(edge, [])
-    
+
         # Filter out token matching errors
-        structural_errors = {k: v for k, v in errors.items() if k != 'token-matching'}
+        structural_errors = {k: v for k, v in errors.items() if k != "token-matching"}
         assert not structural_errors
 
     def test_invalid_argrole(self):
         # 'z' is not in mspaoixtjr
-        edge = hedge('(is/P.z bob/C)')
+        edge = hedge("(is/P.z bob/C)")
         assert edge
         errors = badness_check(edge, [])
         # errors is a dict {edge: list of errors} or {string: list of errors}
         # We look for 'bad-argrole' in the errors
-    
+
         found = False
         for k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
-                    if isinstance(err, tuple) and err[0] == 'bad-argrole':
+                    if isinstance(err, tuple) and err[0] == "bad-argrole":
                         assert len(err) == 3
                         assert err[2] == 2
                         found = True
@@ -243,15 +274,15 @@ class TestBadnessCheck:
 
     def test_duplicate_argrole(self):
         # 's' appearing twice
-        edge = hedge('(is/P.ss bob/C alice/C)')
+        edge = hedge("(is/P.ss bob/C alice/C)")
         assert edge
         errors = badness_check(edge, [])
-    
+
         found = False
         for k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
-                    if isinstance(err, tuple) and err[0] == 'duplicate-argrole-s':
+                    if isinstance(err, tuple) and err[0] == "duplicate-argrole-s":
                         assert len(err) == 3
                         assert err[2] == 2
                         found = True
@@ -261,15 +292,15 @@ class TestBadnessCheck:
     def test_invalid_junction_mixed(self):
         # Mixed types C and R
         # (and/J (bob/C) (runs/P.s bob/C))
-        edge = hedge('(and/J bob/C (runs/P.s bob/C))')
+        edge = hedge("(and/J bob/C (runs/P.s bob/C))")
         assert edge
         errors = badness_check(edge, [])
-    
+
         found = False
         for k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
-                    if isinstance(err, tuple) and err[0] == 'bad-junction-types':
+                    if isinstance(err, tuple) and err[0] == "bad-junction-types":
                         assert len(err) == 3
                         assert err[2] == 3
                         found = True
@@ -278,47 +309,52 @@ class TestBadnessCheck:
 
     def test_valid_junction(self):
         # All C
-        edge = hedge('(and/J bob/C alice/C)')
+        edge = hedge("(and/J bob/C alice/C)")
         assert edge
         errors = badness_check(edge, [])
-    
+
         # Ignore token matching errors if any (tokens is empty so maybe some?)
         # But structural errors should be absent.
         structural_errors = []
         for k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
-                    if isinstance(err, tuple) and err[0] in ['bad-argrole', 'bad-junction-types']:
+                    if isinstance(err, tuple) and err[0] in [
+                        "bad-argrole",
+                        "bad-junction-types",
+                    ]:
                         structural_errors.append(err)
-                    if isinstance(err, tuple) and str(err[0]).startswith('duplicate-argrole'):
+                    if isinstance(err, tuple) and str(err[0]).startswith(
+                        "duplicate-argrole"
+                    ):
                         structural_errors.append(err)
-                     
+
         assert not structural_errors, "Should be valid junction"
 
     def test_token_matching_severity(self):
-        edge = hedge('(is/P.s blue/C)')
-        tokens = ["is"] # blue/C is missing
+        edge = hedge("(is/P.s blue/C)")
+        tokens = ["is"]  # blue/C is missing
         assert edge
         errors = badness_check(edge, tokens)
-    
+
         found = False
-        if 'token-matching' in errors:
-            for err in errors['token-matching']:
-                if err[0] == 'root-without-token':
+        if "token-matching" in errors:
+            for err in errors["token-matching"]:
+                if err[0] == "root-without-token":
                     assert err[2] == 1
                     found = True
         assert found, "Should have root-without-token with severity 1"
 
     def test_check_correctness_severity(self):
         # builders can only have two arguments
-        edge = hedge('(+/B a/C b/C c/C)')
+        edge = hedge("(+/B a/C b/C c/C)")
         assert edge
         errors = badness_check(edge, [])
-    
+
         found = False
         for k, v in errors.items():
             for err in v:
-                if err[0] == 'build-2-args':
+                if err[0] == "build-2-args":
                     assert err[2] == 0
                     found = True
         assert found, "Should have build-2-args with severity 0"

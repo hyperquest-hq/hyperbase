@@ -20,14 +20,14 @@ class ParseResult:
 
     def to_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
-            'edge': str(self.edge),
-            'text': self.text,
-            'tokens': self.tokens,
-            'tok_pos': str(self.tok_pos),
-            'failed': self.failed,
-            'errors': self.errors,
-            'extra': self.extra,
-            'source': self.source,
+            "edge": str(self.edge),
+            "text": self.text,
+            "tokens": self.tokens,
+            "tok_pos": str(self.tok_pos),
+            "failed": self.failed,
+            "errors": self.errors,
+            "extra": self.extra,
+            "source": self.source,
         }
         return d
 
@@ -36,21 +36,21 @@ class ParseResult:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> ParseResult:
-        edge = d['edge']
+        edge = d["edge"]
         if isinstance(edge, str):
             edge = hedge(edge)
-        tok_pos = d.get('tok_pos')
+        tok_pos = d.get("tok_pos")
         if isinstance(tok_pos, str):
             tok_pos = hedge(tok_pos)
         return cls(
             edge=edge,
-            text=d['text'],
-            tokens=d['tokens'],
+            text=d["text"],
+            tokens=d["tokens"],
             tok_pos=tok_pos,
-            failed=d.get('failed', False),
-            errors=d.get('errors', []),
-            extra=d.get('extra', {}),
-            source=d.get('source', {}),
+            failed=d.get("failed", False),
+            errors=d.get("errors", []),
+            extra=d.get("extra", {}),
+            source=d.get("source", {}),
         )
 
     @classmethod
