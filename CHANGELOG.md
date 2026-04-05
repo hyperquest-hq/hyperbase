@@ -8,6 +8,7 @@
 - hyperedge.Hyperedge.match function (calls parsers.match_pattern).
 - ParseResults.
 - HyperEdge.text.
+- load_edges function.
 
 ### Changed
 - added get_parser to main functions (at hyperbase root).
