@@ -550,27 +550,6 @@ class TestHyperedge(unittest.TestCase):
     def test_atom_with_type7(self):
         assert hedge("a/Cn").atom_with_type("P") is None
 
-    def test_contains_atom_type1(self):
-        assert hedge("(+/B a/Cn b/Cp)").contains_atom_type("C")
-
-    def test_contains_atom_type2(self):
-        assert hedge("(+/B a/C b/Cp)").contains_atom_type("Cp")
-
-    def test_contains_atom_type3(self):
-        assert not hedge("(+/B a/C b/Cp)").contains_atom_type("P")
-
-    def test_contains_atom_type4(self):
-        assert hedge("a/Cn").contains_atom_type("C")
-
-    def test_contains_atom_type5(self):
-        assert hedge("a/Cn").contains_atom_type("Cn")
-
-    def test_contains_atom_type6(self):
-        assert not hedge("a/Cn").contains_atom_type("Cp")
-
-    def test_contains_atom_type7(self):
-        assert not hedge("a/Cn").contains_atom_type("P")
-
     def test_argroles_connector_atom1(self):
         edge = hedge("s/Bp.am")
         assert edge.argroles() == "am"

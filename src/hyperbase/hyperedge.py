@@ -511,12 +511,6 @@ class Hyperedge:
                 return atom
         return None
 
-    def contains_atom_type(self, atom_type: str) -> bool:
-        """Checks if the edge contains any atom with the given type.
-        The edge is searched recursively, so the atom can appear at any depth.
-        """
-        return self.atom_with_type(atom_type) is not None
-
     def argroles(self) -> str:
         """Returns the argument roles string of the edge, if it exists.
         Otherwise returns empty string.
