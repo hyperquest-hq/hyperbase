@@ -337,39 +337,31 @@ class TestHyperedge(unittest.TestCase):
         assert hedge("and").role() == ["J"]
 
     def test_atom_simplify_atom1(self):
-        assert hedge("hyperbase/Cp.s/1").simplify() == hedge("hyperbase/C/1")
+        assert hedge("hyperbase/Cp/1").simplify() == hedge("hyperbase/C")
 
     def test_atom_simplify_atom2(self):
         assert hedge("hyperbase").simplify() == hedge("hyperbase")
 
     def test_atom_simplify_atom3(self):
-        assert hedge("say/Pd.sr.|f----/en").simplify() == hedge("say/P/en")
+        assert hedge("say/Pd.sr.|f----/en").simplify() == hedge("say/P.sr")
 
     def test_atom_simplify_atom4(self):
         assert hedge("say/Pd.sr.|f----/en").simplify(subtypes=True) == hedge(
-            "say/Pd/en"
+            "say/Pd.sr"
         )
 
     def test_atom_simplify_atom5(self):
-        assert hedge("say/Pd.sr.|f----/en").simplify(argroles=True) == hedge(
+        assert hedge("say/Pd.sr.|f----/en").simplify(namespaces=True) == hedge(
             "say/P.sr/en"
         )
 
-    def test_atom_simplify_atom6(self):
-        assert hedge("say/Pd.sr.|f----/en").simplify(namespaces=False) == hedge("say/P")
-
-    def test_atom_simplify_atom7(self):
-        assert hedge("say/Pd.sr.|f----/en").simplify(
-            subtypes=True, namespaces=False
-        ) == hedge("say/Pd")
-
     def test_atom_simplify_edge(self):
         edge = hedge("is/Pd.sc.|f----/en mary/Cp.s/en nice/Ca/en")
-        assert edge.simplify() == hedge("is/P/en mary/C/en nice/C/en")
-        assert edge.simplify(subtypes=True) == hedge("is/Pd/en mary/Cp/en nice/Ca/en")
-        assert edge.simplify(argroles=True) == hedge("is/P.sc/en mary/C/en nice/C/en")
-        assert edge.simplify(argroles=True, namespaces=False) == hedge(
-            "is/P.sc mary/C nice/C"
+        assert edge.simplify() == hedge("is/P.sc mary/C nice/C")
+        assert edge.simplify(subtypes=True) == hedge("is/Pd.sc mary/Cp nice/Ca")
+        assert edge.simplify(namespaces=True) == hedge("is/P.sc/en mary/C/en nice/C/en")
+        assert edge.simplify(subtypes=True, namespaces=True) == hedge(
+            "is/Pd.sc/en mary/Cp/en nice/Ca/en"
         )
 
     def test_atom_type(self):

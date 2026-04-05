@@ -412,22 +412,16 @@ class Hyperedge:
             edges = edges.union(item.subedges())
         return edges
 
-    def simplify(
-        self, subtypes: bool = False, argroles: bool = False, namespaces: bool = True
-    ) -> Hyperedge:
-        """Returns a version of the edge with simplified atoms, for example
-        removing subtypes, subroles or namespaces.
+    def simplify(self, subtypes: bool = False, namespaces: bool = False) -> Hyperedge:
+        """Returns a version of the edge with simplified atoms.
 
         Keyword arguments:
-        subtypes -- include subtypes (default: False).
-        argroles --include argroles (default: False).
+        subtypes -- include subtypes (default: True).
         namespaces -- include namespaces (default: True).
         """
         return hedge(
             [
-                subedge.simplify(
-                    subtypes=subtypes, argroles=argroles, namespaces=namespaces
-                )
+                subedge.simplify(subtypes=subtypes, namespaces=namespaces)
                 for subedge in self
             ]
         )
@@ -931,16 +925,12 @@ class Atom(Hyperedge):
         else:
             return parts[1].split(".")
 
-    def simplify(
-        self, subtypes: bool = False, argroles: bool = False, namespaces: bool = True
-    ) -> Atom:
-        """Returns a simplified version of the atom, for example removing
-        subtypes, subroles or namespaces.
+    def simplify(self, subtypes: bool = False, namespaces: bool = False) -> Atom:
+        """Returns a simplified version of the atom.
 
         Keyword arguments:
         subtypes -- include subtype (default: False).
-        argroles --include argroles (default: False).
-        namespaces -- include namespaces (default: True).
+        namespaces -- include namespaces (default: False).
         """
         parts = self.parts()
 
@@ -949,10 +939,9 @@ class Atom(Hyperedge):
 
         role = self.type() if subtypes else self.mtype()
 
-        if argroles:
-            ar = self.argroles()
-            if len(ar) > 0:
-                role = f"{role}.{ar}"
+        ar = self.argroles()
+        if len(ar) > 0:
+            role = f"{role}.{ar}"
 
         parts[1] = role
 

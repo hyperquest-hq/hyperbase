@@ -18,6 +18,7 @@
 - Hyperedge is not a frozen dataclasse, instead of inheriting from tuple.
 - hedge now throws exceptions instead of returning None values.
 - Hyperedge.contains always recursive, removed deep argument.
+- simplified Hyperedge.simplify.
 
 ### Removed
 - function patterns.edge_matches_pattern.
