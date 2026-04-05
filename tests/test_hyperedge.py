@@ -766,30 +766,48 @@ class TestHyperedge(unittest.TestCase):
             == "((do/M come/Pd.sxx.-i----/en) you/C here/C)"
         )
 
-    def test_insert_edge_with_argrole1(self):
+    def test_add_argument1(self):
         edge = hedge("(is/Pd.sc/en sky/C blue/C)")
-        assert edge.insert_edge_with_argrole(hedge("today/C"), "x", 0) == hedge(
+        assert edge.add_argument(hedge("today/C"), "x", 0) == hedge(
             "(is/Pd.xsc/en today/C sky/C blue/C)"
         )
-        assert edge.insert_edge_with_argrole(hedge("today/C"), "x", 1) == hedge(
+        assert edge.add_argument(hedge("today/C"), "x", 1) == hedge(
             "(is/Pd.sxc/en sky/C today/C blue/C)"
         )
-        assert edge.insert_edge_with_argrole(hedge("today/C"), "x", 2) == hedge(
+        assert edge.add_argument(hedge("today/C"), "x", 2) == hedge(
             "(is/Pd.scx/en sky/C blue/C today/C)"
         )
-        assert edge.insert_edge_with_argrole(hedge("today/C"), "x", 100) == hedge(
+        assert edge.add_argument(hedge("today/C"), "x", 100) == hedge(
             "(is/Pd.scx/en sky/C blue/C today/C)"
         )
 
-    def test_insert_edge_with_argrole2(self):
+    def test_add_argument2(self):
         edge = hedge("((not/M is/Pd.sc/en) sky/C blue/C)")
-        assert edge.insert_edge_with_argrole(hedge("today/C"), "x", 1) == hedge(
+        assert edge.add_argument(hedge("today/C"), "x", 1) == hedge(
             "((not/M is/Pd.sxc/en) sky/C today/C blue/C)"
         )
 
-    def test_insert_edge_with_argrole3(self):
+    def test_add_argument3(self):
         edge = hedge("((m/M b/B.am) x/C y/C)")
-        assert edge.insert_edge_with_argrole(hedge("z/C"), "a", 2) == hedge(
+        assert edge.add_argument(hedge("z/C"), "a", 2) == hedge(
+            "((m/M b/B.ama) x/C y/C z/C)"
+        )
+
+    def test_add_argument_no_pos1(self):
+        edge = hedge("(is/Pd.sc/en sky/C blue/C)")
+        assert edge.add_argument(hedge("today/C"), "x") == hedge(
+            "(is/Pd.scx/en sky/C blue/C today/C)"
+        )
+
+    def test_add_argument_no_pos2(self):
+        edge = hedge("((not/M is/Pd.sc/en) sky/C blue/C)")
+        assert edge.add_argument(hedge("today/C"), "x") == hedge(
+            "((not/M is/Pd.scx/en) sky/C blue/C today/C)"
+        )
+
+    def test_add_argument_no_pos3(self):
+        edge = hedge("((m/M b/B.am) x/C y/C)")
+        assert edge.add_argument(hedge("z/C"), "a") == hedge(
             "((m/M b/B.ama) x/C y/C z/C)"
         )
 
@@ -851,13 +869,13 @@ class TestHyperedge(unittest.TestCase):
 
     def test_insert_edge_with_var1(self):
         edge = hedge("((var is/Pd.sc/en V) sky/C blue/C)")
-        assert edge.insert_edge_with_argrole(hedge("today/C"), "x", 0) == hedge(
+        assert edge.add_argument(hedge("today/C"), "x", 0) == hedge(
             "((var is/Pd.xsc/en V) today/C sky/C blue/C)"
         )
 
     def test_insert_edge_with_var2(self):
         edge = hedge("((var (m/M b/B.am) V) x/C y/C)")
-        assert edge.insert_edge_with_argrole(hedge("z/C"), "a", 2) == hedge(
+        assert edge.add_argument(hedge("z/C"), "a", 2) == hedge(
             "((var (m/M b/B.ama) V) x/C y/C z/C)"
         )
 

@@ -228,7 +228,7 @@ You can even replace an atom with a non-atomic hyperedge:
 ```pycon
 >>> edge = hedge('(is/P.so paris/Cp nice/Cc)')
 >>> spec = hedge('(in/T (the/M spring/Cc))')
->>> edge.insert_edge_with_argrole(spec, 'x', 3)
+>>> edge.add_argument(spec, 'x', 3)
 (is/P.sox really/M paris/Cp nice/Cc (in/T (the/M spring/Cc)))
 ```
 

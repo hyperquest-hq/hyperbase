@@ -424,11 +424,11 @@ True
 (is/P.soc berlin/C nice/C)
 ```
 
-`insert_edge_with_argrole()` inserts both an edge and its corresponding argument role at a position:
+`add_argument()` inserts both an edge and its corresponding argument role at a position:
 
 ```pycon
 >>> edge = hedge('(is/P.sc berlin/C nice/C)')
->>> edge.insert_edge_with_argrole(hedge('very/M'), 'x', 2)
+>>> edge.add_argument(hedge('very/M'), 'x', 2)
 (is/P.scx berlin/C nice/C very/M)
 ```
 

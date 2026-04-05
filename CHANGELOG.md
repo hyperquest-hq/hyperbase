@@ -19,7 +19,8 @@
 - hedge now throws exceptions instead of returning None values.
 - Hyperedge.contains always recursive, removed deep argument.
 - simplified Hyperedge.simplify.
-- Hyperedge.insert_argrole now private, renamed to Hyperedge._insert_argrole
+- Hyperedge.insert_argrole now private, renamed to Hyperedge._insert_argrole.
+- Renamed Hyperedge.insert_edge_with_argrole to add_argument, pos optional (default to add at the end).
 
 ### Removed
 - function patterns.edge_matches_pattern.
@@ -74,7 +75,7 @@
 
 ## [0.6.1] - 31-10-2022
 ### Changed
-- Hyperedge.replace_argroles() .insert_argrole() and .insert_edge_with_argrole() now works with functional patterns such as var.
+- Hyperedge.replace_argroles() .insert_argrole() and .add_argument() now works with functional patterns such as var.
 - Fixed bug when matching patterns containing atoms functional pattern where no atom has argroles.
 
 ### Removed
@@ -165,7 +166,7 @@
 - Function Hypergraph.sequences().
 - Function Hyperedge.replace_argroles().
 - Function Hyperedge.insert_argrole().
-- Function Hyperedge.insert_edge_with_argrole().
+- Function Hyperedge.add_argument().
 - Function Hyperedge.all_atoms().
 - Function Hyperedge.size().
 - Function Hyperedge.predicate().

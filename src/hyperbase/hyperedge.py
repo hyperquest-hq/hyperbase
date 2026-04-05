@@ -565,11 +565,14 @@ class Hyperedge:
             return Hyperedge(new_edge)
         return self
 
-    def insert_edge_with_argrole(
-        self, edge: Hyperedge, argrole: str, pos: int
+    def add_argument(
+        self, edge: Hyperedge, argrole: str, pos: int | None = None
     ) -> Hyperedge:
         """Returns a new edge with the provided edge and its argroles inserted
-        at the specified position."""
+        at the specified position. If pos is not provided, the argument is
+        appended at the end."""
+        if pos is None:
+            pos = len(self) - 1
         new_edge = self._insert_argrole(argrole, pos)
         combined = (*tuple(new_edge[: pos + 1]), edge, *tuple(new_edge[pos + 1 :]))
         return Hyperedge(combined)
