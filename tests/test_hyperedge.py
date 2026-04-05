@@ -606,61 +606,61 @@ class TestHyperedge(unittest.TestCase):
         edge = hedge("xxx")
         assert str(edge.replace_argroles("scx")) == "xxx"
 
-    def test_insert_argrole_atom1(self):
+    def test__insert_argrole_atom1(self):
         edge = hedge("s/Bp.am")
-        assert str(edge.insert_argrole("m", 0)) == "s/Bp.mam"
+        assert str(edge._insert_argrole("m", 0)) == "s/Bp.mam"
 
-    def test_insert_argrole_atom2(self):
+    def test__insert_argrole_atom2(self):
         edge = hedge("s/Bp.am")
-        assert str(edge.insert_argrole("m", 1)) == "s/Bp.amm"
+        assert str(edge._insert_argrole("m", 1)) == "s/Bp.amm"
 
-    def test_insert_argrole_atom3(self):
+    def test__insert_argrole_atom3(self):
         edge = hedge("s/Bp.am")
-        assert str(edge.insert_argrole("m", 2)) == "s/Bp.amm"
+        assert str(edge._insert_argrole("m", 2)) == "s/Bp.amm"
 
-    def test_insert_argrole_atom4(self):
+    def test__insert_argrole_atom4(self):
         edge = hedge("s/Bp.am")
-        assert str(edge.insert_argrole("m", 3)) == "s/Bp.amm"
+        assert str(edge._insert_argrole("m", 3)) == "s/Bp.amm"
 
-    def test_insert_argrole_atom5(self):
+    def test__insert_argrole_atom5(self):
         edge = hedge("come/Pd.sx.-i----/en")
-        assert str(edge.insert_argrole("x", 0)) == "come/Pd.xsx.-i----/en"
+        assert str(edge._insert_argrole("x", 0)) == "come/Pd.xsx.-i----/en"
 
-    def test_insert_argrole_atom6(self):
+    def test__insert_argrole_atom6(self):
         edge = hedge("come/Pd.sx.-i----/en")
-        assert str(edge.insert_argrole("x", 1)) == "come/Pd.sxx.-i----/en"
+        assert str(edge._insert_argrole("x", 1)) == "come/Pd.sxx.-i----/en"
 
-    def test_insert_argrole_atom7(self):
+    def test__insert_argrole_atom7(self):
         edge = hedge("come/Pd.sx.-i----/en")
-        assert str(edge.insert_argrole("x", 2)) == "come/Pd.sxx.-i----/en"
+        assert str(edge._insert_argrole("x", 2)) == "come/Pd.sxx.-i----/en"
 
-    def test_insert_argrole_atom8(self):
+    def test__insert_argrole_atom8(self):
         edge = hedge("come/Pd.sx.-i----/en")
-        assert str(edge.insert_argrole("x", 100)) == "come/Pd.sxx.-i----/en"
+        assert str(edge._insert_argrole("x", 100)) == "come/Pd.sxx.-i----/en"
 
-    def test_insert_argrole_atom9(self):
+    def test__insert_argrole_atom9(self):
         edge = hedge("come/Pd/en")
-        assert str(edge.insert_argrole("s", 0)) == "come/Pd.s/en"
+        assert str(edge._insert_argrole("s", 0)) == "come/Pd.s/en"
 
-    def test_insert_argrole_atom10(self):
+    def test__insert_argrole_atom10(self):
         edge = hedge("come/Pd/en")
-        assert str(edge.insert_argrole("s", 1)) == "come/Pd.s/en"
+        assert str(edge._insert_argrole("s", 1)) == "come/Pd.s/en"
 
-    def test_insert_argrole_atom11(self):
+    def test__insert_argrole_atom11(self):
         edge = hedge("come/Pd/en")
-        assert str(edge.insert_argrole("s", 100)) == "come/Pd.s/en"
+        assert str(edge._insert_argrole("s", 100)) == "come/Pd.s/en"
 
-    def test_insert_argrole_atom12(self):
+    def test__insert_argrole_atom12(self):
         edge = hedge("xxx")
-        assert str(edge.insert_argrole("s", 0)) == "xxx"
+        assert str(edge._insert_argrole("s", 0)) == "xxx"
 
-    def test_insert_argrole_atom13(self):
+    def test__insert_argrole_atom13(self):
         edge = hedge("xxx")
-        assert str(edge.insert_argrole("s", 1)) == "xxx"
+        assert str(edge._insert_argrole("s", 1)) == "xxx"
 
-    def test_insert_argrole_atom14(self):
+    def test__insert_argrole_atom14(self):
         edge = hedge("xxx")
-        assert str(edge.insert_argrole("s", 100)) == "xxx"
+        assert str(edge._insert_argrole("s", 100)) == "xxx"
 
     def test_replace_argroles_edge1(self):
         edge = hedge("(s/Bp.am x/C y/C)")
@@ -690,78 +690,79 @@ class TestHyperedge(unittest.TestCase):
         edge = hedge("(come you/C here/C)")
         assert str(edge.replace_argroles("scx")) == "(come you/C here/C)"
 
-    def test_insert_argrole_edge1(self):
+    def test__insert_argrole_edge1(self):
         edge = hedge("(s/Bp.am x/C y/C)")
-        assert str(edge.insert_argrole("m", 0)) == "(s/Bp.mam x/C y/C)"
+        assert str(edge._insert_argrole("m", 0)) == "(s/Bp.mam x/C y/C)"
 
-    def test_insert_argrole_edge2(self):
+    def test__insert_argrole_edge2(self):
         edge = hedge("(s/Bp.am x/C y/C)")
-        assert str(edge.insert_argrole("m", 1)) == "(s/Bp.amm x/C y/C)"
+        assert str(edge._insert_argrole("m", 1)) == "(s/Bp.amm x/C y/C)"
 
-    def test_insert_argrole_edge3(self):
+    def test__insert_argrole_edge3(self):
         edge = hedge("(s/Bp.am x/C y/C)")
-        assert str(edge.insert_argrole("m", 2)) == "(s/Bp.amm x/C y/C)"
+        assert str(edge._insert_argrole("m", 2)) == "(s/Bp.amm x/C y/C)"
 
-    def test_insert_argrole_edge4(self):
+    def test__insert_argrole_edge4(self):
         edge = hedge("(s/Bp.am x/C y/C)")
-        assert str(edge.insert_argrole("m", 3)) == "(s/Bp.amm x/C y/C)"
+        assert str(edge._insert_argrole("m", 3)) == "(s/Bp.amm x/C y/C)"
 
-    def test_insert_argrole_edge5(self):
+    def test__insert_argrole_edge5(self):
         edge = hedge("((m/M s/Bp.am) x/C y/C)")
-        assert str(edge.insert_argrole("m", 0)) == "((m/M s/Bp.mam) x/C y/C)"
+        assert str(edge._insert_argrole("m", 0)) == "((m/M s/Bp.mam) x/C y/C)"
 
-    def test_insert_argrole_edge6(self):
+    def test__insert_argrole_edge6(self):
         edge = hedge("(come/Pd.sx.-i----/en you/C here/C)")
         assert (
-            str(edge.insert_argrole("x", 0)) == "(come/Pd.xsx.-i----/en you/C here/C)"
+            str(edge._insert_argrole("x", 0)) == "(come/Pd.xsx.-i----/en you/C here/C)"
         )
 
-    def test_insert_argrole_edge7(self):
+    def test__insert_argrole_edge7(self):
         edge = hedge("(come/Pd.sx.-i----/en you/C here/C)")
         assert (
-            str(edge.insert_argrole("x", 1)) == "(come/Pd.sxx.-i----/en you/C here/C)"
+            str(edge._insert_argrole("x", 1)) == "(come/Pd.sxx.-i----/en you/C here/C)"
         )
 
-    def test_insert_argrole_edge8(self):
+    def test__insert_argrole_edge8(self):
         edge = hedge("(come/Pd.sx.-i----/en you/C here/C)")
         assert (
-            str(edge.insert_argrole("x", 2)) == "(come/Pd.sxx.-i----/en you/C here/C)"
+            str(edge._insert_argrole("x", 2)) == "(come/Pd.sxx.-i----/en you/C here/C)"
         )
 
-    def test_insert_argrole_edge9(self):
+    def test__insert_argrole_edge9(self):
         edge = hedge("(come/Pd.sx.-i----/en you/C here/C)")
         assert (
-            str(edge.insert_argrole("x", 100)) == "(come/Pd.sxx.-i----/en you/C here/C)"
+            str(edge._insert_argrole("x", 100))
+            == "(come/Pd.sxx.-i----/en you/C here/C)"
         )
 
-    def test_insert_argrole_edge10(self):
+    def test__insert_argrole_edge10(self):
         edge = hedge("(come/Pd/en you/C here/C)")
-        assert str(edge.insert_argrole("s", 0)) == "(come/Pd.s/en you/C here/C)"
+        assert str(edge._insert_argrole("s", 0)) == "(come/Pd.s/en you/C here/C)"
 
-    def test_insert_argrole_edge11(self):
+    def test__insert_argrole_edge11(self):
         edge = hedge("(come/Pd/en you/C here/C)")
-        assert str(edge.insert_argrole("s", 1)) == "(come/Pd.s/en you/C here/C)"
+        assert str(edge._insert_argrole("s", 1)) == "(come/Pd.s/en you/C here/C)"
 
-    def test_insert_argrole_edge12(self):
+    def test__insert_argrole_edge12(self):
         edge = hedge("(come/Pd/en you/C here/C)")
-        assert str(edge.insert_argrole("s", 100)) == "(come/Pd.s/en you/C here/C)"
+        assert str(edge._insert_argrole("s", 100)) == "(come/Pd.s/en you/C here/C)"
 
-    def test_insert_argrole_edge13(self):
+    def test__insert_argrole_edge13(self):
         edge = hedge("(come you/C here/C)")
-        assert str(edge.insert_argrole("s", 0)) == "(come you/C here/C)"
+        assert str(edge._insert_argrole("s", 0)) == "(come you/C here/C)"
 
-    def test_insert_argrole_edge14(self):
+    def test__insert_argrole_edge14(self):
         edge = hedge("(come you/C here/C)")
-        assert str(edge.insert_argrole("s", 1)) == "(come you/C here/C)"
+        assert str(edge._insert_argrole("s", 1)) == "(come you/C here/C)"
 
-    def test_insert_argrole_edge15(self):
+    def test__insert_argrole_edge15(self):
         edge = hedge("(come you/C here/C)")
-        assert str(edge.insert_argrole("s", 100)) == "(come you/C here/C)"
+        assert str(edge._insert_argrole("s", 100)) == "(come you/C here/C)"
 
-    def test_insert_argrole_edge16(self):
+    def test__insert_argrole_edge16(self):
         edge = hedge("((do/M come/Pd.sx.-i----/en) you/C here/C)")
         assert (
-            str(edge.insert_argrole("x", 2))
+            str(edge._insert_argrole("x", 2))
             == "((do/M come/Pd.sxx.-i----/en) you/C here/C)"
         )
 
@@ -824,27 +825,27 @@ class TestHyperedge(unittest.TestCase):
         edge = hedge("((var come V) you/C here/C)")
         assert str(edge.replace_argroles("scx")) == "((var come V) you/C here/C)"
 
-    def test_insert_argrole_var1(self):
+    def test__insert_argrole_var1(self):
         edge = hedge("((var s/Bp.am V) x/C y/C)")
-        assert str(edge.insert_argrole("m", 0)) == "((var s/Bp.mam V) x/C y/C)"
+        assert str(edge._insert_argrole("m", 0)) == "((var s/Bp.mam V) x/C y/C)"
 
-    def test_insert_argrole_var2(self):
+    def test__insert_argrole_var2(self):
         edge = hedge("((var come/Pd.sx.-i----/en V) you/C here/C)")
         assert (
-            str(edge.insert_argrole("x", 1))
+            str(edge._insert_argrole("x", 1))
             == "((var come/Pd.sxx.-i----/en V) you/C here/C)"
         )
 
-    def test_insert_argrole_var3(self):
+    def test__insert_argrole_var3(self):
         edge = hedge("((var come/Pd/en V) you/C here/C)")
         assert (
-            str(edge.insert_argrole("s", 100)) == "((var come/Pd.s/en V) you/C here/C)"
+            str(edge._insert_argrole("s", 100)) == "((var come/Pd.s/en V) you/C here/C)"
         )
 
-    def test_insert_argrole_var4(self):
+    def test__insert_argrole_var4(self):
         edge = hedge("((var (do/M come/Pd.sx.-i----/en) V) you/C here/C)")
         assert (
-            str(edge.insert_argrole("x", 2))
+            str(edge._insert_argrole("x", 2))
             == "((var (do/M come/Pd.sxx.-i----/en) V) you/C here/C)"
         )
 

@@ -550,17 +550,17 @@ class Hyperedge:
             return Hyperedge(new_edge)
         return self
 
-    def insert_argrole(self, argrole: str, pos: int) -> Hyperedge:
+    def _insert_argrole(self, argrole: str, pos: int) -> Hyperedge:
         """Returns an edge with the given argrole inserted at the specified
         position in the argroles of the connector atom.
         Same restrictions as in replace_argroles() apply."""
         st = self.mtype()
         if st in {"C", "R"}:
-            new_edge = [self[0].insert_argrole(argrole, pos)]
+            new_edge = [self[0]._insert_argrole(argrole, pos)]
             new_edge += self[1:]
             return Hyperedge(new_edge)
         elif st in {"P", "B"}:
-            new_edge = [self[0], self[1].insert_argrole(argrole, pos)]
+            new_edge = [self[0], self[1]._insert_argrole(argrole, pos)]
             new_edge += list(self[2:])
             return Hyperedge(new_edge)
         return self
@@ -570,7 +570,7 @@ class Hyperedge:
     ) -> Hyperedge:
         """Returns a new edge with the provided edge and its argroles inserted
         at the specified position."""
-        new_edge = self.insert_argrole(argrole, pos)
+        new_edge = self._insert_argrole(argrole, pos)
         combined = (*tuple(new_edge[: pos + 1]), edge, *tuple(new_edge[pos + 1 :]))
         return Hyperedge(combined)
 
@@ -1027,7 +1027,7 @@ class Atom(Hyperedge):
         parts[1] = role[0]
         return Atom(("/".join(parts),))
 
-    def insert_argrole(self, argrole: str, pos: int) -> Atom:
+    def _insert_argrole(self, argrole: str, pos: int) -> Atom:
         """Returns an atom with the given argrole inserted at the specified
         position. Same restrictions as in replace_argroles() apply."""
         argroles = self.argroles()

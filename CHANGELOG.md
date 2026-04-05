@@ -19,6 +19,7 @@
 - hedge now throws exceptions instead of returning None values.
 - Hyperedge.contains always recursive, removed deep argument.
 - simplified Hyperedge.simplify.
+- Hyperedge.insert_argrole now private, renamed to Hyperedge._insert_argrole
 
 ### Removed
 - function patterns.edge_matches_pattern.
