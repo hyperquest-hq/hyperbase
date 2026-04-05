@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.9.0] - work in progress
+## [0.9.0] - 05-04-2026
 
 ### Added
 - readers (txt, url, wikipedia).
