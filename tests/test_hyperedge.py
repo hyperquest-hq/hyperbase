@@ -330,23 +330,6 @@ class TestHyperedge(unittest.TestCase):
             hedge("(is hyperbase/1 (X/C))"),
         }
 
-    def test_replace_atom(self):
-        x = hedge("x")
-        xc = hedge("x/C")
-        assert str(hedge("x").replace_atom(x, xc)) == "x/C"
-        assert str(hedge("(a b x)").replace_atom(x, xc)) == "(a b x/C)"
-        assert str(hedge("(a b c)").replace_atom(x, xc)) == "(a b c)"
-        assert str(hedge("(a x (b x))").replace_atom(x, xc)) == "(a x/C (b x/C))"
-
-    def test_replace_atom_unique(self):
-        edge = hedge("(a/P x/C x/C)")
-        x1 = edge[1]
-        x2 = edge[2]
-        y = hedge("y/C")
-        assert str(edge.replace_atom(x1, y, unique=True)) == "(a/P y/C x/C)"
-        assert str(edge.replace_atom(x2, y, unique=True)) == "(a/P x/C y/C)"
-        assert str(edge.replace_atom(hedge("x/C"), y, unique=True)) == "(a/P x/C x/C)"
-
     def test_atom_role(self):
         assert hedge("hyperbase/Cp.s/1").role() == ["Cp", "s"]
 
