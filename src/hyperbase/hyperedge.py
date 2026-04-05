@@ -412,6 +412,20 @@ class Hyperedge:
             edges = edges.union(item.subedges())
         return edges
 
+    def replace_atom(
+        self, old: Atom, new: Hyperedge, unique: bool = False
+    ) -> Hyperedge:
+        """Returns edge built by replacing every instance of 'old' in
+        this edge with 'new'.
+
+        Keyword argument:
+        unique -- match only the exact same instance of the atom, i.e.
+        UniqueAtom(self) == UniqueAtom(old) (default: False)
+        """
+        return Hyperedge(
+            tuple(item.replace_atom(old, new, unique=unique) for item in self)
+        )
+
     def simplify(self, subtypes: bool = False, namespaces: bool = False) -> Hyperedge:
         """Returns a version of the edge with simplified atoms.
 
@@ -899,6 +913,24 @@ class Atom(Hyperedge):
         and itself.
         """
         return {self}
+
+    def replace_atom(
+        self, old: Atom, new: Hyperedge, unique: bool = False
+    ) -> Hyperedge:
+        """Returns edge built by replacing every instance of 'old' in
+        this edge with 'new'.
+
+        Keyword argument:
+        unique -- match only the exact same instance of the atom, i.e.
+        UniqueAtom(self) == UniqueAtom(old) (default: False)
+        """
+        if unique:
+            if UniqueAtom(self) == UniqueAtom(old):
+                return new
+        else:
+            if self == old:
+                return new
+        return self
 
     def role(self) -> list[str]:
         """Returns the role of this atom as a list of the subrole strings.
