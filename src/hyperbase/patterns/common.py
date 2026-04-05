@@ -40,7 +40,7 @@ def common_pattern_argroles(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | N
     if best_pattern is None:
         return None
 
-    return best_pattern.normalized()
+    return best_pattern.normalise()
 
 
 def common_type(edges: Sequence[Hyperedge]) -> str | None:

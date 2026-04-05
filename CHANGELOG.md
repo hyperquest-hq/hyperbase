@@ -22,6 +22,7 @@
 - Hyperedge.insert_argrole now private, renamed to Hyperedge._insert_argrole.
 - Renamed Hyperedge.insert_edge_with_argrole to add_argument, pos optional (default to add at the end).
 - Renamed Hyperedge.edges_with_argrole to arguments_with_role.
+- Renamed Hyperedge.normalized to normalise.
 
 ### Removed
 - function patterns.edge_matches_pattern.
@@ -92,7 +93,7 @@
 - Hypergraph.text().
 - Parser.parse_and_add().
 - Parser.sentences().
-- Hyperedge.normalized().
+- Hyperedge.normalise().
 - New package graphbrain.readers, for text readers from various sources.
 - New package graphbrain.processors, for miscellaneous processors.
 - Processor class.

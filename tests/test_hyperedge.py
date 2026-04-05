@@ -1066,33 +1066,33 @@ class TestHyperedge(unittest.TestCase):
 
     def test_normalized_1(self):
         edge = hedge("(plays/Pd.os chess/C mary/C)")
-        assert edge.normalized() == hedge("(plays/Pd.so mary/C chess/C)")
+        assert edge.normalise() == hedge("(plays/Pd.so mary/C chess/C)")
 
     def test_normalized_2(self):
         edge = hedge("(plays/Pd chess/C mary/C)")
-        assert edge.normalized() == hedge("(plays/Pd chess/C mary/C)")
+        assert edge.normalise() == hedge("(plays/Pd chess/C mary/C)")
 
     def test_normalized_3(self):
         edge = hedge("(plays/Pd.os (of/B.am chess/C games/C) mary/C)")
-        assert edge.normalized() == hedge(
+        assert edge.normalise() == hedge(
             "(plays/Pd.so mary/C (of/B.ma games/C chess/C))"
         )
 
     def test_normalized_4(self):
         edge = hedge("(plays/Pd.os.xxx/en chess/C mary/C)")
-        assert edge.normalized() == hedge("(plays/Pd.so.xxx/en mary/C chess/C)")
+        assert edge.normalise() == hedge("(plays/Pd.so.xxx/en mary/C chess/C)")
 
     def test_normalized_5(self):
         edge = hedge("plays/Pd.os.xxx/en")
-        assert edge.normalized() == hedge("plays/Pd.so.xxx/en")
+        assert edge.normalise() == hedge("plays/Pd.so.xxx/en")
 
     def test_normalized_6(self):
         edge = hedge("of/Br.am/en")
-        assert edge.normalized() == hedge("of/Br.ma/en")
+        assert edge.normalise() == hedge("of/Br.ma/en")
 
     def test_normalized_7(self):
         edge = hedge("plays/Pd.{os}.xxx/en")
-        assert edge.normalized() == hedge("plays/Pd.{so}.xxx/en")
+        assert edge.normalise() == hedge("plays/Pd.{so}.xxx/en")
 
     def test_bug_fix1(self):
         edge_str = "((ahead/M/en (would/Mm/en go/P..-i-----/en)))"

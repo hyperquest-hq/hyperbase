@@ -103,7 +103,7 @@ class PatternCounter:
     def _edge2patterns(self, edge: Hyperedge) -> list[Hyperedge]:
         force_subtypes = self._force_subtypes(edge)
         force_root, _ = self._force_root_expansion(edge)
-        normalized = edge.normalized()
+        normalized = edge.normalise()
         return [
             hedge(pattern)
             for pattern in self._list2patterns(

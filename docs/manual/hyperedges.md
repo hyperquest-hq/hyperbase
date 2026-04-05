@@ -469,13 +469,13 @@ Returns a dictionary of structural errors found in the edge. Each key is the pro
 
 The checks include connector type validation, modifier and builder structure, trigger structure, predicate argument types, conjunction arity, and argument role counts and validity.
 
-### normalized()
+### normalise()
 
 Returns a normalized version of the edge where argument roles (and their corresponding arguments) are sorted into a canonical order:
 
 ```pycon
 >>> edge = hedge('(is/P.cs nice/C berlin/C)')
->>> edge.normalized()
+>>> edge.normalise()
 (is/P.sc berlin/C nice/C)
 ```
 

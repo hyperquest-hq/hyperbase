@@ -712,7 +712,7 @@ class Hyperedge:
 
         return output
 
-    def normalized(self) -> Hyperedge:
+    def normalise(self) -> Hyperedge:
         edge: Hyperedge = self
         conn = edge[0]
         ar = conn.argroles()
@@ -724,7 +724,7 @@ class Hyperedge:
                 key=lambda role_edge: argrole_order[role_edge[0]],
             )
             edge = hedge([conn, *[role_edge[1] for role_edge in roles_edges_sorted]])
-        return hedge([subedge.normalized() for subedge in edge])
+        return hedge([subedge.normalise() for subedge in edge])
 
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
         if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
@@ -1054,7 +1054,7 @@ class Atom(Hyperedge):
 
         return output
 
-    def normalized(self) -> Atom:
+    def normalise(self) -> Atom:
         if self.mtype() in {"B", "P"}:
             ar = self.argroles()
             if len(ar) > 0:
