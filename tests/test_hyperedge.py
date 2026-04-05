@@ -900,30 +900,6 @@ class TestHyperedge(unittest.TestCase):
         assert edge.edges_with_argrole("x") == []
         assert edge.edges_with_argrole("p") == []
 
-    def test_main_concepts1(self):
-        concept = hedge("('s/Bp.am zimbabwe/Mp economy/Cn.s)")
-        assert concept.main_concepts() == [hedge("economy/Cn.s")]
-
-    def test_main_concepts2(self):
-        concept = hedge("('s/Bp zimbabwe/Mp economy/Cn.s)")
-        assert concept.main_concepts() == []
-
-    def test_main_concepts3(self):
-        concept = hedge("(+/B.am?/. hiv/Ca kit/Cn.s (testing/M self/Cn.s))")
-        assert concept.main_concepts() == [hedge("kit/Cn.s")]
-
-    def test_main_concepts4(self):
-        concept = hedge("(+/B.?a?/. hiv/Ca kit/Cn.s (testing/M self/Cn.s))")
-        assert concept.main_concepts() == []
-
-    def test_main_concepts5(self):
-        concept = hedge("(a/M thing/C)")
-        assert concept.main_concepts() == []
-
-    def test_main_concepts6(self):
-        concept = hedge("thing/C")
-        assert concept.main_concepts() == []
-
     def test_check_correctness_ok1(self):
         edge = hedge("(red/M shoes/C)")
         output = edge.check_correctness()

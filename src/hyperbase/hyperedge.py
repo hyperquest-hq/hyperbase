@@ -592,37 +592,6 @@ class Hyperedge:
                 edges.append(self[pos + 1])
         return edges
 
-    def main_concepts(self) -> list[Hyperedge]:
-        """Returns the list of main concepts in an concept edge.
-        A main concept is a central concept in a built concept, e.g.:
-        in ('s/Bp.am zimbabwe/Cp economy/Cn.s), economy/Cn.s is the main
-        concept.
-
-        If entity is not an edge, or its connector is not of type builder,
-        or the builder does not contain concept role annotations, or no
-        concept is annotated as the main one, then an empty list is
-        returned.
-        """
-        if self[0].mtype() == "B":
-            return self.edges_with_argrole("m")
-        return []
-
-    def replace_main_concept(self, new_main: Hyperedge) -> Hyperedge:
-        """TODO: document and test"""
-        if self.mtype() != "C":
-            raise ValueError(
-                "replace_main_concept requires type 'C', "
-                f"got '{self.mtype()}': {self!s}"
-            )
-        if self[0].mtype() == "M":
-            return hedge((self[0], new_main))
-        elif self[0].mtype() == "B" and len(self) == 3:
-            if self[0].argroles() == "ma":
-                return hedge((self[0], new_main, self[2]))
-            elif self[0].argroles() == "am":
-                return hedge((self[0], self[1], new_main))
-        raise ValueError(f"Cannot replace main concept in edge: {self!s}")
-
     def check_correctness(self) -> dict[Hyperedge, list[tuple[str, str]]]:
         output: dict[Hyperedge, list[tuple[str, str]]] = {}
         errors: list[tuple[str, str]] = []

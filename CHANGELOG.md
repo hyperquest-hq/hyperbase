@@ -22,7 +22,7 @@
 
 ### Removed
 - function patterns.edge_matches_pattern.
-- deprecated and obsolete methods from Hyperedge: is_atom, to_str, roots, insert_first_argument, connect, sequence, contains_atom_type.
+- deprecated and obsolete methods from Hyperedge: is_atom, to_str, roots, insert_first_argument, connect, sequence, contains_atom_type, main_concepts, replace_main_concept.
 
 ## [0.8.0] - 26-03-2026 - hyperbase is the successor of graphbrain
 
