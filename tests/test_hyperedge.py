@@ -290,32 +290,16 @@ class TestHyperedge(unittest.TestCase):
         assert edge.contains(hedge("is/Pd.sc"))
         assert edge.contains(hedge("piron/C"))
         assert edge.contains(hedge("(of/B capital/C piripiri/C)"))
-        assert not edge.contains(hedge("piripiri/C"))
+        assert edge.contains(hedge("piripiri/C"))
         assert not edge.contains(hedge("1111/C"))
 
     def test_contains_pares_atom(self):
-        edge = hedge("(is/Pd.sc (X/C) (of/B capital/C piripiri/C))")
-        assert edge.contains(hedge("is/Pd.sc"))
-        assert edge.contains(hedge("(X/C)"))
-        assert edge.contains(hedge("(of/B capital/C piripiri/C)"))
-        assert not edge.contains(hedge("piripiri/C"))
-        assert not edge.contains(hedge("1111/C"))
-
-    def test_contains_deep(self):
-        edge = hedge("(is/Pd.sc piron/C (of/B capital/C piripiri/C))")
-        assert edge.contains(hedge("is/Pd.sc"), deep=True)
-        assert edge.contains(hedge("piron/C"), deep=True)
-        assert edge.contains(hedge("(of/B capital/C piripiri/C)"), deep=True)
-        assert edge.contains(hedge("piripiri/C"), deep=True)
-        assert not edge.contains(hedge("1111/C"), deep=True)
-
-    def test_contains_deep_pares_atom(self):
         edge = hedge("(is/Pd.sc piron/C (of/B capital/C (XYZ)))")
-        assert edge.contains(hedge("is/Pd.sc"), deep=True)
-        assert edge.contains(hedge("piron/C"), deep=True)
-        assert edge.contains(hedge("(of/B capital/C (XYZ))"), deep=True)
-        assert edge.contains(hedge("(XYZ)"), deep=True)
-        assert not edge.contains(hedge("1111/C"), deep=True)
+        assert edge.contains(hedge("is/Pd.sc"))
+        assert edge.contains(hedge("piron/C"))
+        assert edge.contains(hedge("(of/B capital/C (XYZ))"))
+        assert edge.contains(hedge("(XYZ)"))
+        assert not edge.contains(hedge("1111/C"))
 
     def test_subedges1(self):
         assert hedge("hyperbase/1").subedges() == {hedge("hyperbase/1")}

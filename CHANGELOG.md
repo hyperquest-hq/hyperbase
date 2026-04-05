@@ -17,6 +17,7 @@
 - renamed function hyperedge.str2atom to str_to_atom.
 - Hyperedge is not a frozen dataclasse, instead of inheriting from tuple.
 - hedge now throws exceptions instead of returning None values.
+- Hyperedge.search always recursive, removed deep argument.
 
 ### Removed
 - function patterns.edge_matches_pattern.

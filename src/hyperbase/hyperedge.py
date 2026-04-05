@@ -196,7 +196,7 @@ def build_atom(text: str, *parts: str) -> Atom:
 class Hyperedge:
     """Non-atomic hyperedge."""
 
-    _edges: tuple[Hyperedge | None, ...]
+    _edges: tuple[Hyperedge, ...]
     text: str | None
 
     def __init__(
@@ -394,15 +394,12 @@ class Hyperedge:
                 max_d = d
         return max_d + 1
 
-    def contains(self, needle: str, deep: bool = False) -> bool:
-        """Checks if 'needle' is contained in edge.
-
-        Keyword argument:
-        deep -- search recursively (default False)"""
+    def contains(self, needle: str) -> bool:
+        """Checks recursively if 'needle' is contained in edge."""
         for item in self:
             if item == needle:
                 return True
-            if deep and item.contains(needle, True):
+            if item.contains(needle):
                 return True
         return False
 
@@ -976,12 +973,9 @@ class Atom(Hyperedge):
         """Returns edge with root-only atoms."""
         return Atom((self.root(),))
 
-    def contains(self, needle: str, deep: bool = False) -> bool:
-        """Checks if 'needle' is contained in edge.
-
-        Keyword argument:
-        deep -- search recursively (default: False)"""
-        return self[0] == needle  # type: ignore[no-any-return]
+    def contains(self, needle: str) -> bool:
+        """Checks recursively if 'needle' is contained in edge."""
+        return self[0] == needle
 
     def subedges(self) -> set[Hyperedge]:
         """Returns all the subedges contained in the edge, including atoms
