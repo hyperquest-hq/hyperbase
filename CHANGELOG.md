@@ -21,6 +21,7 @@
 - simplified Hyperedge.simplify.
 - Hyperedge.insert_argrole now private, renamed to Hyperedge._insert_argrole.
 - Renamed Hyperedge.insert_edge_with_argrole to add_argument, pos optional (default to add at the end).
+- Renamed Hyperedge.edges_with_argrole to arguments_with_role.
 
 ### Removed
 - function patterns.edge_matches_pattern.

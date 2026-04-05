@@ -400,9 +400,9 @@ True
 
 ```pycon
 >>> edge = hedge('(is/P.sc berlin/C nice/C)')
->>> edge.edges_with_argrole('s')
+>>> edge.arguments_with_role('s')
 [berlin/C]
->>> edge.edges_with_argrole('c')
+>>> edge.arguments_with_role('c')
 [nice/C]
 ```
 

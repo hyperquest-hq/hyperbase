@@ -879,7 +879,7 @@ class TestHyperedge(unittest.TestCase):
             "((var (m/M b/B.ama) V) x/C y/C z/C)"
         )
 
-    def test_edges_with_argrole(self):
+    def test_arguments_with_role(self):
         edge_str = (
             "((have/Mv.|f----/en (been/Mv.<pf---/en tracking/Pd.sox.|pg---/en)) (from/Br.ma/en "
             "satellites/Cc.p/en (and/B+/en nasa/Cp.s/en (other/Ma/en agencies/Cc.p/en))) "
@@ -893,12 +893,12 @@ class TestHyperedge(unittest.TestCase):
         obj = hedge("(+/B.aam/. sea/Cc.s/en ice/Cc.s/en changes/Cc.p/en)")
         spec = hedge("(since/Tt/en 1979/C#/en)")
 
-        assert edge.edges_with_argrole("s") == [subj]
-        assert edge.edges_with_argrole("o") == [obj]
-        assert edge.edges_with_argrole("x") == [spec]
-        assert edge.edges_with_argrole("p") == []
+        assert edge.arguments_with_role("s") == [subj]
+        assert edge.arguments_with_role("o") == [obj]
+        assert edge.arguments_with_role("x") == [spec]
+        assert edge.arguments_with_role("p") == []
 
-    def test_edges_with_argrole_no_roles(self):
+    def test_arguments_with_role_no_roles(self):
         edge_str = (
             "((have/Mv.|f----/en (been/Mv.<pf---/en tracking/Pd)) (from/Br.ma/en satellites/Cc.p/en "
             "(and/B+/en nasa/Cp.s/en (other/Ma/en agencies/Cc.p/en))) "
@@ -906,18 +906,18 @@ class TestHyperedge(unittest.TestCase):
         )
         edge = hedge(edge_str)
 
-        assert edge.edges_with_argrole("s") == []
-        assert edge.edges_with_argrole("o") == []
-        assert edge.edges_with_argrole("x") == []
-        assert edge.edges_with_argrole("p") == []
+        assert edge.arguments_with_role("s") == []
+        assert edge.arguments_with_role("o") == []
+        assert edge.arguments_with_role("x") == []
+        assert edge.arguments_with_role("p") == []
 
-    def test_edges_with_argrole_atom(self):
+    def test_arguments_with_role_atom(self):
         edge = hedge("tracking/Pd.sox.|pg---/en")
 
-        assert edge.edges_with_argrole("s") == []
-        assert edge.edges_with_argrole("o") == []
-        assert edge.edges_with_argrole("x") == []
-        assert edge.edges_with_argrole("p") == []
+        assert edge.arguments_with_role("s") == []
+        assert edge.arguments_with_role("o") == []
+        assert edge.arguments_with_role("x") == []
+        assert edge.arguments_with_role("p") == []
 
     def test_check_correctness_ok1(self):
         edge = hedge("(red/M shoes/C)")

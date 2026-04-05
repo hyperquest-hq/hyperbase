@@ -577,7 +577,7 @@ class Hyperedge:
         combined = (*tuple(new_edge[: pos + 1]), edge, *tuple(new_edge[pos + 1 :]))
         return Hyperedge(combined)
 
-    def edges_with_argrole(self, argrole: str) -> list[Hyperedge]:
+    def arguments_with_role(self, argrole: str) -> list[Hyperedge]:
         """Returns the list of edges with the given argument role."""
         edges: list[Hyperedge] = []
         connector = self[0]
@@ -1037,7 +1037,7 @@ class Atom(Hyperedge):
         argroles = argroles[:pos] + argrole + argroles[pos:]
         return self.replace_argroles(argroles)
 
-    def edges_with_argrole(self, argrole: str) -> list[Hyperedge]:
+    def arguments_with_role(self, argrole: str) -> list[Hyperedge]:
         """Returns the list of edges with the given argument role"""
         return []
 

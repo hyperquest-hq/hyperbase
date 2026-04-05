@@ -39,8 +39,8 @@ def _match_by_argroles(
         pitems = list(pattern[-n:])
     # match specific argrole
     else:
-        eitems = edge.edges_with_argrole(argrole)
-        pitems = _defun_pattern_argroles(pattern).edges_with_argrole(argrole)
+        eitems = edge.arguments_with_role(argrole)
+        pitems = _defun_pattern_argroles(pattern).arguments_with_role(argrole)
 
     if len(eitems) < n:
         if len(curvars) >= min_vars:

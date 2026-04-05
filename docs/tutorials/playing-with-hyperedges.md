@@ -245,9 +245,9 @@ The letters after the dot in a predicate encode the **argument roles** -- what r
 Here, `s` means "subject" and `o` means "object". You can retrieve arguments by their role:
 
 ```pycon
->>> edge.edges_with_argrole('s')
+>>> edge.arguments_with_role('s')
 [paris/Cp]
->>> edge.edges_with_argrole('o')
+>>> edge.arguments_with_role('o')
 [nice/Cc]
 ```
 
