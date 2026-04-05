@@ -394,10 +394,6 @@ class Hyperedge:
                 max_d = d
         return max_d + 1
 
-    def roots(self) -> Hyperedge:
-        """Returns edge with root-only atoms."""
-        return Hyperedge(tuple(item.roots() for item in self))
-
     def contains(self, needle: str, deep: bool = False) -> bool:
         """Checks if 'needle' is contained in edge.
 

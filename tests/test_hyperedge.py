@@ -285,19 +285,6 @@ class TestHyperedge(unittest.TestCase):
     def test_depth4(self):
         assert hedge("(is hyperbase/1 (super (X/C)))").depth() == 2
 
-    def test_roots1(self):
-        assert hedge("hyperbase/1").roots() == hedge("hyperbase")
-
-    def test_roots2(self):
-        assert hedge("(is hyperbase/1 great/1)").roots() == hedge(
-            "(is hyperbase great)"
-        )
-
-    def test_roots3(self):
-        assert hedge("(is hyperbase/1 (super great/1))").roots() == hedge(
-            "(is hyperbase (super great))"
-        )
-
     def test_contains(self):
         edge = hedge("(is/Pd.sc piron/C (of/B capital/C piripiri/C))")
         assert edge.contains(hedge("is/Pd.sc"))
