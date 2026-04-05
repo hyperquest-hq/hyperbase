@@ -199,19 +199,17 @@ class Hyperedge:
     _edges: tuple[Hyperedge, ...]
     text: str | None
 
-    def __init__(
-        self, edges: Iterable[Hyperedge | None], text: str | None = None
-    ) -> None:
+    def __init__(self, edges: Iterable[Hyperedge], text: str | None = None) -> None:
         object.__setattr__(self, "_edges", tuple(edges))
         object.__setattr__(self, "text", text)
 
-    def __iter__(self) -> Iterator[Hyperedge | None]:
+    def __iter__(self) -> Iterator[Hyperedge]:
         return iter(self._edges)
 
     @overload
     def __getitem__(self, key: int) -> Hyperedge: ...
     @overload
-    def __getitem__(self, key: slice) -> tuple[Hyperedge | None, ...]: ...
+    def __getitem__(self, key: slice) -> tuple[Hyperedge, ...]: ...
 
     def __getitem__(self, key):
         return self._edges[key]
