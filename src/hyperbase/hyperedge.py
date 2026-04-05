@@ -412,69 +412,6 @@ class Hyperedge:
             edges = edges.union(item.subedges())
         return edges
 
-    def insert_first_argument(self, argument: Hyperedge) -> Hyperedge:
-        """Returns an edge built by placing 'argument' as the first item
-        after the connector of this edge. If this edge is an atom, then
-        it becomes the connector of the returned edge.
-
-        For example, considering the 'edge' (a) and the 'argument' (b), this
-        function returns:
-        (a b)
-
-        Considering the 'edge' (a b c) and the 'argument' (d e), it
-        returns:
-        (a (d e) b c)
-        """
-        return Hyperedge((self[0], argument, *self[1:]))
-
-    def connect(
-        self, arguments: tuple[Hyperedge, ...] | list[Hyperedge] | None
-    ) -> Hyperedge:
-        """Returns an edge built by adding the items in 'arguments' to the
-        end of this edge. 'arguments' must be a collection.
-
-        For example, connecting the edge (a b) with the 'arguments'
-        (c d) produces:
-        (a b c d)
-        """
-        if arguments is None or len(arguments) == 0:
-            return self
-        else:
-            return Hyperedge(self + arguments)
-
-    def sequence(self, entity: Hyperedge, before: bool, flat: bool = True) -> Hyperedge:
-        """Returns an edge built by sequencing the 'entity', if it's an
-        atom, or the elements of 'entity' if it is an edge, either before
-        or after the elements of this edge.
-
-        If flat is False, then both this edge and 'entity' are treated as
-        self-contained edges when building the new edge.
-
-        For example, connecting the edge (a b) and the 'entity' c
-        produces, if before is True:
-        (c a b)
-        and if before is False:
-        (a b c)
-        Connecting the edge (a b) and the 'entity' (c d)
-        produces, if before is True:
-        (c d a b)
-        and if before is False:
-        (a b c d)
-        This last example, if 'flat' is False, becomes respectively:
-        ((c d) (a b))
-        ((a b) (c d))
-        """
-        if flat:
-            if before:
-                return entity + self
-            else:
-                return self + entity
-        else:
-            if before:
-                return Hyperedge((entity, self))
-            else:
-                return Hyperedge((self, entity))
-
     def replace_atom(
         self, old: Atom, new: Hyperedge, unique: bool = False
     ) -> Hyperedge:
@@ -982,21 +919,6 @@ class Atom(Hyperedge):
         and itself.
         """
         return {self}
-
-    def insert_first_argument(self, argument: Hyperedge) -> Hyperedge:
-        """Returns an edge built by placing 'argument' as the first item
-        after the connector of this edge. If this edge is an atom, then
-        it becomes the connector of the returned edge.
-
-        For example, considering the 'edge' (a) and the 'argument' (b), this
-        function returns:
-        (a b)
-
-        Considering the 'edge' (a b c) and the 'argument' (d e), it
-        returns:
-        (a (d e) b c)
-        """
-        return Hyperedge((self, argument))
 
     def replace_atom(
         self, old: Atom, new: Hyperedge, unique: bool = False

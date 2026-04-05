@@ -17,11 +17,11 @@
 - renamed function hyperedge.str2atom to str_to_atom.
 - Hyperedge is not a frozen dataclasse, instead of inheriting from tuple.
 - hedge now throws exceptions instead of returning None values.
-- Hyperedge.search always recursive, removed deep argument.
+- Hyperedge.contains always recursive, removed deep argument.
 
 ### Removed
 - function patterns.edge_matches_pattern.
-- deprecated and obsolete methods from Hyperedge: is_atom, to_str, roots.
+- deprecated and obsolete methods from Hyperedge: is_atom, to_str, roots, insert_first_argument, connect, sequence.
 
 ## [0.8.0] - 26-03-2026 - hyperbase is the successor of graphbrain
 
