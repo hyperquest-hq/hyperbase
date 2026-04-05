@@ -1042,29 +1042,6 @@ class Atom(Hyperedge):
         """Returns the list of edges with the given argument role"""
         return []
 
-    def main_concepts(self) -> list[Hyperedge]:
-        """Returns the list of main concepts in an concept edge.
-        A main concept is a central concept in a built concept, e.g.:
-        in ('s/Bp.am zimbabwe/Mp economy/Cn.s), economy/Cn.s is the main
-        concept.
-
-        If entity is not an edge, or its connector is not of type builder,
-        or the builder does not contain concept role annotations, or no
-        concept is annotated as the main one, then an empty list is
-        returned.
-        """
-        return []
-
-    def replace_main_concept(self, new_main: Hyperedge) -> Hyperedge:
-        """TODO: document and test"""
-        if self.mtype() != "C":
-            raise ValueError(
-                "replace_main_concept requires type 'C', "
-                f"got '{self.mtype()}': {self!s}"
-            )
-
-        return new_main
-
     def check_correctness(self) -> dict[Hyperedge, list[tuple[str, str]]]:
         output: dict[Hyperedge, list[tuple[str, str]]] = {}
         errors: list[tuple[str, str]] = []
