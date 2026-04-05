@@ -136,8 +136,8 @@ def _common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
         if (
             nedge1.not_atom
             and nedge2.not_atom
-            and nedge1.has_argroles()
-            and nedge2.has_argroles()
+            and nedge1.argroles()
+            and nedge2.argroles()
         ) and nedge1.mt == nedge2.mt:
             common = common_pattern_argroles(nedge1, nedge2)
             if common:
@@ -145,8 +145,8 @@ def _common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
 
         # do not combine edges with argroles and edges without them
         perform_ordered_match = not (
-            (nedge1.not_atom and nedge1.has_argroles())
-            or (nedge2.not_atom and nedge2.has_argroles())
+            (nedge1.not_atom and nedge1.argroles())
+            or (nedge2.not_atom and nedge2.argroles())
         )
         # same length
         if (

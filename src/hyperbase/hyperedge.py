@@ -535,10 +535,6 @@ class Hyperedge:
             return ""
         return self[1].argroles()  # type: ignore[no-any-return]
 
-    def has_argroles(self) -> bool:
-        """Returns True if the edge has argroles, False otherwise."""
-        return self.argroles() != ""
-
     def replace_argroles(self, argroles: str | None) -> Hyperedge:
         """Returns an edge with the argroles of the connector atom replaced
         with the provided string.
