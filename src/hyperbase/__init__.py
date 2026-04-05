@@ -1,5 +1,5 @@
 from hyperbase.hyperedge import hedge
-from hyperbase.load_edges import load_edges
+from hyperbase.loaders import load_edges
 from hyperbase.parsers import get_parser
 
 __all__ = [
