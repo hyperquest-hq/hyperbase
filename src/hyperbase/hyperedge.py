@@ -3,7 +3,9 @@ from __future__ import annotations
 from collections import Counter
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, cast, overload
+
+import hyperbase.constants as const
 
 if TYPE_CHECKING:
     from hyperbase.parsers.parse_result import ParseResult
@@ -102,13 +104,13 @@ def _parsed_token(token: str) -> Hyperedge:
     if _edge_str_has_outer_parens(token):
         return hedge(token)
     else:
-        return Atom((token,))
+        return Atom(token)
 
 
 def _collect_positions(tok_pos: Hyperedge) -> list[int]:
     """Collect all valid (>= 0) token positions from a tok_pos tree."""
     if tok_pos.atom:
-        pos = int(tok_pos[0])
+        pos = int(str(tok_pos))
         return [pos] if pos >= 0 else []
     else:
         positions: list[int] = []
@@ -124,9 +126,10 @@ def _rebuild_with_text(
 ) -> Hyperedge:
     """Recursively rebuild an edge, assigning text from tokens and tok_pos."""
     if edge.atom:
-        pos = int(tok_pos[0])
+        atom = cast(Atom, edge)
+        pos = int(str(tok_pos))
         text = tokens[pos] if pos >= 0 else None
-        return Atom(edge, edge.parens, text=text)
+        return Atom(str(atom), atom.parens, text=text)
     else:
         new_children = tuple(
             _rebuild_with_text(sub_edge, sub_tok_pos, tokens)
@@ -152,11 +155,15 @@ def hedge(
         and hasattr(source, "tokens")
         and hasattr(source, "edge")
     ):
-        edge = _rebuild_with_text(source.edge, source.tok_pos, source.tokens)
-        object.__setattr__(edge, "text", source.text)
+        from hyperbase.parsers import ParseResult
+
+        _source = cast(ParseResult, source)
+        edge = _rebuild_with_text(_source.edge, _source.tok_pos, _source.tokens)
+        object.__setattr__(edge, "text", _source.text)
         return edge
     if type(source) in {tuple, list}:
-        return Hyperedge(tuple(hedge(item) for item in source))
+        _source = cast(Iterable, source)
+        return Hyperedge(tuple(hedge(item) for item in _source))
     elif type(source) is str:
         edge_str = source.strip().replace("\n", " ")
         edge_inner_str = edge_str
@@ -170,7 +177,7 @@ def hedge(
             raise ValueError(f"Edge string is empty: '{source}'")
         edges = tuple(_parsed_token(token) for token in tokens)
         if len(edges) == 1 and isinstance(edges[0], Atom):
-            return Atom(edges[0], parens)
+            return Atom(str(edges[0]), parens)
         elif len(edges) > 0:
             return Hyperedge(edges)
         else:
@@ -188,8 +195,8 @@ def build_atom(text: str, *parts: str) -> Atom:
     atom = str_to_atom(text)
     parts_str = "/".join([part for part in parts if part])
     if len(parts_str) > 0:
-        atom = "".join((atom, "/", parts_str))
-    return Atom((atom,))
+        atom_str = "".join((atom, "/", parts_str))
+    return Atom(atom_str)
 
 
 @dataclass(frozen=True, init=False, eq=False, repr=False)
@@ -311,7 +318,7 @@ class Hyperedge:
         """Generate human-readable label for edge."""
         conn_atom = self.connector_atom()
         if len(self) == 2:
-            edge: tuple[Any, ...] = self
+            edge = self
         elif conn_atom is not None and conn_atom.parts()[-1] == ".":
             edge = self[1:]
         else:
@@ -724,6 +731,57 @@ class Hyperedge:
             edge = hedge([conn, *[role_edge[1] for role_edge in roles_edges_sorted]])
         return hedge([subedge.normalise() for subedge in edge])
 
+    ############
+    # patterns #
+    ############
+    def is_wildcard(self) -> bool:
+        """Check if this is an atom that defines a wildcard, i.e. if its root is a
+        pattern matcher.
+        (\\*, ., ..., if it is surrounded by parenthesis or variable label starting
+        with an uppercase letter)
+        """
+        return False
+
+    def is_pattern(self) -> bool:
+        """Check if this edge defines a pattern, i.e. if it includes at least
+        one pattern matcher.
+
+        Pattern matcher are:
+        - '\\*', '.', '(\\*)', '...'
+        - variables (atom root starting with an uppercase letter)
+        - argument role matcher (unordered argument roles surrounded by curly brackets)
+        - functional patterns (var, atoms, lemma, ...)
+        """
+        if self.is_fun_pattern():
+            return True
+        else:
+            return any(item.is_pattern() for item in self)
+
+    def is_fun_pattern(self) -> bool:
+        return str(self[0]) in const.PATTERN_FUNCTIONS
+
+    #############
+    # variables #
+    #############
+    def is_variable(self) -> bool:
+        return (
+            str(self[0]) == "var"
+            and len(self) == 3
+            and self[2].atom
+            and "/" not in str(self[2])
+        )
+
+    def contains_variable(self) -> bool:
+        if self.is_variable():
+            return True
+        return any(subedge.contains_variable() for subedge in self)
+
+    def variable_name(self) -> str:
+        if self.is_variable():
+            return str(self[2])
+        else:
+            raise ValueError(f"'{self!s}' is not a variable")
+
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
         if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
             return Hyperedge(self._edges + tuple(other))
@@ -744,17 +802,27 @@ class Hyperedge:
 class Atom(Hyperedge):
     """Atomic hyperedge."""
 
+    atom_str: str
     parens: bool
 
     def __init__(
         self,
-        edge: tuple[str, ...] | Atom | Any,  # noqa: ANN401
+        atom_str: str,
         parens: bool = False,
         text: str | None = None,
     ) -> None:
-        object.__setattr__(self, "_edges", tuple(edge))
+        object.__setattr__(self, "atom_str", atom_str)
         object.__setattr__(self, "parens", parens)
         object.__setattr__(self, "text", text)
+        object.__setattr__(self, "_edges", ())
+
+    def __hash__(self) -> int:
+        return hash(self.atom_str)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Atom):
+            return self.atom_str == other.atom_str
+        return False
 
     @property
     def atom(self) -> bool:
@@ -768,7 +836,7 @@ class Atom(Hyperedge):
 
     def parts(self) -> list[str]:
         """Splits atom into its parts."""
-        return self[0].split("/")  # type: ignore[no-any-return]
+        return self.atom_str.split("/")
 
     def root(self) -> str:
         """Extracts the root of an atom
@@ -779,8 +847,8 @@ class Atom(Hyperedge):
         """Build a new atom by replacing an atom part in a given atom."""
         parts = self.parts()
         parts[part_pos] = part
-        atom = "/".join([part for part in parts if part])
-        return Atom((atom,))
+        atom_str = "/".join([part for part in parts if part])
+        return Atom(atom_str)
 
     def label(self) -> str:
         """Generate human-readable label from entity."""
@@ -862,11 +930,11 @@ class Atom(Hyperedge):
 
     def roots(self) -> Atom:
         """Returns edge with root-only atoms."""
-        return Atom((self.root(),))
+        return Atom(self.root())
 
-    def contains(self, needle: str) -> bool:
+    def contains(self, needle: Hyperedge) -> bool:
         """Checks recursively if 'needle' is contained in edge."""
-        return self[0] == needle
+        return self == needle
 
     def subedges(self) -> set[Hyperedge]:
         """Returns all the subedges contained in the edge, including atoms
@@ -911,7 +979,7 @@ class Atom(Hyperedge):
 
             ['J'].
         """
-        parts: list[str] = self[0].split("/")
+        parts: list[str] = self.atom_str.split("/")
         if len(parts) < 2:
             return list("J")
         else:
@@ -941,7 +1009,7 @@ class Atom(Hyperedge):
             parts = parts[:2]
 
         atom_str = "/".join(parts)
-        return Atom((atom_str,))
+        return Atom(atom_str)
 
     def type(self) -> str:
         """Returns the type of the atom.
@@ -972,8 +1040,8 @@ class Atom(Hyperedge):
         If the 'atom_type' is 'Cp', the it will return:
         b/Cp
         """
-        n = len(atom_type)
         et = self.type()
+        n = len(atom_type)
         if len(et) >= n and et[:n] == atom_type:
             return self
         else:
@@ -1008,7 +1076,7 @@ class Atom(Hyperedge):
         """Returns an atom with the argroles replaced with the provided string."""
         if argroles is None or argroles == "":
             return self.remove_argroles()
-        parts = self[0].split("/")
+        parts = self.atom_str.split("/")
         if len(parts) < 2:
             return self
         role = parts[1].split(".")
@@ -1017,16 +1085,16 @@ class Atom(Hyperedge):
         else:
             role[1] = argroles
         parts = [parts[0], ".".join(role), *parts[2:]]
-        return Atom(("/".join(parts),))
+        return Atom("/".join(parts))
 
     def remove_argroles(self) -> Atom:
         """Returns an atom with the argroles removed."""
-        parts = self[0].split("/")
+        parts = self.atom_str.split("/")
         if len(parts) < 2:
             return self
         role = parts[1].split(".")
         parts[1] = role[0]
-        return Atom(("/".join(parts),))
+        return Atom("/".join(parts))
 
     def _insert_argrole(self, argrole: str, pos: int) -> Atom:
         """Returns an atom with the given argrole inserted at the specified
@@ -1067,6 +1135,57 @@ class Atom(Hyperedge):
                 return self.replace_argroles(ar)
         return self
 
+    ############
+    # patterns #
+    ############
+    def is_wildcard(self) -> bool:
+        """Check if this is an atom that defines a wildcard, i.e. if its root is a
+        pattern matcher.
+        (\\*, ., ..., if it is surrounded by parenthesis or variable label starting
+        with an uppercase letter)
+        """
+        return self.root()[0] in {"*", "."} or self.root()[0].isupper()
+
+    def is_pattern(self) -> bool:
+        """Check if this edge defines a pattern, i.e. if it includes at least
+        one pattern matcher.
+
+        Pattern matcher are:
+        - '\\*', '.', '(\\*)', '...'
+        - variables (atom root starting with an uppercase letter)
+        - argument role matcher (unordered argument roles surrounded by curly brackets)
+        - functional patterns (var, atoms, lemma, ...)
+        """
+        return self.is_wildcard() or "{" in self.argroles()
+
+    def is_fun_pattern(self) -> bool:
+        return False
+
+    #############
+    # variables #
+    #############
+    def is_variable(self) -> bool:
+        return self.root()[0].isupper() or (
+            self.root()[0] in {"*", "."}
+            and len(self.root()) > 1
+            and self.root()[1].isupper()
+        )
+
+    def contains_variable(self) -> bool:
+        return self.is_variable()
+
+    def variable_name(self) -> str:
+        if self.root()[0].isupper():
+            return self.root()
+        elif (
+            self.root()[0] in {"*", "."}
+            and len(self.root()) > 1
+            and self.root()[1].isupper()
+        ):
+            return self.root()[1:]
+        else:
+            raise ValueError(f"'{self.root()}' is not a variable")
+
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
         if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
             return Hyperedge((self, *tuple(other)))
@@ -1079,18 +1198,17 @@ class Atom(Hyperedge):
         return str(self)
 
     def __str__(self) -> str:
-        atom_str = str(self._edges[0])
         if self.parens:
-            return f"({atom_str})"
+            return f"({self.atom_str})"
         else:
-            return atom_str
+            return self.atom_str
 
 
 class UniqueAtom(Atom):
     atom_obj: Atom
 
     def __init__(self, atom: Atom) -> None:
-        super().__init__(atom._edges)
+        super().__init__(atom.atom_str)
         object.__setattr__(self, "atom_obj", atom)
 
     def __hash__(self) -> int:

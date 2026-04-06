@@ -1,6 +1,6 @@
 import unittest
 
-from hyperbase.hyperedge import build_atom, hedge, split_edge_str, str_to_atom
+from hyperbase.hyperedge import Atom, build_atom, hedge, split_edge_str, str_to_atom
 
 
 class TestHyperedge(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestHyperedge(unittest.TestCase):
         )
 
     def test_hedge4(self):
-        assert hedge(".") == (".",)
+        assert hedge(".") == Atom(".")
 
     def test_hedge5(self):
         assert str(hedge("(VAR/C)")) == "(VAR/C)"

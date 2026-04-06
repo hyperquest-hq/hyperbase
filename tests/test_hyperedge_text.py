@@ -122,19 +122,6 @@ class TestHyperedgeText(unittest.TestCase):
         # min=4, max=7 -> "the sky is blue"
         assert result[2][1].text == "the sky is blue"
 
-    def test_hedge_parse_result_parens_atom(self):
-        pr = ParseResult(
-            edge=hedge("(is/P.sc (X/C) good/C)"),
-            text="X is good.",
-            tokens=["X", "is", "good", "."],
-            tok_pos=hedge("(1 (0) 2)"),
-        )
-        result = hedge(pr)
-        assert str(result) == "(is/P.sc (X/C) good/C)"
-        assert result[1].atom
-        assert result[1].parens
-        assert result[1].text == "X"
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,9 +5,9 @@
 ### Added
 
 ### Changed
+- multiple patterns functions are now Hyperedge/Atom methods: is_wildcard, is_pattern, is_fun_pattern, is_variable, contains_variable, variable_name
 
 ### Removed
-
 
 ## [0.9.0] - 05-04-2026
 

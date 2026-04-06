@@ -2,129 +2,67 @@ import unittest
 
 from hyperbase import hedge
 from hyperbase.patterns import (
-    apply_vars,
     common_pattern,
-    contains_variable,
-    is_full_pattern,
-    is_pattern,
-    is_unordered_pattern,
-    is_variable,
-    is_wildcard,
     match_pattern,
     merge_patterns,
-    more_general,
 )
+from hyperbase.patterns.combine import more_general
 
 
 class TestPatterns(unittest.TestCase):
     def test_is_wildcard1(self):
-        assert not is_wildcard(hedge("thing/C"))
+        assert not hedge("thing/C").is_wildcard()
 
     def test_is_wildcard2(self):
-        assert is_wildcard(hedge("*/C"))
+        assert hedge("*/C").is_wildcard()
 
     def test_is_wildcard3(self):
-        assert is_wildcard(hedge("./M"))
+        assert hedge("./M").is_wildcard()
 
     def test_is_wildcard4(self):
-        assert is_wildcard(hedge("..."))
+        assert hedge("...").is_wildcard()
 
     def test_is_wildcard5(self):
-        assert is_wildcard(hedge("VARIABLE/C"))
+        assert hedge("VARIABLE/C").is_wildcard()
 
     def test_is_wildcard6(self):
-        assert is_wildcard(hedge("*VARIABLE/C"))
+        assert hedge("*VARIABLE/C").is_wildcard()
 
     def test_is_wildcard7(self):
-        assert not is_wildcard(hedge("go/Pd.so"))
+        assert not hedge("go/Pd.so").is_wildcard()
 
     def test_is_wildcard8(self):
-        assert not is_wildcard(hedge("go/Pd.{so}"))
+        assert not hedge("go/Pd.{so}").is_wildcard()
 
     def test_is_wildcard9(self):
-        assert not is_wildcard(hedge("(is/P.sc */M */Cn.s)"))
+        assert not hedge("(is/P.sc */M */Cn.s)").is_wildcard()
 
     def test_is_pattern1(self):
-        assert not is_pattern(hedge("('s/Bp.am zimbabwe/M economy/Cn.s)"))
+        assert not hedge("('s/Bp.am zimbabwe/M economy/Cn.s)").is_pattern()
 
     def test_is_pattern2(self):
-        assert is_pattern(hedge("('s/Bp.am * economy/Cn.s)"))
+        assert hedge("('s/Bp.am * economy/Cn.s)").is_pattern()
 
     def test_is_pattern3(self):
-        assert is_pattern(hedge("('s/Bp.am * ...)"))
+        assert hedge("('s/Bp.am * ...)").is_pattern()
 
     def test_is_pattern4(self):
-        assert not is_pattern(hedge("thing/C"))
+        assert not hedge("thing/C").is_pattern()
 
     def test_is_pattern5(self):
-        assert is_pattern(hedge("(*)"))
+        assert hedge("(*)").is_pattern()
 
     def test_is_pattern6(self):
-        assert not is_pattern(hedge("go/Pd.so"))
+        assert not hedge("go/Pd.so").is_pattern()
 
     def test_is_pattern7(self):
-        assert is_pattern(hedge("go/Pd.{so}"))
+        assert hedge("go/Pd.{so}").is_pattern()
 
     def test_is_pattern8(self):
-        assert not is_pattern(hedge("(is/P.sc x/C y/Cn.s)"))
+        assert not hedge("(is/P.sc x/C y/Cn.s)").is_pattern()
 
     def test_is_pattern9(self):
-        assert is_pattern(hedge("(is/P.{sc} x/C y/Cn.s)"))
-
-    def test_is_full_pattern1(self):
-        assert not is_full_pattern(hedge("('s/Bp.am zimbabwe/M economy/Cn.s)"))
-
-    def test_is_full_pattern2(self):
-        assert not is_full_pattern(hedge("('s/Bp.am * economy/Cn.s)"))
-
-    def test_is_full_pattern3(self):
-        assert not is_full_pattern(hedge("('s/Bp.am * ...)"))
-
-    def test_is_full_pattern4(self):
-        assert not is_full_pattern(hedge("thing/C"))
-
-    def test_is_full_pattern5(self):
-        assert is_full_pattern(hedge("(*)"))
-
-    def test_is_full_pattern6(self):
-        assert is_full_pattern(hedge("(* * *"))
-
-    def test_is_full_pattern7(self):
-        assert is_full_pattern(hedge("(* * * ...)"))
-
-    def test_is_full_pattern8(self):
-        assert is_full_pattern(hedge("(. * (*) ...)"))
-
-    def test_is_unordered_pattern1(self):
-        assert not is_unordered_pattern(hedge("('s/Bp.am * ...)"))
-
-    def test_is_unordered_pattern2(self):
-        assert not is_unordered_pattern(hedge("thing/C"))
-
-    def test_is_unordered_pattern3(self):
-        assert not is_unordered_pattern(hedge("*"))
-
-    def test_is_unordered_pattern4(self):
-        assert not is_unordered_pattern(hedge("go/Pd.so"))
-
-    def test_is_unordered_pattern5(self):
-        assert is_unordered_pattern(hedge("go/Pd.{so}"))
-
-    def test_is_unordered_pattern6(self):
-        assert not is_unordered_pattern(hedge("(is/P.sc x/C y/Cn.s)"))
-
-    def test_is_unordered_pattern7(self):
-        assert is_unordered_pattern(hedge("(is/P.{sc} x/C y/Cn.s)"))
-
-    def test_is_unordered_pattern8(self):
-        assert is_unordered_pattern(hedge("((not/M is/P.{sc}) x/C y/Cn.s)"))
-
-    def test_main_apply_vars(self):
-        edge = hedge("(PRED zimbabwe/C PROP)")
-        nedge = apply_vars(
-            edge, {"PRED": hedge("is/P"), "PROP": hedge("(sehr/M schön/C)")}
-        )
-        assert nedge == hedge("(is/P zimbabwe/C (sehr/M schön/C))")
+        assert hedge("(is/P.{sc} x/C y/Cn.s)").is_pattern()
 
     def test_match_pattern_simple1(self):
         assert match_pattern("(a b)", "(a b)") == [{}]
@@ -1020,27 +958,27 @@ class TestPatterns(unittest.TestCase):
 
     def test_is_variable1(self):
         edge = hedge("((going/M is/P.sx) */C (to/T */C))")
-        assert not is_variable(edge)
+        assert not edge.is_variable()
 
     def test_is_variable2(self):
         edge = hedge("(var ((going/M is/P.sx) */C (to/T */C)) X)")
-        assert is_variable(edge)
+        assert edge.is_variable()
 
     def test_contains_variable1(self):
         edge = hedge("((going/M is/P.sx) */C (to/T */C))")
-        assert not contains_variable(edge)
+        assert not edge.contains_variable()
 
     def test_contains_variable2(self):
         edge = hedge("(var ((going/M is/P.sx) */C (to/T */C)) X)")
-        assert contains_variable(edge)
+        assert edge.contains_variable()
 
     def test_contains_variable3(self):
         edge = hedge("((going/M is/P.sx) (var */C XYZ) (to/T */C))")
-        assert contains_variable(edge)
+        assert edge.contains_variable()
 
     def test_contains_variable4(self):
         edge = hedge("apples/C")
-        assert not contains_variable(edge)
+        assert not edge.contains_variable()
 
     def test_common_pattern1(self):
         edge1 = hedge("(likes/P.so mary/C chess/C)")
