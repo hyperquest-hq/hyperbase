@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import itertools
 from collections import Counter
+from collections.abc import Iterator
 from typing import Any, cast
 
 import hyperbase.constants as const
@@ -258,6 +258,37 @@ def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Atom) -> bool:
 # argroles #
 ############
 
+_MAX_ARGROLE_ITEMS = 10
+
+
+def _can_match_structurally(edge: Hyperedge, pattern: Hyperedge) -> bool:
+    """Cheap pre-filter: can edge possibly match pattern based on structure?"""
+    if pattern.atom:
+        return _matches_atomic_pattern(edge, cast(Atom, pattern))
+    if pattern.is_fun_pattern():
+        return True
+    # non-atomic pattern requires non-atomic edge
+    return edge.not_atom
+
+
+def _valid_assignments(
+    candidates: list[list[int]],
+    pos: int = 0,
+    used: set[int] | None = None,
+) -> Iterator[tuple[int, ...]]:
+    """Backtracking generator of assignments constrained by candidate sets."""
+    if used is None:
+        used = set()
+    if pos == len(candidates):
+        yield ()
+        return
+    for idx in candidates[pos]:
+        if idx not in used:
+            used.add(idx)
+            for rest in _valid_assignments(candidates, pos + 1, used):
+                yield (idx, *rest)
+            used.discard(idx)
+
 
 def _match_by_argroles(
     matcher: Matcher,
@@ -296,21 +327,38 @@ def _match_by_argroles(
         else:
             return []
 
+    if len(eitems) > _MAX_ARGROLE_ITEMS:
+        raise ValueError(
+            f"Edge has {len(eitems)} items for argrole '{argrole}', "
+            f"exceeding limit of {_MAX_ARGROLE_ITEMS}"
+        )
+
+    # constraint propagation: pre-compute which eitems can match each pitem
+    candidates: list[list[int]] = [
+        [j for j in range(len(eitems)) if _can_match_structurally(eitems[j], pitem)]
+        for pitem in pitems
+    ]
+
+    # early exit if any pattern position has zero candidates
+    if any(len(c) == 0 for c in candidates):
+        if len(curvars) >= min_vars:
+            return [curvars]
+        else:
+            return []
+
     result: list[dict[str, Hyperedge]] = []
 
     if tok_pos:
         tok_pos_items = [
             tok_pos[i] for i, subedge in enumerate(edge) if subedge in eitems
         ]
-        tok_pos_perms = tuple(itertools.permutations(tok_pos_items, r=n))
 
-    for perm_n, perm in enumerate(tuple(itertools.permutations(eitems, r=n))):
-        if tok_pos:
-            tok_pos_perm = tok_pos_perms[perm_n]
+    for assignment in _valid_assignments(candidates):
+        perm = tuple(eitems[j] for j in assignment)
         perm_result: list[dict[str, Hyperedge]] = [{}]
         for i, eitem in enumerate(perm):
             pitem = pitems[i]
-            tok_pos_item = tok_pos_perm[i] if tok_pos else None
+            tok_pos_item = tok_pos_items[assignment[i]] if tok_pos else None
             item_result: list[dict[str, Hyperedge]] = []
             for variables in perm_result:
                 item_result += matcher.match(
