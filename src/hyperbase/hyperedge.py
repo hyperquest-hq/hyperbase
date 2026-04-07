@@ -510,13 +510,6 @@ class Atom(Hyperedge):
     def subedges(self) -> set[Hyperedge]:
         return {self}
 
-    def replace_atom(
-        self, old: Atom, new: Hyperedge, unique: bool = False
-    ) -> Hyperedge:
-        from hyperbase.transforms import replace_atom
-
-        return replace_atom(self, old, new, unique=unique)
-
     def role(self) -> list[str]:
         """Returns the role of this atom as a list of the subrole strings.
 
@@ -542,11 +535,6 @@ class Atom(Hyperedge):
         else:
             return parts[1].split(".")
 
-    def simplify(self, subtypes: bool = False, namespaces: bool = False) -> Atom:
-        from hyperbase.transforms import simplify
-
-        return simplify(self, subtypes=subtypes, namespaces=namespaces)  # type: ignore[return-value]
-
     def type(self) -> str:
         """Returns the type of the atom (first subrole, default ``'J'``)."""
         return self.role()[0]
@@ -571,69 +559,13 @@ class Atom(Hyperedge):
             return ""
         return role[1]
 
-    def replace_argroles(self, argroles: str | None) -> Atom:
-        from hyperbase.transforms import replace_argroles
-
-        return replace_argroles(self, argroles)  # type: ignore[return-value]
-
     def remove_argroles(self) -> Atom:
         from hyperbase.transforms import replace_argroles
 
         return replace_argroles(self, None)  # type: ignore[return-value]
 
-    def _insert_argrole(self, argrole: str, pos: int) -> Atom:
-        from hyperbase.transforms import insert_argrole
-
-        return insert_argrole(self, argrole, pos)  # type: ignore[return-value]
-
     def arguments_with_role(self, argrole: str) -> list[Hyperedge]:
         return []
-
-    def check_correctness(self) -> dict[Hyperedge, list[tuple[str, str]]]:
-        from hyperbase.correctness import check_correctness
-
-        return check_correctness(self)
-
-    def normalise(self) -> Atom:
-        from hyperbase.transforms import normalise
-
-        return normalise(self)  # type: ignore[return-value]
-
-    ############
-    # patterns #
-    ############
-    def is_wildcard(self) -> bool:
-        from hyperbase.patterns.checks import is_wildcard
-
-        return is_wildcard(self)
-
-    def is_pattern(self) -> bool:
-        from hyperbase.patterns.checks import is_pattern
-
-        return is_pattern(self)
-
-    def is_fun_pattern(self) -> bool:
-        from hyperbase.patterns.checks import is_fun_pattern
-
-        return is_fun_pattern(self)
-
-    #############
-    # variables #
-    #############
-    def is_variable(self) -> bool:
-        from hyperbase.patterns.checks import is_variable
-
-        return is_variable(self)
-
-    def contains_variable(self) -> bool:
-        from hyperbase.patterns.checks import contains_variable
-
-        return contains_variable(self)
-
-    def variable_name(self) -> str:
-        from hyperbase.patterns.checks import variable_name
-
-        return variable_name(self)
 
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
         if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
