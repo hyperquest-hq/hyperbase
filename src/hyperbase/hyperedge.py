@@ -184,7 +184,7 @@ class Hyperedge:
             self._cache["depth"] = max_d + 1
         return self._cache["depth"]
 
-    def contains(self, needle: str) -> bool:
+    def contains(self, needle: Hyperedge) -> bool:
         """Checks recursively if 'needle' is contained in edge."""
         for item in self:
             if item == needle:
