@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, cast
 
+from hyperbase.constants import ATOM_ENCODE_TABLE
 from hyperbase.hyperedge import Atom, Hyperedge, UniqueAtom
 
 if TYPE_CHECKING:
@@ -11,21 +12,7 @@ if TYPE_CHECKING:
 
 def str_to_atom(s: str) -> str:
     """Converts a string into a valid atom."""
-    atom = s.lower()
-
-    atom = atom.replace("%", "%25")
-    atom = atom.replace("/", "%2f")
-    atom = atom.replace(" ", "%20")
-    atom = atom.replace("(", "%28")
-    atom = atom.replace(")", "%29")
-    atom = atom.replace(".", "%2e")
-    atom = atom.replace("*", "%2a")
-    atom = atom.replace("&", "%26")
-    atom = atom.replace("@", "%40")
-    atom = atom.replace("\n", "%0a")
-    atom = atom.replace("\r", "%0d")
-
-    return atom
+    return s.lower().translate(ATOM_ENCODE_TABLE)
 
 
 def _edge_str_has_outer_parens(edge_str: str) -> bool:

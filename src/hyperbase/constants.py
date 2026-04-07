@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 
 
@@ -70,3 +71,35 @@ valid_p_argroles: set[str] = {
     ArgRole.UNDETERMINED,
 }
 valid_b_argroles: set[str] = {ArgRole.MAIN, ArgRole.AGENT}
+
+# Atom URL-encoding table: char -> percent-encoded form
+# Order matters for sequential replace, but with translate/re.sub it doesn't.
+_ATOM_ENCODE_CHARS: dict[str, str] = {
+    "%": "%25",
+    "/": "%2f",
+    " ": "%20",
+    "(": "%28",
+    ")": "%29",
+    ".": "%2e",
+    "*": "%2a",
+    "&": "%26",
+    "@": "%40",
+    "\n": "%0a",
+    "\r": "%0d",
+}
+
+# str.translate table for encoding (single char -> multi-char string)
+ATOM_ENCODE_TABLE: dict[int, str] = {ord(k): v for k, v in _ATOM_ENCODE_CHARS.items()}
+
+# Decode map: percent-encoded form -> char
+_ATOM_DECODE_MAP: dict[str, str] = {v: k for k, v in _ATOM_ENCODE_CHARS.items()}
+
+# Compiled pattern matching any percent-encoded token
+_ATOM_DECODE_RE: re.Pattern[str] = re.compile(
+    "|".join(re.escape(code) for code in _ATOM_DECODE_MAP)
+)
+
+
+def atom_decode(s: str) -> str:
+    """Decode all percent-encoded sequences in a single pass."""
+    return _ATOM_DECODE_RE.sub(lambda m: _ATOM_DECODE_MAP[m.group()], s)

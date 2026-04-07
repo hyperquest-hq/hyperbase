@@ -473,19 +473,9 @@ class Atom(Hyperedge):
 
     def label(self) -> str:
         """Generate human-readable label from entity."""
-        label = self.root()
+        from hyperbase.constants import atom_decode
 
-        label = label.replace("%25", "%")
-        label = label.replace("%2f", "/")
-        label = label.replace("%20", " ")
-        label = label.replace("%28", "(")
-        label = label.replace("%29", ")")
-        label = label.replace("%2e", ".")
-        label = label.replace("%2a", "*")
-        label = label.replace("%26", "&")
-        label = label.replace("%40", "@")
-
-        return label
+        return atom_decode(self.root())
 
     def inner_atom(self) -> Atom:
         return self
