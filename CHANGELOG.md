@@ -17,6 +17,7 @@
 - `read_source` renamed to `parse_source`; `read_source_to_jsonl` renamed to `parse_source_to_jsonl`.
 
 ### Removed
+- `__add__` operator overloading in `Hyperedge`/`Atom`.
 
 ## [0.9.0] - 05-04-2026
 

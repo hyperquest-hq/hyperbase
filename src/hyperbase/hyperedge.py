@@ -426,14 +426,6 @@ class Hyperedge:
 
         return variable_name(self)
 
-    def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
-        if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
-            return Hyperedge(self._edges + tuple(other))
-        elif isinstance(other, Hyperedge) and other.atom:
-            return Hyperedge((*self._edges, other))
-        else:
-            return Hyperedge(self._edges + tuple(other))
-
     def __str__(self) -> str:
         s = " ".join([str(edge) for edge in self._edges if edge])
         return f"({s})"
@@ -593,14 +585,6 @@ class Atom(Hyperedge):
 
     def arguments_with_role(self, argrole: str) -> list[Hyperedge]:
         return []
-
-    def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
-        if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
-            return Hyperedge((self, *tuple(other)))
-        elif isinstance(other, Hyperedge) and other.atom:
-            return Hyperedge((self, other))
-        else:
-            return Hyperedge((self, *tuple(other)))
 
     def __repr__(self) -> str:
         return str(self)
