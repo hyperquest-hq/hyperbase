@@ -62,28 +62,28 @@ class Hyperedge:
     @property
     def t(self) -> str:
         """Edge type.
-        (this porperty is a shortcut for Hyperedge.type())
+        (this property is a shortcut for Hyperedge.type())
         """
         return self.type()
 
     @property
     def mt(self) -> str:
         """Edge main type.
-        (this porperty is a shortcut for Hyperedge.mtype())
+        (this property is a shortcut for Hyperedge.mtype())
         """
         return self.mtype()
 
     @property
     def ct(self) -> str | None:
         """Edge connector type.
-        (this porperty is a shortcut for Hyperedge.connector_type())
+        (this property is a shortcut for Hyperedge.connector_type())
         """
         return self.connector_type()
 
     @property
     def cmt(self) -> str | None:
         """Edge connector main type.
-        (this porperty is a shortcut for Hyperedge.mconnector_type())
+        (this property is a shortcut for Hyperedge.mconnector_type())
         """
         return self.connector_mtype()
 
