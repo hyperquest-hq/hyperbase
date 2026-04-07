@@ -5,7 +5,8 @@
 ### Added
 - [] pattern notation for specifying sequences of arguments.
 - EdgeType and ArgRole enums.
-- Safety cap for match (_MAX_ARGROLE_ITEMS=10) against pathological edge arities.
+- safety cap for match (_MAX_ARGROLE_ITEMS=10) against pathological edge arities.
+- caching of computed Hyperedge/Atom properties.
 
 ### Changed
 - multiple patterns functions are now Hyperedge/Atom methods: is_wildcard, is_pattern, is_fun_pattern, is_variable, contains_variable, variable_name.

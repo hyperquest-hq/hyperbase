@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, overload
 
 from hyperbase.constants import EdgeType
@@ -13,10 +13,14 @@ class Hyperedge:
 
     _edges: tuple[Hyperedge, ...]
     text: str | None
+    _cache: dict[str, Any] = field(
+        default_factory=dict, repr=False, compare=False, hash=False
+    )
 
     def __init__(self, edges: Iterable[Hyperedge], text: str | None = None) -> None:
         object.__setattr__(self, "_edges", tuple(edges))
         object.__setattr__(self, "text", text)
+        object.__setattr__(self, "_cache", {})
 
     def __iter__(self) -> Iterator[Hyperedge]:
         return iter(self._edges)
@@ -165,16 +169,20 @@ class Hyperedge:
 
     def size(self) -> int:
         """The size of an edge is its total number of atoms, at all depths."""
-        return sum([edge.size() for edge in self])
+        if "size" not in self._cache:
+            self._cache["size"] = sum(edge.size() for edge in self)
+        return self._cache["size"]
 
     def depth(self) -> int:
         """Returns maximal depth of edge, an atom has depth 0."""
-        max_d = 0
-        for item in self:
-            d = item.depth()
-            if d > max_d:
-                max_d = d
-        return max_d + 1
+        if "depth" not in self._cache:
+            max_d = 0
+            for item in self:
+                d = item.depth()
+                if d > max_d:
+                    max_d = d
+            self._cache["depth"] = max_d + 1
+        return self._cache["depth"]
 
     def contains(self, needle: str) -> bool:
         """Checks recursively if 'needle' is contained in edge."""
@@ -223,6 +231,8 @@ class Hyperedge:
         """Returns the type of this edge as a string.
         Type inference is performed.
         """
+        if "type" in self._cache:
+            return self._cache["type"]
         ptype = self[0].type()
         if ptype[0] == EdgeType.PREDICATE:
             outter_type = EdgeType.RELATION
@@ -231,7 +241,9 @@ class Hyperedge:
                 raise RuntimeError(
                     f"Edge is malformed, type cannot be determined: {self!s}"
                 )
-            return self[1].type()  # type: ignore[no-any-return]
+            result = self[1].type()
+            self._cache["type"] = result
+            return result
         elif ptype[0] == EdgeType.TRIGGER:
             outter_type = EdgeType.SPECIFIER
         elif ptype[0] == EdgeType.BUILDER:
@@ -241,20 +253,26 @@ class Hyperedge:
                 raise RuntimeError(
                     f"Edge is malformed, type cannot be determined: {self!s}"
                 )
-            return self[1].mtype()  # type: ignore[no-any-return]
+            result = self[1].mtype()
+            self._cache["type"] = result
+            return result
         else:
             raise RuntimeError(
                 f"Edge is malformed, type cannot be determined: {self!s}"
             )
 
-        return outter_type + ptype[1:]
+        result = outter_type + ptype[1:]
+        self._cache["type"] = result
+        return result
 
     def connector_type(self) -> str | None:
         """Returns the type of the edge's connector.
         If the edge has no connector (i.e. it's an atom), then None is
         returned.
         """
-        return self[0].type()  # type: ignore[no-any-return]
+        if "connector_type" not in self._cache:
+            self._cache["connector_type"] = self[0].type()
+        return self._cache["connector_type"]
 
     def mtype(self) -> str:
         """Returns the main type of this edge as a string of one character.
@@ -307,15 +325,20 @@ class Hyperedge:
         (not/M is/P.sc) has argument roles "sc",
         of/B.ma has argument roles "ma".
         """
+        if "argroles" in self._cache:
+            return self._cache["argroles"]
         et = self.mtype()
         if et in {EdgeType.RELATION, EdgeType.CONCEPT} and self[0].mtype() in {
             EdgeType.BUILDER,
             EdgeType.PREDICATE,
         }:
-            return self[0].argroles()  # type: ignore[no-any-return]
-        if et not in {EdgeType.BUILDER, EdgeType.PREDICATE}:
-            return ""
-        return self[1].argroles()  # type: ignore[no-any-return]
+            result = self[0].argroles()
+        elif et not in {EdgeType.BUILDER, EdgeType.PREDICATE}:
+            result = ""
+        else:
+            result = self[1].argroles()
+        self._cache["argroles"] = result
+        return result
 
     def replace_argroles(self, argroles: str | None) -> Hyperedge:
         """Returns an edge with the argroles of the connector atom replaced
@@ -436,6 +459,7 @@ class Atom(Hyperedge):
         object.__setattr__(self, "parens", parens)
         object.__setattr__(self, "text", text)
         object.__setattr__(self, "_edges", ())
+        object.__setattr__(self, "_cache", {})
 
     def __hash__(self) -> int:
         return hash(self.atom_str)
@@ -524,15 +548,20 @@ class Atom(Hyperedge):
 
             ['J'].
         """
+        if "role" in self._cache:
+            return self._cache["role"]
         parts: list[str] = self.atom_str.split("/")
-        if len(parts) < 2:
-            return list("J")
-        else:
-            return parts[1].split(".")
+        result = list("J") if len(parts) < 2 else parts[1].split(".")
+        self._cache["role"] = result
+        return result
 
     def type(self) -> str:
         """Returns the type of the atom (first subrole, default ``'J'``)."""
-        return self.role()[0]
+        if "type" in self._cache:
+            return self._cache["type"]
+        result = self.role()[0]
+        self._cache["type"] = result
+        return result
 
     def connector_type(self) -> str | None:
         return None
@@ -546,13 +575,16 @@ class Atom(Hyperedge):
             return None
 
     def argroles(self) -> str:
+        if "argroles" in self._cache:
+            return self._cache["argroles"]
         et = self.mtype()
         if et not in {EdgeType.BUILDER, EdgeType.PREDICATE}:
-            return ""
-        role = self.role()
-        if len(role) < 2:
-            return ""
-        return role[1]
+            result = ""
+        else:
+            role = self.role()
+            result = role[1] if len(role) >= 2 else ""
+        self._cache["argroles"] = result
+        return result
 
     def remove_argroles(self) -> Atom:
         from hyperbase.transforms import replace_argroles
