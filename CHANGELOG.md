@@ -3,15 +3,18 @@
 ## [0.9.1] - work in progress
 
 ### Added
-- [] pattern notation for specifying sequences of arguments.
+- `[]` pattern notation for specifying sequences of arguments.
 - EdgeType and ArgRole enums.
-- safety cap for match (_MAX_ARGROLE_ITEMS=10) against pathological edge arities.
-- caching of computed Hyperedge/Atom properties.
+- safety cap for match (`_MAX_ARGROLE_ITEMS=10`) against pathological edge arities.
+- caching of computed `Hyperedge`/`Atom` properties.
+- `parse_to_jsonl` method on Parser.
 
 ### Changed
-- multiple patterns functions are now Hyperedge/Atom methods: is_wildcard, is_pattern, is_fun_pattern, is_variable, contains_variable, variable_name.
-- hyperbase.py now delegating to smaller modules with well-defined concerns: builders.py, correctness.py, transforms.py, patterns.checks.py and patterns.matcher.py.
-- replaced itertools.permutations with constraint-propagated backtracking in argrole matcher.
+- multiple patterns functions are now `Hyperedge`/`Atom` methods: `is_wildcard`, `is_pattern`, `is_fun_pattern`, `is_variable`, `contains_variable`, `variable_name`.
+- `hyperbase.py` now delegating to smaller modules with well-defined concerns: `builders.py`, `correctness.py`, `transforms.py`, `patterns.checks.py` and `patterns.matcher.py`.
+- replaced `itertools.permutations` with constraint-propagated backtracking in argrole matcher.
+- `parse_text` renamed to `parse`; old iterator-based `parse` removed.
+- `read_source` renamed to `parse_source`; `read_source_to_jsonl` renamed to `parse_source_to_jsonl`.
 
 ### Removed
 

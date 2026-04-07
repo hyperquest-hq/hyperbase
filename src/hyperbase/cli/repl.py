@@ -558,7 +558,7 @@ class ReplSession:
         try:
             start_time = time.perf_counter()
 
-            parse_result = list(self.parser.parse(text))
+            parse_result = self.parser.parse(text)
             if parse_result and len(parse_result) > 0:
                 edge = parse_result[0].edge
                 tokens = parse_result[0].tokens

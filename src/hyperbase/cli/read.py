@@ -51,7 +51,7 @@ def run_read(args: argparse.Namespace) -> None:
     errors = 0
 
     with open(args.output, "w") as f:
-        for results in parser.read_source(
+        for results in parser.parse_source(
             args.source,
             reader=args.reader,
             batch_size=args.batch_size,

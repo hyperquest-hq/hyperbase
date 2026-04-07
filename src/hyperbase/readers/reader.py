@@ -177,7 +177,7 @@ class Reader:
             total = self.block_count(source)
             pbar = tqdm(total=total, desc="Parsing", unit="block")
         for block in self.read(source):
-            results = parser.parse_text(block, batch_size=batch_size)
+            results = parser.parse(block, batch_size=batch_size)
             if progress:
                 pbar.update(1)
             if results:

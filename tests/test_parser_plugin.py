@@ -114,13 +114,13 @@ class TestParserBaseClass:
 
         class TestParser(ParserBase):
             def sentensize(self, text):
-                return ["sent1", "sent2"]
+                return ["hello world", "foo bar"]
 
             def parse_sentence(self, sentence):
                 return [MagicMock(spec=ParseResult)]
 
         parser = TestParser()
-        results = list(parser.parse("any text"))
+        results = parser.parse("any text")
         assert len(results) == 2
 
     def test_parse_batch_default(self):
@@ -137,8 +137,8 @@ class TestParserBaseClass:
         results = parser.parse_batch(["s1", "s2", "s3"])
         assert len(results) == 3
 
-    def test_parse_text_filters_short_sentences(self):
-        """parse_text should skip sentences with 1 or fewer words."""
+    def test_parse_filters_short_sentences(self):
+        """parse should skip sentences with 1 or fewer words."""
 
         class TestParser(ParserBase):
             def sentensize(self, text):
@@ -148,7 +148,7 @@ class TestParserBaseClass:
                 return [MagicMock(spec=ParseResult)]
 
         parser = TestParser()
-        results = parser.parse_text("ignored", batch_size=10)
+        results = parser.parse("ignored", batch_size=10)
         # Only "hello world" has more than 1 word
         assert len(results) == 1
 

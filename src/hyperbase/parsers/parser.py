@@ -11,10 +11,6 @@ class Parser:
     def sentensize(self, text: str) -> list[str]:
         raise NotImplementedError
 
-    def parse(self, text: str) -> Iterator[ParseResult]:
-        for sentence in self.sentensize(text):
-            yield from self.parse_sentence(sentence)
-
     def parse_sentence(self, sentence: str) -> list[ParseResult]:
         raise NotImplementedError
 
@@ -23,7 +19,7 @@ class Parser:
         true batched implementation (e.g. a single CT2 call)."""
         return [self.parse_sentence(sentence) for sentence in sentences]
 
-    def parse_text(
+    def parse(
         self, text: str, batch_size: int = 8, progress: bool = False
     ) -> list[ParseResult]:
         """Sentensize text, then parse all sentences in batches.
@@ -43,7 +39,22 @@ class Parser:
                 results.extend(sentence_results)
         return results
 
-    def read_source(
+    def parse_to_jsonl(
+        self,
+        text: str,
+        output: str,
+        batch_size: int = 8,
+        progress: bool = False,
+    ) -> None:
+        """Parse *text* and write results to a JSONL file.
+
+        Each ParseResult is serialized as one JSON line.
+        """
+        with open(output, "w") as f:
+            for result in self.parse(text, batch_size=batch_size, progress=progress):
+                f.write(result.to_json() + "\n")
+
+    def parse_source(
         self,
         source: str,
         reader: str = "auto",
@@ -65,7 +76,7 @@ class Parser:
             progress=progress,
         )
 
-    def read_source_to_jsonl(
+    def parse_source_to_jsonl(
         self,
         source: str,
         output: str,
@@ -78,7 +89,7 @@ class Parser:
         Each ParseResult is serialized as one JSON line.
         """
         with open(output, "w") as f:
-            for results in self.read_source(
+            for results in self.parse_source(
                 source,
                 reader=reader,
                 batch_size=batch_size,
