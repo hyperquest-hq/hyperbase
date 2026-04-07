@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from hyperbase.constants import ATOM_ENCODE_TABLE
 from hyperbase.hyperedge import Atom, Hyperedge, UniqueAtom
-
-if TYPE_CHECKING:
-    from hyperbase.parsers.parse_result import ParseResult
+from hyperbase.parsers.parse_result import ParseResult
 
 
 def str_to_atom(s: str) -> str:
@@ -114,15 +112,8 @@ def hedge(
     source: str | Hyperedge | list | tuple | ParseResult,
 ) -> Hyperedge:
     """Create a hyperedge."""
-    # Check for ParseResult via duck typing to avoid circular import
-    if (
-        hasattr(source, "tok_pos")
-        and hasattr(source, "tokens")
-        and hasattr(source, "edge")
-    ):
-        from hyperbase.parsers import ParseResult
-
-        _source = cast(ParseResult, source)
+    if isinstance(source, ParseResult):
+        _source = source
         edge = _rebuild_with_text(_source.edge, _source.tok_pos, _source.tokens)
         object.__setattr__(edge, "text", _source.text)
         return edge

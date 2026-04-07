@@ -4,7 +4,6 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, cast
 
-from hyperbase.builders import hedge
 from hyperbase.hyperedge import Hyperedge
 
 
@@ -37,6 +36,8 @@ class ParseResult:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> ParseResult:
+        from hyperbase.builders import hedge
+
         edge = d["edge"]
         if isinstance(edge, str):
             edge = hedge(edge)
