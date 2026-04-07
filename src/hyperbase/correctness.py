@@ -108,30 +108,14 @@ def _check_edge(edge: Hyperedge) -> dict[Hyperedge, list[tuple[str, str]]]:
                     )
 
                 ars_counts = Counter(ars)
-                if ars_counts["s"] > 1:
-                    errors.append(
-                        ("argrole-s-1-max", "argrole s can only be used once")
-                    )
-                if ars_counts["o"] > 1:
-                    errors.append(
-                        ("argrole-o-1-max", "argrole o can only be used once")
-                    )
-                if ars_counts["c"] > 1:
-                    errors.append(
-                        ("argrole-c-1-max", "argrole c can only be used once")
-                    )
-                if ars_counts["i"] > 1:
-                    errors.append(
-                        ("argrole-i-1-max", "argrole i can only be used once")
-                    )
-                if ars_counts["p"] > 1:
-                    errors.append(
-                        ("argrole-p-1-max", "argrole p can only be used once")
-                    )
-                if ars_counts["a"] > 1:
-                    errors.append(
-                        ("argrole-a-1-max", "argrole a can only be used once")
-                    )
+                for role in "socipam":
+                    if ars_counts[role] > 1:
+                        errors.append(
+                            (
+                                f"argrole-{role}-1-max",
+                                f"argrole {role} can only be used once",
+                            )
+                        )
             else:
                 errors.append(
                     (

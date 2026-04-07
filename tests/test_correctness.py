@@ -282,12 +282,12 @@ class TestBadnessCheck:
         for _k, v in errors.items():
             if isinstance(v, list):
                 for err in v:
-                    if isinstance(err, tuple) and err[0] == "duplicate-argrole-s":
+                    if isinstance(err, tuple) and err[0] == "argrole-s-1-max":
                         assert len(err) == 3
-                        assert err[2] == 2
+                        assert err[2] == 0
                         found = True
                         break
-        assert found, "Should detect duplicate argrole 's' with severity 2"
+        assert found, "Should detect duplicate argrole 's'"
 
     def test_invalid_junction_mixed(self):
         # Mixed types C and R

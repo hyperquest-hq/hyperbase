@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections import Counter
 from typing import Any
 
 from hyperbase.hyperedge import Hyperedge
@@ -21,7 +20,6 @@ def check_structural_quality(
         # Argrole checks
         try:
             ars = current_edge.argroles()
-            ar_counts: Counter[str] = Counter()
             for ar in ars:
                 if ar not in "mspaoixtjrc":
                     current_errors.append(
@@ -32,17 +30,7 @@ def check_structural_quality(
                             2,
                         )
                     )
-                ar_counts[ar] += 1
 
-            for role in "spoiamc":
-                if ar_counts[role] > 1:
-                    current_errors.append(
-                        (
-                            f"duplicate-argrole-{role}",
-                            f"Argument role '{role}' should only be used once.",
-                            2,
-                        )
-                    )
         except Exception:
             pass
 
