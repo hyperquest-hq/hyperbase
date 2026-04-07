@@ -584,6 +584,160 @@ class TestPatterns(unittest.TestCase):
             {"X": hedge("hyperbase/Cp.s"), "Y": hedge("great/C"), "Z": hedge("today/J")}
         ]
 
+    # [] ordered subsequence brackets -- is_pattern detection
+
+    def test_is_pattern_brackets1(self):
+        assert hedge("go/Pd.[so]").is_pattern()
+
+    def test_is_pattern_brackets2(self):
+        assert hedge("go/Pd.{[so]x}").is_pattern()
+
+    def test_is_pattern_brackets3(self):
+        assert hedge("(go/Pd.[so] x/C y/C)").is_pattern()
+
+    # [] ordered subsequence brackets -- inside {}
+
+    def test_match_pattern_argroles_brackets1(self):
+        """[so] in {}: s,o must be contiguous in order, x anywhere"""
+        assert match_pattern(
+            "(is/Pd.sox hyperbase/Cp.s great/C today/C)",
+            "(is/Pd.{[so]x} hyperbase/Cp.s *X *Y)",
+        ) == [{"X": hedge("great/C"), "Y": hedge("today/C")}]
+
+    def test_match_pattern_argroles_brackets2(self):
+        """[so] in {}: x can appear before the [so] group"""
+        assert match_pattern(
+            "(is/Pd.xso today/C hyperbase/Cp.s great/C)",
+            "(is/Pd.{[so]x} hyperbase/Cp.s *X *Y)",
+        ) == [{"X": hedge("great/C"), "Y": hedge("today/C")}]
+
+    def test_match_pattern_argroles_brackets3(self):
+        """[so] in {}: fails when s,o are not contiguous (s_x_o)"""
+        assert (
+            match_pattern(
+                "(is/Pd.sxo hyperbase/Cp.s today/C great/C)",
+                "(is/Pd.{[so]x} hyperbase/Cp.s *X *Y)",
+            )
+            == []
+        )
+
+    def test_match_pattern_argroles_brackets4(self):
+        """[so] in {}: fails when s,o are in wrong order (os)"""
+        assert (
+            match_pattern(
+                "(is/Pd.osx great/C hyperbase/Cp.s today/C)",
+                "(is/Pd.{[so]x} hyperbase/Cp.s *X *Y)",
+            )
+            == []
+        )
+
+    def test_match_pattern_argroles_brackets5(self):
+        """[so] in {}: fails when required role x is missing"""
+        assert (
+            match_pattern(
+                "(is/Pd.so hyperbase/Cp.s great/C)",
+                "(is/Pd.{[so]x} hyperbase/Cp.s *X *Y)",
+            )
+            == []
+        )
+
+    def test_match_pattern_argroles_brackets6(self):
+        """[so] in {}: extra roles are allowed"""
+        assert match_pattern(
+            "(is/Pd.xsoy today/C hyperbase/Cp.s great/C extra/C)",
+            "(is/Pd.{[so]x} hyperbase/Cp.s *X *Y)",
+        ) == [{"X": hedge("great/C"), "Y": hedge("today/C")}]
+
+    def test_match_pattern_argroles_brackets7(self):
+        """larger bracket group [sor]"""
+        assert match_pattern(
+            "(is/Pd.sorx hyperbase/Cp.s great/C extra/C today/C)",
+            "(is/Pd.{[sor]x} hyperbase/Cp.s *O *R *X)",
+        ) == [{"O": hedge("great/C"), "R": hedge("extra/C"), "X": hedge("today/C")}]
+
+    def test_match_pattern_argroles_brackets8(self):
+        """larger bracket group [sor] fails when not contiguous"""
+        assert (
+            match_pattern(
+                "(is/Pd.soxr hyperbase/Cp.s great/C today/C extra/C)",
+                "(is/Pd.{[sor]x} hyperbase/Cp.s *O *R *X)",
+            )
+            == []
+        )
+
+    def test_match_pattern_argroles_brackets9(self):
+        """multiple bracket groups [so][xr]"""
+        assert match_pattern(
+            "(is/Pd.soxr hyperbase/Cp.s great/C today/C extra/C)",
+            "(is/Pd.{[so][xr]} hyperbase/Cp.s *O *X *R)",
+        ) == [{"O": hedge("great/C"), "X": hedge("today/C"), "R": hedge("extra/C")}]
+
+    def test_match_pattern_argroles_brackets10(self):
+        """multiple bracket groups can appear in any order"""
+        assert match_pattern(
+            "(is/Pd.xrso today/C extra/C hyperbase/Cp.s great/C)",
+            "(is/Pd.{[so][xr]} hyperbase/Cp.s *O *X *R)",
+        ) == [{"O": hedge("great/C"), "X": hedge("today/C"), "R": hedge("extra/C")}]
+
+    def test_match_pattern_argroles_brackets11(self):
+        """multiple bracket groups: fails when one group is not contiguous"""
+        assert (
+            match_pattern(
+                "(is/Pd.soRx hyperbase/Cp.s great/C extra/C today/C)",
+                "(is/Pd.{[so][xr]} hyperbase/Cp.s *O *X *R)",
+            )
+            == []
+        )
+
+    def test_match_pattern_argroles_brackets_no_vars(self):
+        """bracket matching without variables"""
+        assert match_pattern(
+            "(is/Pd.sox hyperbase/Cp.s great/C today/C)",
+            "(is/Pd.{[so]x} hyperbase/Cp.s * *)",
+        ) == [{}]
+
+    # [] ordered subsequence brackets -- outside {} (bare)
+
+    def test_match_pattern_argroles_bare_brackets1(self):
+        """[so] outside {}: matches exact argroles"""
+        assert match_pattern(
+            "(is/Pd.so hyperbase/Cp.s great/C)", "(is/Pd.[so] hyperbase/Cp.s *X)"
+        ) == [{"X": hedge("great/C")}]
+
+    def test_match_pattern_argroles_bare_brackets2(self):
+        """[so] outside {}: matches with extras before"""
+        assert match_pattern(
+            "(is/Pd.xso today/C hyperbase/Cp.s great/C)",
+            "(is/Pd.[so] hyperbase/Cp.s *X)",
+        ) == [{"X": hedge("great/C")}]
+
+    def test_match_pattern_argroles_bare_brackets3(self):
+        """[so] outside {}: matches with extras after"""
+        assert match_pattern(
+            "(is/Pd.sox hyperbase/Cp.s great/C today/C)",
+            "(is/Pd.[so] hyperbase/Cp.s *X)",
+        ) == [{"X": hedge("great/C")}]
+
+    def test_match_pattern_argroles_bare_brackets4(self):
+        """[so] outside {}: fails when reversed"""
+        assert (
+            match_pattern(
+                "(is/Pd.os great/C hyperbase/Cp.s)",
+                "(is/Pd.[so] hyperbase/Cp.s *X)",
+            )
+            == []
+        )
+
+    def test_match_pattern_argroles_bare_brackets5(self):
+        """[so] outside {}: fails when not contiguous"""
+        assert (
+            match_pattern(
+                "(is/Pd.sxo hyperbase/Cp.s today/C great/C)",
+                "(is/Pd.[so] hyperbase/Cp.s *X)",
+            )
+            == []
+        )
+
     def test_match_pattern_match_connectors1(self):
         assert match_pattern(
             "(is/P hyperbase/Cp.s great/C)", "(PRED/P hyperbase/Cp.s X ...)"

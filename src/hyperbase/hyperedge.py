@@ -590,7 +590,7 @@ class Hyperedge:
         argroles = connector.argroles()
         if len(argroles) > 0 and argroles[0] == "{":
             argroles = argroles[1:-1]
-        argroles = argroles.replace(",", "")
+        argroles = argroles.replace(",", "").replace("[", "").replace("]", "")
         for pos, role in enumerate(argroles):
             if role == argrole and pos < len(self) - 1:
                 edges.append(self[pos + 1])
@@ -1129,7 +1129,8 @@ class Atom(Hyperedge):
                     unordered = True
                 else:
                     unordered = False
-                ar = "".join(sorted(ar, key=lambda argrole: argrole_order[argrole]))
+                if "[" not in ar:
+                    ar = "".join(sorted(ar, key=lambda argrole: argrole_order[argrole]))
                 if unordered:
                     ar = f"{{{ar}}}"
                 return self.replace_argroles(ar)
@@ -1156,7 +1157,7 @@ class Atom(Hyperedge):
         - argument role matcher (unordered argument roles surrounded by curly brackets)
         - functional patterns (var, atoms, lemma, ...)
         """
-        return self.is_wildcard() or "{" in self.argroles()
+        return self.is_wildcard() or "{" in self.argroles() or "[" in self.argroles()
 
     def is_fun_pattern(self) -> bool:
         return False

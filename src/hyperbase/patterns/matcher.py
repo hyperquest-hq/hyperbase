@@ -189,12 +189,30 @@ def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Hyperedge) -> bool:
                 e_argroles = e_role[1]
                 if len(ap_argroles_posopt) > 0 and ap_argroles_posopt[0] == "{":
                     ap_argroles_posopt = ap_argroles_posopt[1:-1]
-                else:
+                elif "[" not in ap_argroles_posopt:
                     ap_argroles_posopt = ap_argroles_posopt.replace(",", "")
                     if len(e_argroles) > len(ap_argroles_posopt):
                         return False
                     else:
                         return ap_argroles_posopt.startswith(e_argroles)  # type: ignore[no-any-return]
+                # else: has [...] ordered subsequence brackets, fall through
+
+                # check [...] contiguity constraints
+                if "[" in ap_argroles_posopt:
+                    i = 0
+                    while i < len(ap_argroles_posopt):
+                        if ap_argroles_posopt[i] == "[":
+                            j = ap_argroles_posopt.index("]", i)
+                            group = ap_argroles_posopt[i + 1 : j]
+                            if group not in e_argroles:
+                                return False
+                            i = j + 1
+                        else:
+                            i += 1
+                    # strip brackets for count checking below
+                    ap_argroles_posopt = ap_argroles_posopt.replace("[", "").replace(
+                        "]", ""
+                    )
 
                 ap_argroles_parts = ap_argroles_posopt.split(",")
                 ap_posroles = ap_argroles_parts[0]
@@ -413,10 +431,14 @@ class Matcher:
         if len(argroles_posopt) > 0 and argroles_posopt[0] == "{":
             match_by_order = False
             argroles_posopt = argroles_posopt[1:-1]
+        elif "[" in argroles_posopt:
+            match_by_order = False
         else:
             match_by_order = True
-        argroles = argroles_posopt.split(",")[0]
-        argroles_opt = argroles_posopt.replace(",", "")
+        argroles = argroles_posopt.replace("[", "").replace("]", "").split(",")[0]
+        argroles_opt = (
+            argroles_posopt.replace("[", "").replace("]", "").replace(",", "")
+        )
 
         if len(argroles) > 0:
             min_len = 1 + len(argroles)
