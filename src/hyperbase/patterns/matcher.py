@@ -6,6 +6,7 @@ from typing import Any, cast
 
 import hyperbase.constants as const
 from hyperbase import hedge
+from hyperbase.constants import EdgeType
 from hyperbase.hyperedge import Atom, Hyperedge
 
 # tok_pos can be nested lists/ints matching the edge structure
@@ -180,7 +181,7 @@ def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Atom) -> bool:
                 return False
 
             # argroles match
-            if ap_type[0] in {"B", "P"}:
+            if ap_type[0] in {EdgeType.BUILDER, EdgeType.PREDICATE}:
                 ap_argroles_parts = ap_role[1].split("-")
                 if len(ap_argroles_parts) == 1:
                     ap_argroles_parts.append("")

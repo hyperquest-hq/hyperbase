@@ -4,6 +4,7 @@
 
 ### Added
 - [] pattern notation for specifying sequences of arguments.
+- EdgeType and ArgRole enums.
 
 ### Changed
 - multiple patterns functions are now Hyperedge/Atom methods: is_wildcard, is_pattern, is_fun_pattern, is_variable, contains_variable, variable_name

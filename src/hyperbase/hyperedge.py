@@ -4,6 +4,8 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from typing import Any, overload
 
+from hyperbase.constants import EdgeType
+
 
 @dataclass(frozen=True, init=False, eq=False, repr=False)
 class Hyperedge:
@@ -222,19 +224,19 @@ class Hyperedge:
         Type inference is performed.
         """
         ptype = self[0].type()
-        if ptype[0] == "P":
-            outter_type = "R"
-        elif ptype[0] == "M":
+        if ptype[0] == EdgeType.PREDICATE:
+            outter_type = EdgeType.RELATION
+        elif ptype[0] == EdgeType.MODIFIER:
             if len(self) < 2:
                 raise RuntimeError(
                     f"Edge is malformed, type cannot be determined: {self!s}"
                 )
             return self[1].type()  # type: ignore[no-any-return]
-        elif ptype[0] == "T":
-            outter_type = "S"
-        elif ptype[0] == "B":
-            outter_type = "C"
-        elif ptype[0] == "J":
+        elif ptype[0] == EdgeType.TRIGGER:
+            outter_type = EdgeType.SPECIFIER
+        elif ptype[0] == EdgeType.BUILDER:
+            outter_type = EdgeType.CONCEPT
+        elif ptype[0] == EdgeType.CONJUNCTION:
             if len(self) < 2:
                 raise RuntimeError(
                     f"Edge is malformed, type cannot be determined: {self!s}"
@@ -245,7 +247,7 @@ class Hyperedge:
                 f"Edge is malformed, type cannot be determined: {self!s}"
             )
 
-        return f"{outter_type}{ptype[1:]}"
+        return outter_type + ptype[1:]
 
     def connector_type(self) -> str | None:
         """Returns the type of the edge's connector.
@@ -306,9 +308,12 @@ class Hyperedge:
         of/B.ma has argument roles "ma".
         """
         et = self.mtype()
-        if et in {"R", "C"} and self[0].mtype() in {"B", "P"}:
+        if et in {EdgeType.RELATION, EdgeType.CONCEPT} and self[0].mtype() in {
+            EdgeType.BUILDER,
+            EdgeType.PREDICATE,
+        }:
             return self[0].argroles()  # type: ignore[no-any-return]
-        if et not in {"B", "P"}:
+        if et not in {EdgeType.BUILDER, EdgeType.PREDICATE}:
             return ""
         return self[1].argroles()  # type: ignore[no-any-return]
 
@@ -552,7 +557,7 @@ class Atom(Hyperedge):
 
     def argroles(self) -> str:
         et = self.mtype()
-        if et not in {"B", "P"}:
+        if et not in {EdgeType.BUILDER, EdgeType.PREDICATE}:
             return ""
         role = self.role()
         if len(role) < 2:

@@ -4,6 +4,7 @@ from typing import cast
 
 import hyperbase.constants as const
 from hyperbase.builders import hedge
+from hyperbase.constants import EdgeType
 from hyperbase.hyperedge import Atom, Hyperedge, UniqueAtom
 
 
@@ -11,7 +12,7 @@ def normalise(edge: Hyperedge) -> Hyperedge:
     """Return a normalised copy of the edge (argument roles sorted)."""
     if edge.atom:
         atom = cast(Atom, edge)
-        if atom.mtype() in {"B", "P"}:
+        if atom.mtype() in {EdgeType.BUILDER, EdgeType.PREDICATE}:
             ar = atom.argroles()
             if len(ar) > 0:
                 if ar[0] == "{":
@@ -104,11 +105,11 @@ def replace_argroles(edge: Hyperedge, argroles: str | None) -> Hyperedge:
         return Atom("/".join(parts))
     else:
         st = edge.mtype()
-        if st in {"C", "R"}:
+        if st in {EdgeType.CONCEPT, EdgeType.RELATION}:
             new_edge = [replace_argroles(edge[0], argroles)]
             new_edge += edge[1:]
             return Hyperedge(new_edge)
-        elif st in {"P", "B"}:
+        elif st in {EdgeType.PREDICATE, EdgeType.BUILDER}:
             new_edge = [edge[0], replace_argroles(edge[1], argroles)]
             new_edge += list(edge[2:])
             return Hyperedge(new_edge)
@@ -132,11 +133,11 @@ def insert_argrole(edge: Hyperedge, argrole: str, pos: int) -> Hyperedge:
         return replace_argroles(edge, argroles)
     else:
         st = edge.mtype()
-        if st in {"C", "R"}:
+        if st in {EdgeType.CONCEPT, EdgeType.RELATION}:
             new_edge = [insert_argrole(edge[0], argrole, pos)]
             new_edge += edge[1:]
             return Hyperedge(new_edge)
-        elif st in {"P", "B"}:
+        elif st in {EdgeType.PREDICATE, EdgeType.BUILDER}:
             new_edge = [edge[0], insert_argrole(edge[1], argrole, pos)]
             new_edge += list(edge[2:])
             return Hyperedge(new_edge)

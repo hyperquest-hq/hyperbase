@@ -20,6 +20,7 @@ from rich.text import Text
 from rich.tree import Tree
 
 from hyperbase.builders import hedge
+from hyperbase.constants import EdgeType
 from hyperbase.hyperedge import Atom, Hyperedge
 from hyperbase.parsers import Parser, get_parser, list_parsers
 from hyperbase.parsers.correctness import badness_check
@@ -42,14 +43,14 @@ DEFAULTS = {
 
 
 TYPE_COLORS = {
-    "C": "#4A9EFF",
-    "M": "#00E5CC",
-    "B": "#5DC4FF",
-    "P": "#FF8C42",
-    "T": "#00CDB8",
-    "J": "#00FF87",
-    "R": "#FFD700",
-    "S": "#FF6EC7",
+    EdgeType.CONCEPT: "#4A9EFF",
+    EdgeType.MODIFIER: "#00E5CC",
+    EdgeType.BUILDER: "#5DC4FF",
+    EdgeType.PREDICATE: "#FF8C42",
+    EdgeType.TRIGGER: "#00CDB8",
+    EdgeType.CONJUNCTION: "#00FF87",
+    EdgeType.RELATION: "#FFD700",
+    EdgeType.SPECIFIER: "#FF6EC7",
 }
 
 

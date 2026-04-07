@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from hyperbase.constants import EdgeType
 from hyperbase.hyperedge import Hyperedge
 from hyperbase.parsers.utils import filter_alphanumeric_strings
 
@@ -36,9 +37,13 @@ def check_structural_quality(
 
         # Junction checks
         try:
-            if current_edge[0].mt == "J":
+            if current_edge[0].mt == EdgeType.CONJUNCTION:
                 types = {child.mt for child in current_edge[1:]}
-                if types != {"R"} and types != {"C"} and types != {"R", "S"}:
+                if (
+                    types != {EdgeType.RELATION}
+                    and types != {EdgeType.CONCEPT}
+                    and types != {EdgeType.RELATION, EdgeType.SPECIFIER}
+                ):
                     current_errors.append(
                         (
                             "bad-junction-types",
