@@ -3,9 +3,10 @@ from __future__ import annotations
 import itertools
 from collections import Counter
 from collections.abc import Iterator, Mapping, Sequence
+from typing import cast
 
 from hyperbase import hedge
-from hyperbase.hyperedge import Hyperedge
+from hyperbase.hyperedge import Atom, Hyperedge
 
 # common_pattern: what do these have in common?
 #                 produces a generalized pattern with wildcards
@@ -97,9 +98,10 @@ def more_general(edge1: Hyperedge, edge2: Hyperedge) -> bool:
 
 def atom_pattern_counts(edge: Hyperedge) -> tuple[int, int, int]:
     if edge.atom:
-        parts: list[str] = edge.parts()  # type: ignore[attr-defined]
+        atom = cast(Atom, edge)
+        parts: list[str] = atom.parts()
         roots = 1 if parts[0] != "*" else 0
-        subtyped = 1 if len(edge.type()) > 1 else 0
+        subtyped = 1 if len(atom.type()) > 1 else 0
         typed = 1 if len(parts) > 1 else 0
     else:
         roots = 0
@@ -170,8 +172,8 @@ def common_type(edges: Sequence[Hyperedge]) -> str | None:
     return None
 
 
-def common_pattern_atoms(atoms: Sequence[Hyperedge]) -> Hyperedge:
-    roots = [atom.root() for atom in atoms]  # type: ignore[attr-defined]
+def common_pattern_atoms(atoms: Sequence[Atom]) -> Hyperedge:
+    roots = [atom.root() for atom in atoms]
 
     root = "*" if len(set(roots)) != 1 or "*" in roots else roots[0]
 
@@ -183,7 +185,7 @@ def common_pattern_atoms(atoms: Sequence[Hyperedge]) -> Hyperedge:
     roles1: list[str | None] = []
     roles2: list[str | None] = []
     for atom in atoms:
-        role = atom.role()  # type: ignore[attr-defined]
+        role = atom.role()
         r1: str | None = role[1] if len(role) > 1 else None
         r2: str | None = role[2] if len(role) > 2 else None
         roles1.append(r1)
@@ -247,7 +249,9 @@ def _common_pattern(edge1: Hyperedge, edge2: Hyperedge) -> Hyperedge | None:
 
     # both are atoms
     if nedge1.atom and nedge2.atom:
-        return common_pattern_atoms((nedge1, nedge2))
+        natom1 = cast(Atom, nedge1)
+        natom2 = cast(Atom, nedge2)
+        return common_pattern_atoms((natom1, natom2))
     # at least one non-atom
     else:
         if (

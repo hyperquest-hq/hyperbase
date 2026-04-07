@@ -40,8 +40,10 @@ def _generate_edges(
     path = _as_path(source)
     if path is not None:
         yield from _load_from_file(path)
-    else:
+    elif isinstance(source, Iterable) and not isinstance(source, str):
         yield from _load_from_sequence(source)
+    else:
+        raise TypeError(f"unsupported source type: {type(source).__name__}")
 
 
 def _as_path(source: str | PathLike | Iterable) -> Path | None:

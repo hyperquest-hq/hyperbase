@@ -5,6 +5,8 @@ from collections.abc import Iterator
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+import pytest
+
 from hyperbase.hyperedge import hedge
 from hyperbase.loaders import load_edges
 from hyperbase.parsers.parse_result import ParseResult
@@ -150,10 +152,7 @@ class TestLoadEdgesFromJsonFile(unittest.TestCase):
 
 
 class TestLoadEdgesStringNotFile(unittest.TestCase):
-    def test_string_not_existing_file_iterates_chars(self):
-        """A string that is not an existing file path is treated as an
-        iterable of characters, each fed to hedge as an atom."""
-        edges = load_edges("ab")
-        assert len(edges) == 2
-        assert str(edges[0]) == "a"
-        assert str(edges[1]) == "b"
+    def test_string_not_existing_file_raises(self):
+        """A string that is not an existing file path raises TypeError."""
+        with pytest.raises(TypeError):
+            load_edges("ab")

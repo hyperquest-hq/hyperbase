@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from hyperbase.parsers.parser import Parser
+    from hyperbase.parsers.parser import Parser, ParseResult
 
 
 _REGISTRY: dict[str, type[Reader]] = {}
@@ -165,7 +165,7 @@ class Reader:
         parser: Parser,
         batch_size: int = 8,
         progress: bool = False,
-    ) -> Iterator[list[dict[str, Any]]]:
+    ) -> Iterator[list[ParseResult]]:
         """Read text blocks and parse each one with *parser*.
 
         Yields one list of parse results per text block, leveraging

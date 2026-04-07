@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 from hyperbase.hyperedge import Hyperedge, hedge
 
@@ -39,9 +39,19 @@ class ParseResult:
         edge = d["edge"]
         if isinstance(edge, str):
             edge = hedge(edge)
+        elif not isinstance(edge, Hyperedge):
+            raise TypeError(
+                f"'edge' must be a str or Hyperedge, got {type(edge).__name__}"
+            )
+        edge = cast(Hyperedge, edge)
         tok_pos = d.get("tok_pos")
         if isinstance(tok_pos, str):
             tok_pos = hedge(tok_pos)
+        elif tok_pos is not None and not isinstance(tok_pos, Hyperedge):
+            raise TypeError(
+                f"'tok_pos' must be a str or Hyperedge, got {type(tok_pos).__name__}"
+            )
+        tok_pos = cast(Hyperedge, tok_pos)
         return cls(
             edge=edge,
             text=d["text"],

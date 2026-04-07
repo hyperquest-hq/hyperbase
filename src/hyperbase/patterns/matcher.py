@@ -104,7 +104,7 @@ def _defun_pattern_argroles(edge: Hyperedge) -> Hyperedge:
                 if argroles != "":
                     return atom
             # if no atom with argroles is found, just return the first one
-            return edge[1]  # type: ignore[no-any-return]
+            return edge[1]
         else:
             result = hedge([edge[0], _defun_pattern_argroles(edge[1]), *list(edge[2:])])
             assert result is not None
@@ -119,7 +119,8 @@ def _atoms_and_tok_pos(
     edge: Hyperedge, tok_pos: TokPos
 ) -> tuple[list[Atom], list[Any]]:
     if edge.atom:
-        return [edge], [tok_pos]  # type: ignore[list-item]
+        atom = cast(Atom, edge)
+        return [atom], [tok_pos]
     atoms: list[Atom] = []
     atoms_tok_pos: list[Any] = []
     for edge_item, tok_pos_item in zip(edge, tok_pos, strict=False):
@@ -136,8 +137,8 @@ def _atoms_and_tok_pos(
 #########
 
 
-def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Hyperedge) -> bool:
-    ap_parts = atomic_pattern.parts()  # type: ignore[attr-defined]
+def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Atom) -> bool:
+    ap_parts = atomic_pattern.parts()
 
     if len(ap_parts) == 0 or len(ap_parts[0]) == 0:
         return False
@@ -147,13 +148,14 @@ def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Hyperedge) -> bool:
     if struct_code == ".":
         if edge.not_atom:
             return False
-    elif atomic_pattern.parens:  # type: ignore[attr-defined]
+    elif atomic_pattern.parens:
         if edge.atom:
             return False
     elif struct_code != "*" and not struct_code.isupper():
         if edge.not_atom:
             return False
-        if edge.root() != atomic_pattern.root():  # type: ignore[attr-defined]
+        atom = cast(Atom, edge)
+        if atom.root() != atomic_pattern.root():
             return False
 
     # role match
@@ -161,7 +163,7 @@ def _matches_atomic_pattern(edge: Hyperedge, atomic_pattern: Hyperedge) -> bool:
         pos = 1
 
         # type match
-        ap_role = atomic_pattern.role()  # type: ignore[attr-defined]
+        ap_role = atomic_pattern.role()
         ap_type = ap_role[0]
         e_type = edge.type()
         n = len(ap_type)
@@ -337,22 +339,6 @@ def _match_by_argroles(
 #############
 
 
-def _varname(atom: Hyperedge) -> str:
-    if not atom.atom:
-        return ""
-    label: str = atom.parts()[0]  # type: ignore[attr-defined]
-    if len(label) == 0:
-        return label
-    elif label[0] in {"*", "."}:
-        return label[1:]
-    elif label[:3] == "...":
-        return label[3:]
-    elif label[0].isupper():
-        return label
-    else:
-        return ""
-
-
 def _assign_edge_to_var(
     curvars: dict[str, Hyperedge], var_name: str, edge: Hyperedge
 ) -> dict[str, Hyperedge]:
@@ -403,14 +389,14 @@ class Matcher:
 
         # atomic patterns
         if pattern.atom:
-            if _matches_atomic_pattern(edge, pattern):
+            atomic_pattern = cast(Atom, pattern)
+            if _matches_atomic_pattern(edge, atomic_pattern):
                 variables: dict[str, Hyperedge] = {}
-                if pattern.is_pattern():
-                    varname = _varname(pattern)
-                    if len(varname) > 0:
-                        variables[varname] = _assign_edge_to_var(
-                            {**curvars, **variables}, varname, edge
-                        )[varname]
+                if pattern.is_variable():
+                    varname = pattern.variable_name()
+                    variables[varname] = _assign_edge_to_var(
+                        {**curvars, **variables}, varname, edge
+                    )[varname]
                 return [{**curvars, **variables}]
             else:
                 return []
@@ -457,12 +443,14 @@ class Matcher:
 
                 for variables in result:
                     if pitem.atom:
-                        varname = _varname(pitem)
-                        if _matches_atomic_pattern(eitem, pitem):
-                            if len(varname) > 0 and varname[0].isupper():
-                                variables[varname] = _assign_edge_to_var(
-                                    {**curvars, **variables}, varname, eitem
-                                )[varname]
+                        aitem = cast(Atom, pitem)
+                        if _matches_atomic_pattern(eitem, aitem):
+                            if pitem.is_variable():
+                                varname = pitem.variable_name()
+                                if varname[0].isupper():
+                                    variables[varname] = _assign_edge_to_var(
+                                        {**curvars, **variables}, varname, eitem
+                                    )[varname]
                         else:
                             continue
                         _result.append(variables)
