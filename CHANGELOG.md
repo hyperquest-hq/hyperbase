@@ -7,6 +7,7 @@
 
 ### Changed
 - multiple patterns functions are now Hyperedge/Atom methods: is_wildcard, is_pattern, is_fun_pattern, is_variable, contains_variable, variable_name
+- hyperbase.py now delegating to smaller modules with well-defined concerns: builders.py, correctness.py, transforms.py, patterns.checks.py and patterns.matcher.py.
 
 ### Removed
 

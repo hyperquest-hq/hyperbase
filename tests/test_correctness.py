@@ -1,4 +1,4 @@
-from hyperbase.hyperedge import hedge
+from hyperbase.builders import hedge
 from hyperbase.parsers.correctness import badness_check, filter_alphanumeric_strings
 
 

@@ -4,7 +4,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, cast
 
-from hyperbase.hyperedge import Hyperedge, hedge
+from hyperbase.builders import hedge
+from hyperbase.hyperedge import Hyperedge
 
 
 @dataclass

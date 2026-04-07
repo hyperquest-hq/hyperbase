@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from hyperbase.hyperedge import hedge
+from hyperbase.builders import hedge
 from hyperbase.loaders import load_edges
 from hyperbase.parsers.parse_result import ParseResult
 

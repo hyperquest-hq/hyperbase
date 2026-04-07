@@ -1,4 +1,4 @@
-from hyperbase.hyperedge import hedge
+from hyperbase.builders import hedge
 from hyperbase.loaders import load_edges
 from hyperbase.parsers import get_parser
 

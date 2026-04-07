@@ -19,7 +19,8 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
-from hyperbase.hyperedge import Atom, Hyperedge, hedge
+from hyperbase.builders import hedge
+from hyperbase.hyperedge import Atom, Hyperedge
 from hyperbase.parsers import Parser, get_parser, list_parsers
 from hyperbase.parsers.correctness import badness_check
 

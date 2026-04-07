@@ -1,202 +1,8 @@
 from __future__ import annotations
 
-from collections import Counter
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, cast, overload
-
-import hyperbase.constants as const
-
-if TYPE_CHECKING:
-    from hyperbase.parsers.parse_result import ParseResult
-
-
-argrole_order: dict[str, int] = {
-    "m": -1,
-    "s": 0,
-    "p": 1,
-    "a": 2,
-    "c": 3,
-    "o": 4,
-    "i": 5,
-    "t": 6,
-    "j": 7,
-    "x": 8,
-    "r": 9,
-    "?": 10,
-}
-
-
-valid_p_argroles: set[str] = {"s", "p", "a", "c", "o", "i", "t", "j", "x", "r", "?"}
-valid_b_argroles: set[str] = {"m", "a"}
-
-
-def str_to_atom(s: str) -> str:
-    """Converts a string into a valid atom."""
-    atom = s.lower()
-
-    atom = atom.replace("%", "%25")
-    atom = atom.replace("/", "%2f")
-    atom = atom.replace(" ", "%20")
-    atom = atom.replace("(", "%28")
-    atom = atom.replace(")", "%29")
-    atom = atom.replace(".", "%2e")
-    atom = atom.replace("*", "%2a")
-    atom = atom.replace("&", "%26")
-    atom = atom.replace("@", "%40")
-    atom = atom.replace("\n", "%0a")
-    atom = atom.replace("\r", "%0d")
-
-    return atom
-
-
-def _edge_str_has_outer_parens(edge_str: str) -> bool:
-    """Check if string representation of edge is delimited by outer
-    parenthesis.
-    """
-    if len(edge_str) < 2:
-        return False
-    return edge_str[0] == "("
-
-
-def split_edge_str(edge_str: str) -> tuple[str, ...]:
-    """Shallow split into tokens of a string representation of an edge,
-    without outer parenthesis.
-    """
-    start = 0
-    depth = 0
-    str_length = len(edge_str)
-    active = 0
-    tokens: list[str] = []
-    for i in range(str_length):
-        c = edge_str[i]
-        if c == " ":
-            if active and depth == 0:
-                tokens.append(edge_str[start:i])
-                active = 0
-        elif c == "(":
-            if depth == 0:
-                active = 1
-                start = i
-            depth += 1
-        elif c == ")":
-            depth -= 1
-            if depth == 0:
-                tokens.append(edge_str[start : i + 1])
-                active = 0
-            elif depth < 0:
-                raise ValueError(f"Unbalanced parenthesis in edge string: '{edge_str}'")
-        else:
-            if not active:
-                active = 1
-                start = i
-
-    if active:
-        if depth > 0:
-            raise ValueError(f"Unbalanced parenthesis in edge string: '{edge_str}'")
-        else:
-            tokens.append(edge_str[start:])
-
-    return tuple(tokens)
-
-
-def _parsed_token(token: str) -> Hyperedge:
-    if _edge_str_has_outer_parens(token):
-        return hedge(token)
-    else:
-        return Atom(token)
-
-
-def _collect_positions(tok_pos: Hyperedge) -> list[int]:
-    """Collect all valid (>= 0) token positions from a tok_pos tree."""
-    if tok_pos.atom:
-        pos = int(str(tok_pos))
-        return [pos] if pos >= 0 else []
-    else:
-        positions: list[int] = []
-        for sub in tok_pos:
-            positions.extend(_collect_positions(sub))
-        return positions
-
-
-def _rebuild_with_text(
-    edge: Hyperedge,
-    tok_pos: Hyperedge,
-    tokens: list[str],
-) -> Hyperedge:
-    """Recursively rebuild an edge, assigning text from tokens and tok_pos."""
-    if edge.atom:
-        atom = cast(Atom, edge)
-        pos = int(str(tok_pos))
-        text = tokens[pos] if pos >= 0 else None
-        return Atom(str(atom), atom.parens, text=text)
-    else:
-        new_children = tuple(
-            _rebuild_with_text(sub_edge, sub_tok_pos, tokens)
-            for sub_edge, sub_tok_pos in zip(edge, tok_pos, strict=False)
-        )
-        positions = _collect_positions(tok_pos)
-        if positions:
-            min_pos = min(positions)
-            max_pos = max(positions)
-            text = " ".join(tokens[min_pos : max_pos + 1])
-        else:
-            text = None
-        return Hyperedge(new_children, text=text)
-
-
-def hedge(
-    source: str | Hyperedge | list | tuple | ParseResult,
-) -> Hyperedge:
-    """Create a hyperedge."""
-    # Check for ParseResult via duck typing to avoid circular import
-    if (
-        hasattr(source, "tok_pos")
-        and hasattr(source, "tokens")
-        and hasattr(source, "edge")
-    ):
-        from hyperbase.parsers import ParseResult
-
-        _source = cast(ParseResult, source)
-        edge = _rebuild_with_text(_source.edge, _source.tok_pos, _source.tokens)
-        object.__setattr__(edge, "text", _source.text)
-        return edge
-    if type(source) in {tuple, list}:
-        _source = cast(Iterable, source)
-        return Hyperedge(tuple(hedge(item) for item in _source))
-    elif type(source) is str:
-        edge_str = source.strip().replace("\n", " ")
-        edge_inner_str = edge_str
-
-        parens = _edge_str_has_outer_parens(edge_str)
-        if parens:
-            edge_inner_str = edge_str[1:-1]
-
-        tokens = split_edge_str(edge_inner_str)
-        if not tokens:
-            raise ValueError(f"Edge string is empty: '{source}'")
-        edges = tuple(_parsed_token(token) for token in tokens)
-        if len(edges) == 1 and isinstance(edges[0], Atom):
-            return Atom(str(edges[0]), parens)
-        elif len(edges) > 0:
-            return Hyperedge(edges)
-        else:
-            raise ValueError(f"Edge string is empty: '{source}'")
-    elif type(source) in {Hyperedge, Atom, UniqueAtom}:
-        return source  # type: ignore
-    else:
-        raise TypeError(
-            f"Cannot create hyperedge from {type(source).__name__}: {source!r}"
-        )
-
-
-def build_atom(text: str, *parts: str) -> Atom:
-    """Build an atom from text and other parts."""
-    atom = str_to_atom(text)
-    parts_str = "/".join([part for part in parts if part])
-    if len(parts_str) > 0:
-        atom_str = "".join((atom, "/", parts_str))
-    return Atom(atom_str)
+from typing import Any, overload
 
 
 @dataclass(frozen=True, init=False, eq=False, repr=False)
@@ -278,38 +84,7 @@ class Hyperedge:
     def match(
         self, pattern: Hyperedge | str | list[object] | tuple[object, ...]
     ) -> list[dict[str, Hyperedge]]:
-        """
-        Matches an edge to a pattern. This means that, if the edge fits the
-        pattern, then a list of dictionaries will be returned. If the pattern
-        specifies variables, then the returned dictionaries will be populated
-        with the values for each pattern variable. There can be more than one
-        dictionary in the list if there are multiple ways of matching the
-        variables. If the pattern specifies no variables but the edge matches
-        it, then a list with a single empty dictionary is returned. If the
-        edge does not match the pattern, an empty list is returned.
-
-        Patterns are themselves edges. They can match families of edges
-        by employing special atoms:
-
-        - `\\*` represents a general wildcard (matches any entity)
-        - `.` represents an atomic wildcard (matches any atom)
-        - `(\\*)` represents an edge wildcard (matches any non-atom)
-        - `...` at the end indicates an open-ended pattern.
-
-        The wildcards (`\\*`, `.` and `(\\*)`) can be used to specify variables,
-        for example `\\*x`, `(CLAIM)` or `.ACTOR`. In case of a match, these
-        variables are assigned the hyperedge they correspond to. For example, consider
-        the edge:
-
-        `(is/P.so (my/Mp name/Cn) mary/Cp)`
-
-        - matching to the pattern: `(is/P.so (my/Mp name/Cn) \\*)`
-        produces the result: `[{}]`
-        - matching to the pattern: `(is/P.so (my/Mp name/Cn) \\*NAME)`
-        produces the result: `[{'NAME', mary/Cp}]`
-        - matching to the pattern: `(is/P.so . \\*NAME)`
-        produces the result: `[]`
-        """
+        """Match this edge against a pattern. See ``match_pattern`` for details."""
         from hyperbase.patterns import match_pattern
 
         return match_pattern(self, pattern)
@@ -427,9 +202,9 @@ class Hyperedge:
         unique -- match only the exact same instance of the atom, i.e.
         UniqueAtom(self) == UniqueAtom(old) (default: False)
         """
-        return Hyperedge(
-            tuple(item.replace_atom(old, new, unique=unique) for item in self)
-        )
+        from hyperbase.transforms import replace_atom
+
+        return replace_atom(self, old, new, unique=unique)
 
     def simplify(self, subtypes: bool = False, namespaces: bool = False) -> Hyperedge:
         """Returns a version of the edge with simplified atoms.
@@ -438,12 +213,9 @@ class Hyperedge:
         subtypes -- include subtypes (default: True).
         namespaces -- include namespaces (default: True).
         """
-        return hedge(
-            [
-                subedge.simplify(subtypes=subtypes, namespaces=namespaces)
-                for subedge in self
-            ]
-        )
+        from hyperbase.transforms import simplify
+
+        return simplify(self, subtypes=subtypes, namespaces=namespaces)
 
     def type(self) -> str:
         """Returns the type of this edge as a string.
@@ -544,31 +316,17 @@ class Hyperedge:
         """Returns an edge with the argroles of the connector atom replaced
         with the provided string.
         Returns same edge if the atom does not contain a role part."""
-        st = self.mtype()
-        if st in {"C", "R"}:
-            new_edge = [self[0].replace_argroles(argroles)]
-            new_edge += self[1:]
-            return Hyperedge(new_edge)
-        elif st in {"P", "B"}:
-            new_edge = [self[0], self[1].replace_argroles(argroles)]
-            new_edge += list(self[2:])
-            return Hyperedge(new_edge)
-        return self
+        from hyperbase.transforms import replace_argroles
+
+        return replace_argroles(self, argroles)
 
     def _insert_argrole(self, argrole: str, pos: int) -> Hyperedge:
         """Returns an edge with the given argrole inserted at the specified
         position in the argroles of the connector atom.
         Same restrictions as in replace_argroles() apply."""
-        st = self.mtype()
-        if st in {"C", "R"}:
-            new_edge = [self[0]._insert_argrole(argrole, pos)]
-            new_edge += self[1:]
-            return Hyperedge(new_edge)
-        elif st in {"P", "B"}:
-            new_edge = [self[0], self[1]._insert_argrole(argrole, pos)]
-            new_edge += list(self[2:])
-            return Hyperedge(new_edge)
-        return self
+        from hyperbase.transforms import insert_argrole
+
+        return insert_argrole(self, argrole, pos)
 
     def add_argument(
         self, edge: Hyperedge, argrole: str, pos: int | None = None
@@ -576,11 +334,9 @@ class Hyperedge:
         """Returns a new edge with the provided edge and its argroles inserted
         at the specified position. If pos is not provided, the argument is
         appended at the end."""
-        if pos is None:
-            pos = len(self) - 1
-        new_edge = self._insert_argrole(argrole, pos)
-        combined = (*tuple(new_edge[: pos + 1]), edge, *tuple(new_edge[pos + 1 :]))
-        return Hyperedge(combined)
+        from hyperbase.transforms import add_argument
+
+        return add_argument(self, edge, argrole, pos)
 
     def arguments_with_role(self, argrole: str) -> list[Hyperedge]:
         """Returns the list of edges with the given argument role."""
@@ -597,190 +353,50 @@ class Hyperedge:
         return edges
 
     def check_correctness(self) -> dict[Hyperedge, list[tuple[str, str]]]:
-        output: dict[Hyperedge, list[tuple[str, str]]] = {}
-        errors: list[tuple[str, str]] = []
+        from hyperbase.correctness import check_correctness
 
-        ct = self[0].mtype()
-        # check if connector has valid type
-        if ct not in {"P", "M", "B", "T", "J"}:
-            errors.append(("conn-bad-type", f"connector has incorrect type: {ct}"))
-        # check if modifier structure is correct
-        if ct == "M":
-            if len(self) != 2:
-                errors.append(("mod-1-arg", "modifiers can only have one argument"))
-        # check if builder structure is correct
-        elif ct == "B":
-            if len(self) != 3:
-                errors.append(("build-2-args", "builders can only have two arguments"))
-            for arg in self[1:]:
-                at = arg.mtype()
-                if at != "C":
-                    e = f"builder argument {arg!s} has incorrect type: {at}"
-                    errors.append(("build-arg-bad-type", e))
-        # check if trigger structure is correct
-        elif ct == "T":
-            if len(self) != 2:
-                errors.append(("trig-1-arg", "triggers can only have one arguments"))
-            for arg in self[1:]:
-                at = arg.mtype()
-                if at not in {"C", "R"}:
-                    e = f"trigger argument {arg!s} has incorrect type: {at}"
-                    errors.append(("trig-bad-arg-type", e))
-        # check if predicate structure is correct
-        elif ct == "P":
-            for arg in self[1:]:
-                at = arg.mtype()
-                if at not in {"C", "R", "S"}:
-                    e = f"predicate argument {arg!s} has incorrect type: {at}"
-                    errors.append(("pred-arg-bad-type", e))
-        # check if conjunction structure is correct
-        elif ct == "J" and len(self) < 3:
-            errors.append(
-                ("conj-2-args-min", "conjunctions must have at least two arguments")
-            )
-
-        # check argrole counts
-        if ct in {"P", "B"}:
-            try:
-                ars = self.argroles()
-                if len(ars) > 0:
-                    if ct == "P":
-                        for ar in ars:
-                            if ar not in valid_p_argroles:
-                                errors.append(
-                                    (
-                                        "pred-bad-arg-role",
-                                        f"{ar} is not a valid argument role "
-                                        "for connector of type P",
-                                    )
-                                )
-                    elif ct == "B":
-                        for ar in ars:
-                            if ar not in valid_b_argroles:
-                                errors.append(
-                                    (
-                                        "build-bad-arg-role",
-                                        f"{ar} is not a valid argument role "
-                                        "for connector of type B",
-                                    )
-                                )
-
-                    if len(ars) != len(self) - 1:
-                        errors.append(
-                            (
-                                "bad-num-argroles",
-                                "number of argroles must match number of arguments",
-                            )
-                        )
-
-                    ars_counts = Counter(ars)
-                    if ars_counts["s"] > 1:
-                        errors.append(
-                            ("argrole-s-1-max", "argrole s can only be used once")
-                        )
-                    if ars_counts["o"] > 1:
-                        errors.append(
-                            ("argrole-o-1-max", "argrole o can only be used once")
-                        )
-                    if ars_counts["c"] > 1:
-                        errors.append(
-                            ("argrole-c-1-max", "argrole c can only be used once")
-                        )
-                    if ars_counts["i"] > 1:
-                        errors.append(
-                            ("argrole-i-1-max", "argrole i can only be used once")
-                        )
-                    if ars_counts["p"] > 1:
-                        errors.append(
-                            ("argrole-p-1-max", "argrole p can only be used once")
-                        )
-                    if ars_counts["a"] > 1:
-                        errors.append(
-                            ("argrole-a-1-max", "argrole a can only be used once")
-                        )
-                else:
-                    errors.append(
-                        (
-                            "no-argroles",
-                            "Connectors of type P or B must have argument roles",
-                        )
-                    )
-            except RuntimeError:
-                # malformed edges are detected elsewhere
-                pass
-
-        if len(errors) > 0:
-            output[self] = errors
-
-        for subedge in self:
-            output.update(subedge.check_correctness())
-
-        return output
+        return check_correctness(self)
 
     def normalise(self) -> Hyperedge:
-        edge: Hyperedge = self
-        conn = edge[0]
-        ar = conn.argroles()
-        if ar != "":
-            if ar[0] == "{":
-                ar = ar[1:-1]
-            roles_edges_sorted = sorted(
-                zip(ar, edge[1:], strict=False),
-                key=lambda role_edge: argrole_order[role_edge[0]],
-            )
-            edge = hedge([conn, *[role_edge[1] for role_edge in roles_edges_sorted]])
-        return hedge([subedge.normalise() for subedge in edge])
+        from hyperbase.transforms import normalise
+
+        return normalise(self)
 
     ############
     # patterns #
     ############
     def is_wildcard(self) -> bool:
-        """Check if this is an atom that defines a wildcard, i.e. if its root is a
-        pattern matcher.
-        (\\*, ., ..., if it is surrounded by parenthesis or variable label starting
-        with an uppercase letter)
-        """
-        return False
+        from hyperbase.patterns.checks import is_wildcard
+
+        return is_wildcard(self)
 
     def is_pattern(self) -> bool:
-        """Check if this edge defines a pattern, i.e. if it includes at least
-        one pattern matcher.
+        from hyperbase.patterns.checks import is_pattern
 
-        Pattern matcher are:
-        - '\\*', '.', '(\\*)', '...'
-        - variables (atom root starting with an uppercase letter)
-        - argument role matcher (unordered argument roles surrounded by curly brackets)
-        - functional patterns (var, atoms, lemma, ...)
-        """
-        if self.is_fun_pattern():
-            return True
-        else:
-            return any(item.is_pattern() for item in self)
+        return is_pattern(self)
 
     def is_fun_pattern(self) -> bool:
-        return str(self[0]) in const.PATTERN_FUNCTIONS
+        from hyperbase.patterns.checks import is_fun_pattern
+
+        return is_fun_pattern(self)
 
     #############
     # variables #
     #############
     def is_variable(self) -> bool:
-        return (
-            str(self[0]) == "var"
-            and len(self) == 3
-            and self[2].atom
-            and "/" not in str(self[2])
-        )
+        from hyperbase.patterns.checks import is_variable
+
+        return is_variable(self)
 
     def contains_variable(self) -> bool:
-        if self.is_variable():
-            return True
-        return any(subedge.contains_variable() for subedge in self)
+        from hyperbase.patterns.checks import contains_variable
+
+        return contains_variable(self)
 
     def variable_name(self) -> str:
-        if self.is_variable():
-            return str(self[2])
-        else:
-            raise ValueError(f"'{self!s}' is not a variable")
+        from hyperbase.patterns.checks import variable_name
+
+        return variable_name(self)
 
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
         if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
@@ -867,65 +483,21 @@ class Atom(Hyperedge):
         return label
 
     def inner_atom(self) -> Atom:
-        """The inner atom inside of a modifier structure.
-
-        For example, condider:
-        (red/M shoes/C)
-        The inner atom is:
-        shoes/C
-        Or, the more complex case:
-        ((and/J slow/M steady/M) go/P)
-        Yields:
-        gp/P
-
-        This method should not be used on structures that contain more than
-        one inner atom, for example concepts constructed with builders or
-        relations.
-
-        The inner atom of an atom is itself.
-        """
         return self
 
     def connector_atom(self) -> Atom | None:
-        """The inner atom of the connector.
-
-        For example, condider:
-        (does/M (not/M like/P.so) john/C chess/C)
-        The connector atom is:
-        like/P.so
-
-        The connector atom of an atom is None.
-        """
         return None
 
     def atoms(self) -> set[Atom]:
-        """Returns the set of atoms contained in the edge.
-
-        For example, consider the edge:
-        (the/Md (of/Br mayor/Cc (the/Md city/Cs)))
-        in this case, edge.atoms() returns:
-        [the/Md, of/Br, mayor/Cc, city/Cs]
-        """
         return {self}
 
     def all_atoms(self) -> list[Atom]:
-        """Returns a list of all the atoms contained in the edge. Unlike
-        atoms(), which does not return repeated atoms, all_atoms() does
-        return repeated atoms if they are different objects.
-
-        For example, consider the edge:
-        (the/Md (of/Br mayor/Cc (the/Md city/Cs)))
-        in this case, edge.all_atoms() returns:
-        [the/Md, of/Br, mayor/Cc, the/Md, city/Cs]
-        """
         return [self]
 
     def size(self) -> int:
-        """The size of an edge is its total number of atoms, at all depths."""
         return 1
 
     def depth(self) -> int:
-        """Returns maximal depth of edge, an atom has depth 0."""
         return 0
 
     def roots(self) -> Atom:
@@ -933,32 +505,17 @@ class Atom(Hyperedge):
         return Atom(self.root())
 
     def contains(self, needle: Hyperedge) -> bool:
-        """Checks recursively if 'needle' is contained in edge."""
         return self == needle
 
     def subedges(self) -> set[Hyperedge]:
-        """Returns all the subedges contained in the edge, including atoms
-        and itself.
-        """
         return {self}
 
     def replace_atom(
         self, old: Atom, new: Hyperedge, unique: bool = False
     ) -> Hyperedge:
-        """Returns edge built by replacing every instance of 'old' in
-        this edge with 'new'.
+        from hyperbase.transforms import replace_atom
 
-        Keyword argument:
-        unique -- match only the exact same instance of the atom, i.e.
-        UniqueAtom(self) == UniqueAtom(old) (default: False)
-        """
-        if unique:
-            if UniqueAtom(self) == UniqueAtom(old):
-                return new
-        else:
-            if self == old:
-                return new
-        return self
+        return replace_atom(self, old, new, unique=unique)
 
     def role(self) -> list[str]:
         """Returns the role of this atom as a list of the subrole strings.
@@ -986,60 +543,18 @@ class Atom(Hyperedge):
             return parts[1].split(".")
 
     def simplify(self, subtypes: bool = False, namespaces: bool = False) -> Atom:
-        """Returns a simplified version of the atom.
+        from hyperbase.transforms import simplify
 
-        Keyword arguments:
-        subtypes -- include subtype (default: False).
-        namespaces -- include namespaces (default: False).
-        """
-        parts = self.parts()
-
-        if len(parts) < 2:
-            return self
-
-        role = self.type() if subtypes else self.mtype()
-
-        ar = self.argroles()
-        if len(ar) > 0:
-            role = f"{role}.{ar}"
-
-        parts[1] = role
-
-        if len(parts) > 2 and not namespaces:
-            parts = parts[:2]
-
-        atom_str = "/".join(parts)
-        return Atom(atom_str)
+        return simplify(self, subtypes=subtypes, namespaces=namespaces)  # type: ignore[return-value]
 
     def type(self) -> str:
-        """Returns the type of the atom.
-
-        The type of an atom is its first subrole. For example, the
-        type of hyperbase/Cp.s/1 is 'Cp'.
-
-        If the atom only has a root, it is assumed to be a conjunction.
-        In this case, this function returns the generic conjunction type: 'J'.
-        """
+        """Returns the type of the atom (first subrole, default ``'J'``)."""
         return self.role()[0]
 
     def connector_type(self) -> str | None:
-        """Returns the type of the edge's connector.
-        If the edge has no connector (i.e. it's an atom), then None is
-        returned.
-        """
         return None
 
     def atom_with_type(self, atom_type: str) -> Atom | None:
-        """Returns the first atom found in the edge that has the given
-        'atom_type', or whose type starts with 'atom_type'.
-        If no such atom is found, returns None.
-
-        For example, given the edge (+/B a/Cn b/Bp) and the 'atom_type'
-        C, this function returns:
-        a/Cn
-        If the 'atom_type' is 'Cp', the it will return:
-        b/Cp
-        """
         et = self.type()
         n = len(atom_type)
         if len(et) >= n and et[:n] == atom_type:
@@ -1048,22 +563,6 @@ class Atom(Hyperedge):
             return None
 
     def argroles(self) -> str:
-        """Returns the argument roles string of the edge, if it exists.
-        Otherwise returns empty string.
-
-        Argument roles can be return for the entire edge that they apply to,
-        which can be a relation (R) or a concept (C). For example:
-
-        ((not/M is/P.sc) bob/C sad/C) has argument roles "sc",
-        (of/B.ma city/C berlin/C) has argument roles "ma".
-
-        Argument roles can also be returned for the connectors that define
-        the outer edge, which can be of type predicate (P) or builder (B). For
-        example:
-
-        (not/M is/P.sc) has argument roles "sc",
-        of/B.ma has argument roles "ma".
-        """
         et = self.mtype()
         if et not in {"B", "P"}:
             return ""
@@ -1073,119 +572,68 @@ class Atom(Hyperedge):
         return role[1]
 
     def replace_argroles(self, argroles: str | None) -> Atom:
-        """Returns an atom with the argroles replaced with the provided string."""
-        if argroles is None or argroles == "":
-            return self.remove_argroles()
-        parts = self.atom_str.split("/")
-        if len(parts) < 2:
-            return self
-        role = parts[1].split(".")
-        if len(role) < 2:
-            role.append(argroles)
-        else:
-            role[1] = argroles
-        parts = [parts[0], ".".join(role), *parts[2:]]
-        return Atom("/".join(parts))
+        from hyperbase.transforms import replace_argroles
+
+        return replace_argroles(self, argroles)  # type: ignore[return-value]
 
     def remove_argroles(self) -> Atom:
-        """Returns an atom with the argroles removed."""
-        parts = self.atom_str.split("/")
-        if len(parts) < 2:
-            return self
-        role = parts[1].split(".")
-        parts[1] = role[0]
-        return Atom("/".join(parts))
+        from hyperbase.transforms import replace_argroles
+
+        return replace_argroles(self, None)  # type: ignore[return-value]
 
     def _insert_argrole(self, argrole: str, pos: int) -> Atom:
-        """Returns an atom with the given argrole inserted at the specified
-        position. Same restrictions as in replace_argroles() apply."""
-        argroles = self.argroles()
-        argroles = argroles[:pos] + argrole + argroles[pos:]
-        return self.replace_argroles(argroles)
+        from hyperbase.transforms import insert_argrole
+
+        return insert_argrole(self, argrole, pos)  # type: ignore[return-value]
 
     def arguments_with_role(self, argrole: str) -> list[Hyperedge]:
-        """Returns the list of edges with the given argument role"""
         return []
 
     def check_correctness(self) -> dict[Hyperedge, list[tuple[str, str]]]:
-        output: dict[Hyperedge, list[tuple[str, str]]] = {}
-        errors: list[tuple[str, str]] = []
+        from hyperbase.correctness import check_correctness
 
-        at = self.mtype()
-        if at not in {"C", "P", "M", "B", "T", "J"}:
-            errors.append(("bad-atom-type", f"{at} is not a valid atom type"))
-
-        if len(errors) > 0:
-            output[self] = errors
-
-        return output
+        return check_correctness(self)
 
     def normalise(self) -> Atom:
-        if self.mtype() in {"B", "P"}:
-            ar = self.argroles()
-            if len(ar) > 0:
-                if ar[0] == "{":
-                    ar = ar[1:-1]
-                    unordered = True
-                else:
-                    unordered = False
-                if "[" not in ar:
-                    ar = "".join(sorted(ar, key=lambda argrole: argrole_order[argrole]))
-                if unordered:
-                    ar = f"{{{ar}}}"
-                return self.replace_argroles(ar)
-        return self
+        from hyperbase.transforms import normalise
+
+        return normalise(self)  # type: ignore[return-value]
 
     ############
     # patterns #
     ############
     def is_wildcard(self) -> bool:
-        """Check if this is an atom that defines a wildcard, i.e. if its root is a
-        pattern matcher.
-        (\\*, ., ..., if it is surrounded by parenthesis or variable label starting
-        with an uppercase letter)
-        """
-        return self.root()[0] in {"*", "."} or self.root()[0].isupper()
+        from hyperbase.patterns.checks import is_wildcard
+
+        return is_wildcard(self)
 
     def is_pattern(self) -> bool:
-        """Check if this edge defines a pattern, i.e. if it includes at least
-        one pattern matcher.
+        from hyperbase.patterns.checks import is_pattern
 
-        Pattern matcher are:
-        - '\\*', '.', '(\\*)', '...'
-        - variables (atom root starting with an uppercase letter)
-        - argument role matcher (unordered argument roles surrounded by curly brackets)
-        - functional patterns (var, atoms, lemma, ...)
-        """
-        return self.is_wildcard() or "{" in self.argroles() or "[" in self.argroles()
+        return is_pattern(self)
 
     def is_fun_pattern(self) -> bool:
-        return False
+        from hyperbase.patterns.checks import is_fun_pattern
+
+        return is_fun_pattern(self)
 
     #############
     # variables #
     #############
     def is_variable(self) -> bool:
-        return self.root()[0].isupper() or (
-            self.root()[0] in {"*", "."}
-            and len(self.root()) > 1
-            and self.root()[1].isupper()
-        )
+        from hyperbase.patterns.checks import is_variable
+
+        return is_variable(self)
 
     def contains_variable(self) -> bool:
-        return self.is_variable()
+        from hyperbase.patterns.checks import contains_variable
+
+        return contains_variable(self)
 
     def variable_name(self) -> str:
-        if self.root()[0].isupper():
-            return self.root()
-        elif (
-            self.root()[0] in {"*", "."}
-            and len(self.root()) > 1
-            and self.root()[1].isupper()
-        ):
-            return self.root()[1:]
-        else:
-            raise ValueError(f"'{self.root()}' is not a variable")
+        from hyperbase.patterns.checks import variable_name
+
+        return variable_name(self)
 
     def __add__(self, other: Hyperedge | tuple[Any, ...] | list[Any]) -> Hyperedge:
         if isinstance(other, (list, tuple)) and not isinstance(other, Hyperedge):
@@ -1220,6 +668,8 @@ class UniqueAtom(Atom):
 
 
 def unique(edge: Hyperedge) -> Hyperedge:
+    from hyperbase.builders import hedge
+
     if edge.atom:
         if isinstance(edge, UniqueAtom):
             return edge
@@ -1230,6 +680,8 @@ def unique(edge: Hyperedge) -> Hyperedge:
 
 
 def non_unique(edge: Hyperedge) -> Hyperedge:
+    from hyperbase.builders import hedge
+
     if edge.atom:
         if isinstance(edge, UniqueAtom):
             return edge.atom_obj

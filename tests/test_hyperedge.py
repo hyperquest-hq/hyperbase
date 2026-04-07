@@ -1,6 +1,7 @@
 import unittest
 
-from hyperbase.hyperedge import Atom, build_atom, hedge, split_edge_str, str_to_atom
+from hyperbase.builders import build_atom, hedge, split_edge_str, str_to_atom
+from hyperbase.hyperedge import Atom
 
 
 class TestHyperedge(unittest.TestCase):

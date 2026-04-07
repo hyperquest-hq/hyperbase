@@ -1,6 +1,6 @@
 import unittest
 
-from hyperbase.hyperedge import hedge
+from hyperbase.builders import hedge
 from hyperbase.parsers.parse_result import ParseResult
 
 

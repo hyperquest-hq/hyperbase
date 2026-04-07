@@ -5,7 +5,8 @@ from collections.abc import Iterable, Iterator
 from os import PathLike
 from pathlib import Path
 
-from hyperbase.hyperedge import Hyperedge, hedge
+from hyperbase.builders import hedge
+from hyperbase.hyperedge import Hyperedge
 from hyperbase.parsers.parse_result import ParseResult
 
 
