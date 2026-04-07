@@ -32,7 +32,7 @@ def check_structural_quality(
                         )
                     )
 
-        except Exception:
+        except (IndexError, RuntimeError):
             pass
 
         # Junction checks
@@ -52,7 +52,7 @@ def check_structural_quality(
                             3,
                         )
                     )
-        except Exception:
+        except (IndexError, RuntimeError):
             pass
 
         if current_errors:
@@ -312,7 +312,7 @@ def badness_check(
             if len(token_matching_errors) > 0:
                 errors["token-matching"] = token_matching_errors
 
-        except (AttributeError, Exception):
+        except (AttributeError, IndexError, RuntimeError):
             # If token counting fails (e.g., edge is invalid), skip it
             pass
 
