@@ -7,7 +7,9 @@
 - EdgeType and ArgRole enums.
 - safety cap for match (`_MAX_ARGROLE_ITEMS=10`) against pathological edge arities.
 - caching of computed `Hyperedge`/`Atom` properties.
-- `parse_to_jsonl` method on Parser.
+- `parse_to_jsonl` method on `Parser`.
+- unified parameter interface for parsers.
+- method `Parser.accepted_params`.
 
 ### Changed
 - multiple patterns functions are now `Hyperedge`/`Atom` methods: `is_wildcard`, `is_pattern`, `is_fun_pattern`, `is_variable`, `contains_variable`, `variable_name`.
@@ -15,6 +17,7 @@
 - replaced `itertools.permutations` with constraint-propagated backtracking in argrole matcher.
 - `parse_text` renamed to `parse`; old iterator-based `parse` removed.
 - `read_source` renamed to `parse_source`; `read_source_to_jsonl` renamed to `parse_source_to_jsonl`.
+- renamed `sentensize` to `get_sentences`.
 
 ### Removed
 - `__add__` operator overloading in `Hyperedge`/`Atom`.

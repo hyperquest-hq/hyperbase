@@ -196,10 +196,12 @@ See the [readers](readers.md) documentation for the full set of `hyperbase read`
 
 ## Custom parsers
 
-To create a custom parser, subclass `Parser` and implement two methods:
+To create a custom parser, subclass `Parser` and implement:
 
-- `sentensize(text)` -- split a text string into a list of sentences.
+- `__init__(params)` -- constructor accepting a dictionary of parser parameters.
+- `get_sentences(text)` -- split a text string into a list of sentences.
 - `parse_sentence(sentence)` -- parse a single sentence and return a list of `ParseResult` objects.
+- `accepted_params()` (classmethod) -- return a dict describing the parameters the parser accepts.
 
 Optionally, override `parse_batch(sentences)` if your parser can process multiple sentences more efficiently in a single call.
 
@@ -208,7 +210,20 @@ from hyperbase.parsers import Parser, ParseResult
 from hyperbase.hyperedge import hedge
 
 class MyParser(Parser):
-    def sentensize(self, text):
+    @classmethod
+    def accepted_params(cls):
+        return {
+            "lang": {
+                "type": str, "default": None,
+                "description": "Language code.", "required": True,
+            },
+        }
+
+    def __init__(self, params=None):
+        super().__init__(params)
+        self.lang = self.params["lang"]
+
+    def get_sentences(self, text):
         # simple sentence splitting
         return [s.strip() for s in text.split('.') if s.strip()]
 

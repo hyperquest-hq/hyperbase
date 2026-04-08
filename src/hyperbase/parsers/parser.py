@@ -1,14 +1,29 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from hyperbase.parsers.parse_result import ParseResult
 
 
 class Parser:
-    def sentensize(self, text: str) -> list[str]:
+    def __init__(self, params: dict[str, Any] | None = None) -> None:
+        self.params: dict[str, Any] = params or {}
+
+    @classmethod
+    def accepted_params(cls) -> dict[str, dict[str, Any]]:
+        """Return the set of parameters this parser accepts.
+
+        Each key is a parameter name. The value is a dict with:
+        - ``"type"``: the expected Python type (e.g. ``str``, ``int``).
+        - ``"default"``: the default value (or ``None`` if required).
+        - ``"description"``: a short human-readable description.
+        - ``"required"``: whether the parameter must be provided.
+        """
+        return {}
+
+    def get_sentences(self, text: str) -> list[str]:
         raise NotImplementedError
 
     def parse_sentence(self, sentence: str) -> list[ParseResult]:
@@ -26,7 +41,7 @@ class Parser:
 
         Returns a flat list of parse results across all sentences.
         """
-        sentences = [s for s in self.sentensize(text) if len(s.split()) > 1]
+        sentences = [s for s in self.get_sentences(text) if len(s.split()) > 1]
         batch_range = range(0, len(sentences), batch_size)
         if progress:
             from tqdm import tqdm  # type: ignore[import-untyped]

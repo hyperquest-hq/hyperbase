@@ -66,10 +66,10 @@ class TestGetParser:
         """A mock plugin should be loadable and instantiable."""
 
         class MockParser(ParserBase):
-            def __init__(self, **kwargs):
-                self.kwargs = kwargs
+            def __init__(self, params=None):
+                super().__init__(params)
 
-            def sentensize(self, text):
+            def get_sentences(self, text):
                 return [text]
 
             def parse_sentence(self, sentence):
@@ -80,9 +80,9 @@ class TestGetParser:
         ep.load.return_value = MockParser
         mock_eps.return_value = [ep]
 
-        parser = get_parser("mock", lang="en")
+        parser = get_parser("mock", params={"lang": "en"})
         assert isinstance(parser, MockParser)
-        assert parser.kwargs == {"lang": "en"}
+        assert parser.params == {"lang": "en"}
 
     @patch("hyperbase.parsers.entry_points")
     def test_plugin_load_failure(self, mock_eps):
@@ -99,21 +99,21 @@ class TestGetParser:
 class TestParserBaseClass:
     """Tests for the Parser base class methods."""
 
-    def test_sentensize_not_implemented(self):
+    def test_get_sentences_not_implemented(self):
         parser = ParserBase()
         with pytest.raises(NotImplementedError):
-            parser.sentensize("hello world")
+            parser.get_sentences("hello world")
 
     def test_parse_sentence_not_implemented(self):
         parser = ParserBase()
         with pytest.raises(NotImplementedError):
             parser.parse_sentence("hello world")
 
-    def test_parse_uses_sentensize(self):
-        """parse() should call sentensize then parse_sentence."""
+    def test_parse_uses_get_sentences(self):
+        """parse() should call get_sentences then parse_sentence."""
 
         class TestParser(ParserBase):
-            def sentensize(self, text):
+            def get_sentences(self, text):
                 return ["hello world", "foo bar"]
 
             def parse_sentence(self, sentence):
@@ -127,7 +127,7 @@ class TestParserBaseClass:
         """Default parse_batch calls parse_sentence for each."""
 
         class TestParser(ParserBase):
-            def sentensize(self, text):
+            def get_sentences(self, text):
                 return [text]
 
             def parse_sentence(self, sentence):
@@ -141,7 +141,7 @@ class TestParserBaseClass:
         """parse should skip sentences with 1 or fewer words."""
 
         class TestParser(ParserBase):
-            def sentensize(self, text):
+            def get_sentences(self, text):
                 return ["hello", "hello world", "a"]
 
             def parse_sentence(self, sentence):
