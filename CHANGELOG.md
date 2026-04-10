@@ -12,6 +12,7 @@
 - unified parameter interface for parsers.
 - method `Parser.accepted_params`.
 - maximum depth protection for parsers.
+- repl api for parsers.
 
 ### Changed
 

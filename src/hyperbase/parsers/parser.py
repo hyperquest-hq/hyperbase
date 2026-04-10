@@ -43,6 +43,47 @@ class Parser:
             },
         }
 
+    @classmethod
+    def cache_key_from_settings(cls, settings: dict[str, Any]) -> tuple:
+        """Build a cache key tuple from a settings dict.
+
+        The default implementation produces one ``(name, value)`` pair
+        per entry in :meth:`accepted_params`, sorted by name. Two
+        settings dicts that yield the same key are guaranteed to
+        produce equivalent parser instances.
+        """
+        names = sorted(cls.accepted_params())
+        return tuple((name, settings.get(name)) for name in names)
+
+    @classmethod
+    def format_cache_key(cls, cache_key: tuple) -> str:
+        """Render a cache key produced by :meth:`cache_key_from_settings`
+        as a human-readable string for the REPL ``/parsers`` command."""
+        return ", ".join(f"{name}={value}" for name, value in cache_key)
+
+    def install_repl(self, session: Any) -> None:  # noqa: ANN401
+        """Hook for parser plugins to extend the Hyperbase REPL.
+
+        Override this to register parser-specific REPL behavior on
+        *session* (a :class:`hyperbase.cli.repl.ReplSession`). The
+        session exposes the following registration methods:
+
+        - ``register_command(name, help, handler)`` -- add a slash
+          command callable as ``/name``.
+        - ``register_setting(name, default, type_, description="")``
+          -- expose an extra REPL-only setting (e.g. a display
+          toggle) that can be changed via ``/set``.
+        - ``register_pre_result_hook(hook)`` -- run *hook* after
+          parsing but before the parse result panel is rendered.
+        - ``register_post_result_hook(hook)`` -- run *hook* after the
+          parse result panel is rendered.
+        - ``register_stats_provider(provider)`` -- supply extra
+          ``(label, value)`` rows for the statistics table.
+
+        Hooks receive a :class:`~hyperbase.parsers.repl_api.ReplContext`
+        object. The default implementation is a no-op.
+        """
+
     def get_sentences(self, text: str) -> list[str]:
         raise NotImplementedError
 

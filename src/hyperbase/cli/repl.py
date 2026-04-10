@@ -1,6 +1,6 @@
 import argparse
 import json
-import re
+import sys
 import time
 import traceback
 from collections.abc import Iterable
@@ -17,28 +17,39 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich.tree import Tree
 
 from hyperbase.builders import hedge
 from hyperbase.constants import EdgeType
 from hyperbase.hyperedge import Atom, Hyperedge
 from hyperbase.parsers import Parser, get_parser, list_parsers
-from hyperbase.parsers.correctness import badness_check
+from hyperbase.parsers.repl_api import (
+    CommandHandler,
+    PostResultHook,
+    PreResultHook,
+    ReplContext,
+    StatsProvider,
+)
 
 SETTINGS_FILE = Path.home() / ".hyperbase_repl_settings.json"
 
-DEFAULTS = {
-    "parser": "generative",
-    "model_path": "",
-    "language": None,
-    "max_length": 256,
-    "num_beams": 1,
-    "num_candidates": 1,
-    "use_constraints": False,
-    "check_badness": False,
-    "statistics": False,
-    "raw_output": False,
-    "device": None,
+DEFAULT_PARSER = "generative"
+
+# Legacy setting key -> current key. Applied once when loading saved
+# settings so users upgrading across the plugin-extension refactor
+# don't lose parser-specific config (e.g. the old CLI's ``--language``
+# maps to the alphabeta parser's ``lang`` accepted_param).
+LEGACY_SETTING_RENAMES: dict[str, str] = {
+    "language": "lang",
+}
+
+# Built-in REPL settings (parser-independent). Parser plugins may add
+# their own via ``register_setting`` from ``install_repl``.
+BUILTIN_REPL_SETTINGS: dict[str, dict[str, Any]] = {
+    "statistics": {
+        "type": bool,
+        "default": False,
+        "description": "Show parse statistics after each parse.",
+    },
 }
 
 
@@ -65,35 +76,32 @@ def save_settings(settings: dict) -> None:
     SETTINGS_FILE.write_text(json.dumps(settings, indent=2, default=str) + "\n")
 
 
-def print_dependency_tree(
-    token: Any,  # noqa: ANN401
-    console: Console,
-    visited: set | None = None,
-) -> Tree | None:
-    """Print dependency parse tree with dep_ and tag_ labels as a rich tree."""
-    if visited is None:
-        visited = set()
-
-    if token in visited:
+def _coerce(value: Any, type_: type) -> Any:  # noqa: ANN401
+    """Convert *value* (typically a string from the REPL) to *type_*."""
+    if value is None:
         return None
-    visited.add(token)
+    if isinstance(value, type_):
+        return value
+    if type_ is bool:
+        if isinstance(value, str):
+            return value.lower() in ("true", "1", "yes", "on")
+        return bool(value)
+    if type_ is int:
+        return int(value)
+    if type_ is float:
+        return float(value)
+    if type_ is str:
+        return str(value)
+    return value
 
-    label = Text()
-    label.append(token.text, style="bold white")
-    label.append(" [", style="dim")
-    label.append(f"dep_={token.dep_}", style="cyan")
-    label.append(", ", style="dim")
-    label.append(f"tag_={token.pos_}", style="yellow")
-    label.append("]", style="dim")
 
-    tree = Tree(label)
-
-    for child in token.children:
-        child_tree = print_dependency_tree(child, console, visited)
-        if child_tree:
-            tree.add(child_tree)
-
-    return tree
+def _build_parser_kwargs(parser_cls: type[Parser], settings: dict) -> dict[str, Any]:
+    """Build keyword arguments for ``parser_cls(**kwargs)`` from settings."""
+    kwargs: dict[str, Any] = {}
+    for name in parser_cls.accepted_params():
+        if name in settings and settings[name] is not None:
+            kwargs[name] = settings[name]
+    return kwargs
 
 
 class FilteredFileHistory(FileHistory):
@@ -214,75 +222,54 @@ class CommandCompleter(Completer):
                     )
 
 
-def _parser_kwargs(settings: dict) -> dict:
-    """Build keyword arguments for get_parser() from current settings."""
-    parser_name = settings["parser"]
-    kwargs: dict[str, Any] = {}
-
-    if parser_name == "generative":
-        if settings.get("model_path"):
-            kwargs["model_path"] = settings["model_path"]
-        if settings.get("device"):
-            kwargs["device"] = settings["device"]
-        if settings.get("max_length"):
-            kwargs["max_length"] = settings["max_length"]
-        if settings.get("num_beams"):
-            kwargs["num_beams"] = settings["num_beams"]
-        if settings.get("num_candidates"):
-            kwargs["num_candidates"] = settings["num_candidates"]
-        if settings.get("use_constraints"):
-            kwargs["use_constraints"] = settings["use_constraints"]
-    elif parser_name == "alphabeta":
-        if settings.get("language"):
-            kwargs["lang"] = settings["language"]
-
-    return kwargs
-
-
 class ReplSession:
-    """Enhanced REPL session with modern TUI features."""
+    """Interactive REPL session.
 
-    def __init__(
-        self, parser: Parser, parser_name: str, args: argparse.Namespace
-    ) -> None:
-        self.parser = parser
-        self.parser_name = parser_name
+    Plugin parsers extend this session via :meth:`Parser.install_repl`,
+    which can register additional commands, settings, hooks, and stats
+    providers. The core REPL contains no parser-specific behavior.
+    """
+
+    def __init__(self, parser_name: str, settings: dict[str, Any]) -> None:
         self.console = Console(force_terminal=True, color_system="auto")
-        self.args = args
         self.formatter = HyperedgeFormatter(self.console)
 
-        self.settings = {
-            "parser": parser_name,
-            "language": args.language,
-            "max_length": args.max_length,
-            "num_beams": args.num_beams,
-            "num_candidates": args.num_candidates,
-            "use_constraints": args.use_constraints,
-            "model_path": args.model_path,
-            "check_badness": args.check_badness,
-            "statistics": args.statistics,
-            "raw_output": False,
-            "device": args.device,
-        }
+        self.settings: dict[str, Any] = dict(settings)
+        self.settings.setdefault("parser", parser_name)
 
-        self.parser_cache: dict[tuple, Any] = {}
-        cache_key = self._get_cache_key()
-        self.parser_cache[cache_key] = parser
+        # Per-parser registrations -- everything in these collections is
+        # cleared and re-installed whenever the active parser changes.
+        self._extra_settings: dict[str, dict[str, Any]] = {}
+        self._extra_commands: dict[str, dict[str, Any]] = {}
+        self._pre_result_hooks: list[PreResultHook] = []
+        self._post_result_hooks: list[PostResultHook] = []
+        self._stats_providers: list[StatsProvider] = []
+
+        # Parser cache: cache_key -> Parser instance.
+        self.parser_cache: dict[tuple, Parser] = {}
+        self.parser_name: str = parser_name
+        self.parser: Parser = self._init_parser(parser_name)
 
         history_file = Path.home() / ".hyperbase_repl_history"
         self.history = FilteredFileHistory(str(history_file))
 
-        self.commands = {
+        self._builtin_commands: dict[str, dict[str, Any]] = {
             "quit": {"help": "Exit the REPL", "handler": self.cmd_quit},
             "exit": {"help": "Exit the REPL", "handler": self.cmd_quit},
             "help": {"help": "Show available commands", "handler": self.cmd_help},
-            "settings": {"help": "Show current settings", "handler": self.cmd_settings},
+            "settings": {
+                "help": "Show current settings",
+                "handler": self.cmd_settings,
+            },
             "set": {
-                "help": "Change a setting (e.g., /set parser generative)",
+                "help": "Change a setting (e.g. /set parser generative)",
                 "handler": self.cmd_set,
             },
             "clear": {"help": "Clear the screen", "handler": self.cmd_clear},
-            "parsers": {"help": "List all cached parsers", "handler": self.cmd_parsers},
+            "parsers": {
+                "help": "List all cached parsers",
+                "handler": self.cmd_parsers,
+            },
             "clear-parsers": {
                 "help": "Clear all parsers from cache except the current one",
                 "handler": self.cmd_clear_parsers,
@@ -291,9 +278,139 @@ class ReplSession:
 
         self.session = PromptSession(
             history=self.history,
-            completer=CommandCompleter(self.commands),
+            completer=CommandCompleter(self._all_commands()),
             complete_while_typing=False,
         )
+
+    # ------------------------------------------------------------------
+    # Plugin registration API (called from Parser.install_repl)
+    # ------------------------------------------------------------------
+
+    def register_command(
+        self, name: str, help_str: str, handler: CommandHandler
+    ) -> None:
+        """Register a custom slash command. Cleared on parser switch."""
+        self._extra_commands[name] = {"help": help_str, "handler": handler}
+
+    def register_setting(
+        self,
+        name: str,
+        default: Any,  # noqa: ANN401
+        type_: type,
+        description: str = "",
+    ) -> None:
+        """Register an extra REPL-only setting (display toggles, etc.).
+
+        The setting is added to ``self.settings`` and shown in
+        ``/settings`` / ``/set``. Existing values from saved settings
+        take precedence over *default*.
+        """
+        self._extra_settings[name] = {
+            "type": type_,
+            "default": default,
+            "description": description,
+        }
+        if name not in self.settings:
+            self.settings[name] = default
+
+    def register_pre_result_hook(self, hook: PreResultHook) -> None:
+        self._pre_result_hooks.append(hook)
+
+    def register_post_result_hook(self, hook: PostResultHook) -> None:
+        self._post_result_hooks.append(hook)
+
+    def register_stats_provider(self, provider: StatsProvider) -> None:
+        self._stats_providers.append(provider)
+
+    # ------------------------------------------------------------------
+    # Parser lifecycle
+    # ------------------------------------------------------------------
+
+    def _reset_plugin_state(self) -> None:
+        """Drop everything that was registered by the previous parser."""
+        for name in self._extra_settings:
+            self.settings.pop(name, None)
+        self._extra_settings.clear()
+        self._extra_commands.clear()
+        self._pre_result_hooks.clear()
+        self._post_result_hooks.clear()
+        self._stats_providers.clear()
+
+    def _init_parser(self, parser_name: str) -> Parser:
+        """Instantiate *parser_name*, run its REPL installer, cache it."""
+        parsers = list_parsers()
+        if parser_name not in parsers:
+            available = ", ".join(sorted(parsers)) or "(none)"
+            raise ValueError(
+                f"Parser {parser_name!r} is not installed. "
+                f"Available parsers: {available}"
+            )
+        parser_cls = parsers[parser_name].load()
+
+        # Make sure every accepted_param has at least its declared default
+        # so the parser-class can rely on settings.get(name) below.
+        for name, info in parser_cls.accepted_params().items():
+            if (
+                name not in self.settings or self.settings.get(name) is None
+            ) and info.get("default") is not None:
+                self.settings[name] = info["default"]
+
+        # Fail fast if any required parameter is missing, so parser
+        # constructors don't blow up with an opaque KeyError.
+        missing = [
+            name
+            for name, info in parser_cls.accepted_params().items()
+            if info.get("required") and self.settings.get(name) is None
+        ]
+        if missing:
+            raise ValueError(
+                f"Parser {parser_name!r} requires: {', '.join(missing)}. "
+                f"Provide on the command line (e.g. --{missing[0]} <value>) "
+                f"or inside the REPL with /set {missing[0]} <value>."
+            )
+
+        self._reset_plugin_state()
+        kwargs = _build_parser_kwargs(parser_cls, self.settings)
+        cache_key = parser_cls.cache_key_from_settings(self.settings)
+
+        if cache_key in self.parser_cache:
+            self.console.print("[dim]Using cached parser[/dim]")
+            parser = self.parser_cache[cache_key]
+        else:
+            parser = get_parser(parser_name, **kwargs)
+            self.parser_cache[cache_key] = parser
+
+        parser.install_repl(self)
+
+        # Apply plugin defaults the parser added on top, after potentially
+        # overriding from saved settings.
+        for name, info in self._extra_settings.items():
+            cur = self.settings.get(name)
+            if cur is None:
+                self.settings[name] = info["default"]
+        return parser
+
+    def _switch_parser(self, parser_name: str) -> bool:
+        try:
+            self.parser = self._init_parser(parser_name)
+            self.parser_name = parser_name
+            self.settings["parser"] = parser_name
+            # Refresh completer with the new command set.
+            self.session.completer = CommandCompleter(self._all_commands())
+            return True
+        except Exception as e:
+            self.console.print(f"[red]Failed to load parser {parser_name!r}: {e}[/red]")
+            return False
+
+    # ------------------------------------------------------------------
+    # Command surface
+    # ------------------------------------------------------------------
+
+    def _all_commands(self) -> dict[str, dict[str, Any]]:
+        merged: dict[str, dict[str, Any]] = {}
+        merged.update(self._builtin_commands)
+        merged.update(self._extra_commands)
+        return merged
 
     def show_banner(self) -> None:
         available = sorted(list_parsers().keys())
@@ -302,8 +419,6 @@ class ReplSession:
                 "[bold cyan]Hyperbase REPL[/bold cyan]\n"
                 "[dim]Interactive Semantic Hypergraph Parser[/dim]\n\n"
                 f"[yellow]Parser:[/yellow] [green]{self.parser_name}[/green]\n"
-                "[yellow]Language:[/yellow] "
-                f"[green]{self.settings['language'] or 'N/A'}[/green]\n"
                 "[yellow]Installed parsers:[/yellow] "
                 f"[green]{', '.join(available) or 'none'}[/green]\n\n"
                 "[dim]Type [bold]/help[/bold] to see available commands[/dim]"
@@ -325,7 +440,7 @@ class ReplSession:
         table.add_column("Command", style="cyan")
         table.add_column("Description", style="white")
 
-        for cmd_name, cmd_info in self.commands.items():
+        for cmd_name, cmd_info in self._all_commands().items():
             table.add_row(f"/{cmd_name}", cmd_info["help"])
 
         self.console.print("\n[bold]Available Commands:[/bold]")
@@ -362,19 +477,33 @@ class ReplSession:
         self.console.print()
         return False
 
+    def _setting_type(self, name: str) -> type | None:
+        """Look up the declared type for *name* across all sources."""
+        if name == "parser":
+            return str
+        if name in BUILTIN_REPL_SETTINGS:
+            return BUILTIN_REPL_SETTINGS[name]["type"]
+        if name in self._extra_settings:
+            return self._extra_settings[name]["type"]
+        params = type(self.parser).accepted_params()
+        if name in params:
+            return params[name].get("type")
+        return None
+
     def cmd_set(self, args: list) -> bool:
         if len(args) < 2:
             self.console.print(
                 "[red]Error:[/red] /set requires two arguments: "
                 "[cyan]/set <setting> <value>[/cyan]"
             )
-            self.console.print("[dim]Example:[/dim] /set language en")
+            self.console.print("[dim]Example:[/dim] /set parser generative")
             return False
 
         setting_name = args[0]
-        setting_value: Any = args[1]
+        raw_value: Any = " ".join(args[1:])
 
-        if setting_name not in self.settings:
+        type_ = self._setting_type(setting_name)
+        if type_ is None:
             self.console.print(
                 f"[red]Error:[/red] Unknown setting '[cyan]{setting_name}[/cyan]'"
             )
@@ -384,45 +513,41 @@ class ReplSession:
             return False
 
         try:
-            if setting_name in ["max_length", "num_beams", "num_candidates"]:
-                setting_value = int(setting_value)
-            elif setting_name == "use_constraints" or setting_name in (
-                "check_badness",
-                "statistics",
-                "raw_output",
-            ):
-                setting_value = setting_value.lower() in ["true", "1", "yes"]
-            elif setting_name == "parser":
-                available = list_parsers()
-                if setting_value not in available:
-                    avail_str = ", ".join(sorted(available)) or "(none)"
-                    self.console.print(
-                        f"[red]Error:[/red] parser must be one of: {avail_str}"
-                    )
-                    return False
-
-            self.settings[setting_name] = setting_value
-            save_settings(self.settings)
-            self.console.print(
-                f"[green]✓[/green] Set [cyan]{setting_name}[/cyan] = "
-                f"[green]{setting_value}[/green]"
-            )
-
-            if setting_name not in ("check_badness", "statistics", "raw_output"):
-                new_parser = self._get_or_create_parser()
-                if new_parser:
-                    self.parser = new_parser
-                    self.parser_name = self.settings["parser"]
-                else:
-                    self.console.print(
-                        "[red]Failed to reload parser. Keeping previous parser.[/red]"
-                    )
-
-        except ValueError as e:
+            value = _coerce(raw_value, type_)
+        except (TypeError, ValueError) as e:
             self.console.print(
                 f"[red]Error:[/red] Invalid value for {setting_name}: {e}"
             )
+            return False
 
+        if setting_name == "parser":
+            available = list_parsers()
+            if value not in available:
+                avail_str = ", ".join(sorted(available)) or "(none)"
+                self.console.print(
+                    f"[red]Error:[/red] parser must be one of: {avail_str}"
+                )
+                return False
+            if not self._switch_parser(value):
+                return False
+            save_settings(self.settings)
+            self.console.print(
+                f"[green]✓[/green] Set [cyan]parser[/cyan] = [green]{value}[/green]"
+            )
+            return False
+
+        self.settings[setting_name] = value
+        save_settings(self.settings)
+        self.console.print(
+            f"[green]✓[/green] Set [cyan]{setting_name}[/cyan] = [green]{value}[/green]"
+        )
+
+        # If this setting affects parser instantiation, re-init the parser.
+        parser_params = type(self.parser).accepted_params()
+        if setting_name in parser_params and not self._switch_parser(self.parser_name):
+            self.console.print(
+                "[red]Failed to reload parser. Keeping previous parser.[/red]"
+            )
         return False
 
     def cmd_clear(self, args: list) -> bool:
@@ -441,13 +566,13 @@ class ReplSession:
         table.add_column("Settings", style="white")
         table.add_column("Current", style="green")
 
-        current_key = self._get_cache_key()
+        current_key = type(self.parser).cache_key_from_settings(self.settings)
 
-        for cache_key in self.parser_cache:
-            parser_name = cache_key[0]
-            settings_str = self._format_cache_key_settings(cache_key)
+        for cache_key, cached_parser in self.parser_cache.items():
+            cls = type(cached_parser)
+            settings_str = cls.format_cache_key(cache_key)
             is_current = "✓" if cache_key == current_key else ""
-            table.add_row(parser_name, settings_str, is_current)
+            table.add_row(cls.__name__, settings_str, is_current)
 
         self.console.print()
         self.console.print(
@@ -459,7 +584,7 @@ class ReplSession:
         return False
 
     def cmd_clear_parsers(self, args: list) -> bool:
-        current_key = self._get_cache_key()
+        current_key = type(self.parser).cache_key_from_settings(self.settings)
         old_count = len(self.parser_cache)
         self.parser_cache = {current_key: self.parser}
         cleared_count = old_count - 1
@@ -467,69 +592,7 @@ class ReplSession:
             f"[green]✓[/green] Cleared [cyan]{cleared_count}[/cyan] "
             "parser(s) from cache"
         )
-        self.console.print(
-            "[dim]Kept current parser: "
-            f"{self._format_cache_key_settings(current_key)}[/dim]\n"
-        )
         return False
-
-    def _get_cache_key(self) -> tuple:
-        parser_name = self.settings["parser"]
-
-        if parser_name == "generative":
-            return (
-                parser_name,
-                self.settings["model_path"],
-                self.settings["max_length"],
-                self.settings["num_beams"],
-                self.settings["num_candidates"],
-                self.settings["use_constraints"],
-                self.settings["device"],
-            )
-        elif parser_name == "alphabeta":
-            return (parser_name, self.settings["language"])
-        else:
-            # Generic key for unknown parser plugins
-            return (parser_name,)
-
-    def _format_cache_key_settings(self, cache_key: tuple) -> str:
-        parser_name = cache_key[0]
-
-        if parser_name == "generative" and len(cache_key) == 7:
-            model_path = cache_key[1] or "default"
-            max_length = cache_key[2]
-            num_beams = cache_key[3]
-            num_candidates = cache_key[4]
-            use_constraints = cache_key[5]
-            device = cache_key[6]
-            return (
-                f"model={model_path}, max_len={max_length}, beams={num_beams}, "
-                f"candidates={num_candidates}, use_constraints={use_constraints}, "
-                f"device={device}"
-            )
-        elif parser_name == "alphabeta" and len(cache_key) == 2:
-            language = cache_key[1]
-            return f"language={language}"
-        else:
-            return str(cache_key[1:])
-
-    def _get_or_create_parser(self) -> Parser | None:
-        cache_key = self._get_cache_key()
-
-        if cache_key in self.parser_cache:
-            self.console.print("[dim]Using cached parser[/dim]")
-            return self.parser_cache[cache_key]
-
-        self.console.print("[yellow]Initializing new parser...[/yellow]")
-        try:
-            kwargs = _parser_kwargs(self.settings)
-            new_parser = get_parser(self.settings["parser"], **kwargs)
-            self.parser_cache[cache_key] = new_parser
-            self.console.print("[green]✓[/green] Parser initialized and cached")
-            return new_parser
-        except Exception as e:
-            self.console.print(f"[red]Error:[/red] Failed to create parser: {e}")
-            return None
 
     def handle_command(self, text: str) -> bool:
         if not text.startswith("/"):
@@ -542,7 +605,8 @@ class ReplSession:
         cmd_name = parts[0]
         cmd_args = parts[1:]
 
-        if cmd_name not in self.commands:
+        commands = self._all_commands()
+        if cmd_name not in commands:
             self.console.print(
                 f"[red]Error:[/red] Unknown command '[cyan]/{cmd_name}[/cyan]'"
             )
@@ -552,7 +616,11 @@ class ReplSession:
             )
             return False
 
-        return self.commands[cmd_name]["handler"](cmd_args)
+        return commands[cmd_name]["handler"](cmd_args)
+
+    # ------------------------------------------------------------------
+    # Parsing flow
+    # ------------------------------------------------------------------
 
     def parse_text(self, text: str) -> None:
         try:
@@ -566,25 +634,22 @@ class ReplSession:
                 edge = None
                 tokens = None
 
-            # Print dependency tree for alphabeta parser
-            if (
-                self.parser_name == "alphabeta"
-                and hasattr(self.parser, "doc")
-                and self.parser.doc
-            ):
-                for sent in self.parser.doc.sents:
-                    dep_tree = print_dependency_tree(sent.root, self.console)
-                    if dep_tree:
-                        self.console.print()
-                        tree_panel = Panel(
-                            dep_tree,
-                            title="[bold cyan]Dependency Parse Tree[/bold cyan]",
-                            border_style="cyan",
-                            box=box.ROUNDED,
-                        )
-                        self.console.print(tree_panel)
-
             elapsed_time = time.perf_counter() - start_time
+
+            ctx = ReplContext(
+                session=self,
+                text=text,
+                parse_result=parse_result,
+                edge=edge,
+                tokens=tokens,
+                elapsed_time=elapsed_time,
+            )
+
+            for hook in self._pre_result_hooks:
+                try:
+                    hook(ctx)
+                except Exception as e:
+                    self.console.print(f"[red]pre-result hook failed: {e}[/red]")
 
             self.console.print()
 
@@ -606,163 +671,18 @@ class ReplSession:
 
             self.console.print(result_panel)
 
-            # Show raw model output if enabled
-            raw_parse = parse_result[0].extra.get("raw_parse") if parse_result else None
-            if raw_parse and self.settings.get("raw_output", False):
-                self.console.print()
-                self.console.print(
-                    Panel(
-                        Text(raw_parse, style="dim"),
-                        title="[bold yellow]Raw Model Output[/bold yellow]",
-                        border_style="yellow",
-                        box=box.ROUNDED,
-                    )
-                )
+            for hook in self._post_result_hooks:
+                try:
+                    hook(ctx)
+                except Exception as e:
+                    self.console.print(f"[red]post-result hook failed: {e}[/red]")
 
-            # Show all candidates when constraints are enabled
-            candidates = (
-                parse_result[0].extra.get("candidates") if parse_result else None
-            )
-            if candidates and len(candidates) > 1:
-                self.console.print()
-                for candidate in candidates:
-                    idx = candidate["index"]
-                    score = candidate["badness_score"]
-                    c_edge = hedge(candidate["edge"])
-                    is_selected = edge is not None and str(c_edge) == str(edge)
-
-                    formatted = self.formatter.format(c_edge)
-                    score_style = "green" if score == 0 else "red"
-
-                    title = f"Candidate {idx + 1}"
-                    if is_selected:
-                        title += " [selected]"
-                    title += f" (badness: {score})"
-
-                    self.console.print(
-                        Panel(
-                            formatted,
-                            title=f"[bold {score_style}]{title}[/bold {score_style}]",
-                            border_style="dim" if not is_selected else score_style,
-                            box=box.ROUNDED,
-                        )
-                    )
-
-                    if score > 0:
-                        for error in candidate.get("badness", []):
-                            if isinstance(error, (list, tuple)) and len(error) >= 2:
-                                self.console.print(
-                                    f"  [dim]{error[0]}:[/dim] {error[1]}"
-                                )
-
-            # Show statistics if enabled and we have a valid edge
             if (
                 edge is not None
                 and tokens is not None
                 and self.settings.get("statistics", False)
             ):
-                self.console.print()
-                stats_table = Table(
-                    show_header=False,
-                    box=box.SIMPLE,
-                    padding=(0, 1),
-                )
-                stats_table.add_column("Stat", style="cyan")
-                stats_table.add_column("Value", style="green", justify="right")
-
-                stats_table.add_row("External tokens", str(len(tokens)))
-
-                # Model input width and output length -- generative parser only
-                if self.parser_name == "generative":
-                    _sentence = re.sub(r"\s+", " ", text.strip())
-                    if hasattr(self.parser, "external_tokenizer") and hasattr(
-                        self.parser, "tokenizer"
-                    ):
-                        external_tokens = self.parser.external_tokenizer.tokenize(
-                            _sentence
-                        )
-                        input_text = f"parse to SH: {' '.join(external_tokens)}"
-                        source_tokens = self.parser.tokenizer.convert_ids_to_tokens(
-                            self.parser.tokenizer.encode(input_text)
-                        )
-                        stats_table.add_row(
-                            "Model input width", str(len(source_tokens))
-                        )
-
-                    output_length = parse_result[0].get("output_length")
-                    if output_length:
-                        stats_table.add_row(
-                            "Output sequence length", str(output_length)
-                        )
-
-                _edge = hedge(edge)
-                if _edge:
-                    stats_table.add_row("Atoms", str(len(_edge.all_atoms())))
-
-                self.console.print(
-                    Panel(
-                        stats_table,
-                        title="[bold blue]Statistics[/bold blue]",
-                        border_style="blue",
-                        box=box.ROUNDED,
-                    )
-                )
-
-            # Perform badness check if enabled and we have a valid edge
-            if (
-                edge is not None
-                and tokens is not None
-                and self.settings.get("check_badness", False)
-            ):
-                self.console.print()
-                _edge = hedge(edge)
-                badness_errors = badness_check(_edge, tokens) if _edge else None
-
-                if _edge and not badness_errors:
-                    self.console.print(
-                        Panel(
-                            Text("No errors found", style="green"),
-                            title="[bold green]Badness Check[/bold green]",
-                            border_style="green",
-                            box=box.ROUNDED,
-                        )
-                    )
-                elif _edge:
-                    error_table = Table(
-                        show_header=True,
-                        header_style="bold red",
-                        box=box.SIMPLE,
-                        padding=(0, 1),
-                    )
-                    error_table.add_column("Type", style="cyan")
-                    error_table.add_column("Message", style="white")
-
-                    if badness_errors:
-                        for key, errors in badness_errors.items():
-                            context = key
-                            if isinstance(errors, list):
-                                for error in errors:
-                                    if isinstance(error, tuple) and len(error) >= 2:
-                                        code, msg = error[0], error[1]
-                                        sev = error[2] if len(error) > 2 else "?"
-                                        error_table.add_row(
-                                            f"{code} [dim](sev:{sev})[/dim]\n[dim]"
-                                            f"({context})[/dim]",
-                                            msg,
-                                        )
-                                    else:
-                                        error_table.add_row(
-                                            f"[dim]({context})[/dim]", str(error)
-                                        )
-
-                    self.console.print(
-                        Panel(
-                            error_table,
-                            title="[bold red]Badness Check Failed[/bold red]",
-                            border_style="red",
-                            box=box.ROUNDED,
-                        )
-                    )
+                self._render_statistics(ctx)
 
             # Display timing
             if elapsed_time < 0.1:
@@ -789,6 +709,43 @@ class ReplSession:
             else:
                 traceback.print_exc()
             self.console.print()
+
+    def _render_statistics(self, ctx: ReplContext) -> None:
+        """Print the statistics panel using core + plugin-provided rows."""
+        self.console.print()
+        stats_table = Table(
+            show_header=False,
+            box=box.SIMPLE,
+            padding=(0, 1),
+        )
+        stats_table.add_column("Stat", style="cyan")
+        stats_table.add_column("Value", style="green", justify="right")
+
+        if ctx.tokens is not None:
+            stats_table.add_row("External tokens", str(len(ctx.tokens)))
+
+        for provider in self._stats_providers:
+            try:
+                rows = provider(ctx) or []
+            except Exception as e:
+                self.console.print(f"[red]stats provider failed: {e}[/red]")
+                continue
+            for label, value in rows:
+                stats_table.add_row(label, value)
+
+        if ctx.edge is not None:
+            _edge = hedge(ctx.edge)
+            if _edge:
+                stats_table.add_row("Atoms", str(len(_edge.all_atoms())))
+
+        self.console.print(
+            Panel(
+                stats_table,
+                title="[bold blue]Statistics[/bold blue]",
+                border_style="blue",
+                box=box.ROUNDED,
+            )
+        )
 
     def get_bottom_toolbar(self) -> HTML:
         return HTML(
@@ -826,31 +783,37 @@ class ReplSession:
 
 
 def run_repl(args: argparse.Namespace) -> None:
-    # Merge: CLI args > saved settings > hardcoded defaults
     saved = load_saved_settings()
-    for key in DEFAULTS:
-        cli_val = getattr(args, key, None)
-        if cli_val is not None:
-            continue
-        elif key in saved:
-            setattr(args, key, saved[key])
-        else:
-            setattr(args, key, DEFAULTS[key])
 
-    # Initialize parser
-    kwargs = _parser_kwargs(
-        {
-            "parser": args.parser,
-            "model_path": args.model_path,
-            "language": args.language,
-            "device": args.device,
-            "max_length": args.max_length,
-            "num_beams": args.num_beams,
-            "num_candidates": args.num_candidates,
-            "use_constraints": args.use_constraints,
-        }
+    # Migrate legacy saved-setting keys in place so users upgrading
+    # across the plugin-extension refactor don't need to edit the file.
+    for old_key, new_key in LEGACY_SETTING_RENAMES.items():
+        if old_key in saved and new_key not in saved:
+            saved[new_key] = saved.pop(old_key)
+
+    parser_name: str = (
+        getattr(args, "parser", None) or saved.get("parser") or DEFAULT_PARSER
     )
-    sh_parser = get_parser(args.parser, **kwargs)
 
-    session = ReplSession(sh_parser, args.parser, args)
+    # Build initial settings: saved -> CLI args (CLI overrides saved).
+    settings: dict[str, Any] = {}
+    settings.update(saved)
+    for key, value in vars(args).items():
+        if value is None:
+            continue
+        settings[key] = value
+
+    # Built-in REPL settings get their declared defaults if absent.
+    for name, info in BUILTIN_REPL_SETTINGS.items():
+        if name not in settings or settings.get(name) is None:
+            settings[name] = info["default"]
+
+    settings["parser"] = parser_name
+
+    try:
+        session = ReplSession(parser_name, settings)
+    except ValueError as e:
+        console = Console(force_terminal=True, color_system="auto")
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
     session.run()

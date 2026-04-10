@@ -124,11 +124,11 @@ uv run hyperbase parsers
 Once installed, parsers can be used from the interactive REPL:
 
 ```bash
-hyperbase repl --parser alphabeta --language en
+hyperbase repl --parser alphabeta --lang en
 ```
 
 ```bash
-uv run hyperbase repl --parser alphabeta --language en
+uv run hyperbase repl --parser alphabeta --lang en
 ```
 
 Or programmatically:
@@ -136,6 +136,6 @@ Or programmatically:
 ```python
 from hyperbase.parsers import get_parser
 
-parser = get_parser("alphabeta", language="en")
+parser = get_parser("alphabeta", lang="en")
 result = parser.parse_text("The sky is blue.")
 ```

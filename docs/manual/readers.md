@@ -70,7 +70,7 @@ hyperbase read article.txt -o output.txt
 hyperbase read https://en.wikipedia.org/wiki/Hypergraph -o output.jsonl
 
 # Specify reader and parser explicitly
-hyperbase read source.txt -o output.jsonl --reader plain_text --parser alphabeta --language en
+hyperbase read source.txt -o output.jsonl --reader plain_text --parser alphabeta --lang en
 ```
 
 ## Built-in readers

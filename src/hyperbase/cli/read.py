@@ -2,8 +2,10 @@ import argparse
 import os
 import sys
 
-from hyperbase.parsers import get_parser
+from hyperbase.parsers import get_parser, list_parsers
 from hyperbase.readers import get_reader
+
+DEFAULT_PARSER = "generative"
 
 
 def run_read(args: argparse.Namespace) -> None:
@@ -27,24 +29,34 @@ def run_read(args: argparse.Namespace) -> None:
         )
         sys.exit(1)
 
-    # Build parser kwargs
-    kwargs = {}
-    if args.parser == "generative":
-        if args.model_path:
-            kwargs["model_path"] = args.model_path
-        if args.device:
-            kwargs["device"] = args.device
-    elif args.parser == "alphabeta":
-        if args.language:
-            kwargs["lang"] = args.language
+    parser_name: str = getattr(args, "parser", None) or DEFAULT_PARSER
+
+    parsers = list_parsers()
+    if parser_name not in parsers:
+        avail = ", ".join(sorted(parsers)) or "(none)"
+        print(
+            f"Error: parser {parser_name!r} is not installed. Available: {avail}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    parser_cls = parsers[parser_name].load()
+
+    # Build kwargs from the parser's own ``accepted_params``: every
+    # parser-specific CLI flag was injected by ``hyperbase.cli`` based on
+    # the same dict, so this is just the inverse mapping.
+    kwargs: dict[str, object] = {}
+    for name in parser_cls.accepted_params():
+        value = getattr(args, name, None)
+        if value is not None:
+            kwargs[name] = value
 
     try:
-        parser = get_parser(args.parser, **kwargs)
+        parser = get_parser(parser_name, **kwargs)
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Parser: {args.parser}", file=sys.stderr)
+    print(f"Parser: {parser_name}", file=sys.stderr)
 
     sentences = 0
     edges = 0

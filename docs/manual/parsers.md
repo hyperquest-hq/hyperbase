@@ -20,10 +20,10 @@ Parsers are obtained by name with `get_parser()`:
 ```python
 from hyperbase import get_parser
 
-parser = get_parser("alphabeta", language="en")
+parser = get_parser("alphabeta", lang="en")
 ```
 
-The keyword arguments are forwarded to the parser constructor. Each parser plugin defines its own parameters -- for example, `alphabeta` takes a `language` code, while `generative` accepts `model_path`, `device`, `max_length`, and others.
+The keyword arguments are forwarded to the parser constructor. Each parser plugin defines its own parameters -- for example, `alphabeta` takes a `lang` code, while `generative` accepts `model_path`, `device`, `max_length`, and others. Run `hyperbase repl --parser <name> --help` (or `hyperbase read --parser <name> --help`) to see the full set of CLI flags injected by the active plugin.
 
 To see which parsers are installed:
 
@@ -125,42 +125,7 @@ This is what `read_source_to_jsonl()` uses internally -- each line in the output
 
 ## Quality checking
 
-The `hyperbase.parsers.correctness` module provides functions to assess the quality of a parse result.
-
-### Badness check
-
-`badness_check()` runs a comprehensive quality check on a parsed edge, combining structural validation with token-to-atom matching:
-
-```python
-from hyperbase.parsers.correctness import badness_check
-
-errors = badness_check(result.edge, result.tokens)
-if errors:
-    for key, error_list in errors.items():
-        for code, message, severity in error_list:
-            print(f"[{code}] {message} (severity: {severity})")
-else:
-    print("No errors found.")
-```
-
-The function returns a dictionary mapping edge fragments (or the string `'token-matching'`) to lists of `(code, message, severity)` tuples. An empty dictionary means no errors were found.
-
-The checks include:
-
-- **Structural correctness** -- validates the hyperedge against the SH specification (via `Hyperedge.check_correctness()`).
-- **Argument role validation** -- checks that argument roles are drawn from the valid set (`m`, `s`, `p`, `a`, `o`, `i`, `x`, `t`, `j`, `r`, `c`) and that roles like `s`, `p`, `o` are not duplicated.
-- **Junction consistency** -- verifies that junction arguments are consistently typed (all relations or all concepts).
-- **Token matching** -- ensures that every token in the original sentence maps to an atom root in the edge, and vice versa. Handles multi-token atoms, contractions and other non-trivial correspondences.
-
-### Structural quality only
-
-For a lighter check that skips token matching:
-
-```python
-from hyperbase.parsers.correctness import check_structural_quality
-
-errors = check_structural_quality(result.edge)
-```
+Badness/correctness checking lives in the parser plugin that needs it. The generative parser ships [`hyperbase_parser_gen.correctness.badness_check`](https://github.com/telmomenezes/hyperbase-parser-gen) for combined structural + token-matching validation; see that package's docs for usage.
 
 ## CLI
 
@@ -177,7 +142,7 @@ Shows all installed parser plugins and their entry point values.
 The REPL lets you parse sentences interactively:
 
 ```bash
-hyperbase repl --parser alphabeta --language en
+hyperbase repl --parser alphabeta --lang en
 ```
 
 Inside the REPL, type a sentence to parse it. Use `/help` to see available commands, `/settings` to view current configuration, and `/set` to change settings on the fly (e.g. `/set parser generative`). The REPL caches parser instances, so switching between parsers is fast after the first load.
@@ -186,7 +151,7 @@ Inside the REPL, type a sentence to parse it. Use `/help` to see available comma
 
 ```bash
 # Parse a file to JSONL
-hyperbase read article.txt -o output.jsonl --parser alphabeta --language en
+hyperbase read article.txt -o output.jsonl --parser alphabeta --lang en
 
 # Parse a Wikipedia article
 hyperbase read https://en.wikipedia.org/wiki/Hypergraph -o output.jsonl

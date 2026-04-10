@@ -3,6 +3,7 @@ from typing import Any
 
 from hyperbase.parsers.parse_result import ParseResult
 from hyperbase.parsers.parser import Parser
+from hyperbase.parsers.repl_api import ReplContext
 
 
 def list_parsers() -> dict[str, EntryPoint]:
@@ -12,7 +13,7 @@ def list_parsers() -> dict[str, EntryPoint]:
     in its ``pyproject.toml``::
 
         [project.entry-points."hyperbase.parsers"]
-        alphabeta = "hyperparser_alphabeta:ParserAlphaBeta"
+        myparser = "my_package:MyParser"
     """
     eps = entry_points(group="hyperbase.parsers")
     return {ep.name: ep for ep in eps}
@@ -43,4 +44,4 @@ def get_parser(
     return cls(merged)
 
 
-__all__ = ["ParseResult", "Parser", "get_parser", "list_parsers"]
+__all__ = ["ParseResult", "Parser", "ReplContext", "get_parser", "list_parsers"]
