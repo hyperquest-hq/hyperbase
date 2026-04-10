@@ -107,6 +107,21 @@ class TestBrokenEdgeStrings:
         assert edge is not None
         assert edge.depth() > 0
 
+    def test_extremely_deeply_nested_parens_string(self):
+        """hedge() must not blow Python's stack on pathological nesting.
+
+        Regression test: previously hedge() recursed once per nesting
+        level (~2 Python frames per level), so anything beyond ~450
+        levels raised RecursionError mid-parse — and the error leaked
+        out through except handlers because they themselves needed
+        stack frames they didn't have. The string parser is now
+        iterative and bounded only by available memory.
+        """
+        depth = 5000
+        s = "(" * depth + "a/C b/C" + ")" * depth
+        edge = hedge(s)
+        assert edge is not None
+
     def test_invalid_type_input(self):
         with pytest.raises(TypeError):
             hedge(42)

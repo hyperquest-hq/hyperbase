@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import cast
+from typing import Any, cast
 
 from hyperbase.constants import ATOM_ENCODE_TABLE
 from hyperbase.hyperedge import Atom, Hyperedge, UniqueAtom
@@ -63,11 +63,59 @@ def split_edge_str(edge_str: str) -> tuple[str, ...]:
     return tuple(tokens)
 
 
-def _parsed_token(token: str) -> Hyperedge:
-    if _edge_str_has_outer_parens(token):
-        return hedge(token)
-    else:
-        return Atom(token)
+def _hedge_from_str(source: str) -> Hyperedge:
+    """Iteratively parse an edge string into a Hyperedge.
+
+    Uses an explicit stack rather than recursion so that pathologically
+    nested edge strings cannot exhaust Python's call stack. Each frame in
+    the stack represents one open ``(...)`` group being assembled and
+    holds: ``[parens_flag, tokens, next_token_index, children_built]``.
+    """
+    edge_str = source.strip().replace("\n", " ")
+    parens = _edge_str_has_outer_parens(edge_str)
+    inner = edge_str[1:-1] if parens else edge_str
+
+    tokens = split_edge_str(inner)
+    if not tokens:
+        raise ValueError(f"Edge string is empty: '{source}'")
+
+    stack: list[list[Any]] = [[parens, tokens, 0, []]]
+    final: Hyperedge | None = None
+
+    while stack:
+        frame = stack[-1]
+        if frame[2] >= len(frame[1]):
+            # All tokens for this frame consumed; build the edge.
+            children: list[Hyperedge] = frame[3]
+            frame_parens: bool = frame[0]
+            if len(children) == 1 and isinstance(children[0], Atom):
+                built: Hyperedge = Atom(str(children[0]), frame_parens)
+            elif children:
+                built = Hyperedge(tuple(children))
+            else:
+                # Unreachable: empty token lists are rejected before push,
+                # but keep the guard for defensiveness.
+                raise ValueError(f"Edge string is empty: '{source}'")
+            stack.pop()
+            if stack:
+                stack[-1][3].append(built)
+            else:
+                final = built
+            continue
+
+        token = frame[1][frame[2]]
+        frame[2] += 1
+        if _edge_str_has_outer_parens(token):
+            inner_tok = token[1:-1]
+            sub_tokens = split_edge_str(inner_tok)
+            if not sub_tokens:
+                raise ValueError(f"Edge string is empty: '{token}'")
+            stack.append([True, sub_tokens, 0, []])
+        else:
+            frame[3].append(Atom(token))
+
+    assert final is not None  # loop guarantees this
+    return final
 
 
 def _collect_positions(tok_pos: Hyperedge) -> list[int]:
@@ -121,23 +169,7 @@ def hedge(
         _source = cast(Iterable, source)
         return Hyperedge(tuple(hedge(item) for item in _source))
     elif type(source) is str:
-        edge_str = source.strip().replace("\n", " ")
-        edge_inner_str = edge_str
-
-        parens = _edge_str_has_outer_parens(edge_str)
-        if parens:
-            edge_inner_str = edge_str[1:-1]
-
-        tokens = split_edge_str(edge_inner_str)
-        if not tokens:
-            raise ValueError(f"Edge string is empty: '{source}'")
-        edges = tuple(_parsed_token(token) for token in tokens)
-        if len(edges) == 1 and isinstance(edges[0], Atom):
-            return Atom(str(edges[0]), parens)
-        elif len(edges) > 0:
-            return Hyperedge(edges)
-        else:
-            raise ValueError(f"Edge string is empty: '{source}'")
+        return _hedge_from_str(source)
     elif type(source) in {Hyperedge, Atom, UniqueAtom}:
         return source  # type: ignore
     else:

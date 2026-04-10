@@ -19,6 +19,8 @@
 - `parse_text` renamed to `parse`; old iterator-based `parse` removed.
 - `read_source` renamed to `parse_source`; `read_source_to_jsonl` renamed to `parse_source_to_jsonl`.
 - renamed `sentensize` to `get_sentences`.
+- hedge now uses an explicit stack instead of recursion (so that pathologically
+    nested edge strings cannot exhaust Python's call stack).
 
 ### Removed
 - `__add__` operator overloading in `Hyperedge`/`Atom`.
