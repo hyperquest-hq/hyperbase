@@ -7,9 +7,13 @@ if TYPE_CHECKING:
     from hyperbase.parsers.parse_result import ParseResult
 
 
+DEFAULT_MAX_DEPTH = 50
+
+
 class Parser:
     def __init__(self, params: dict[str, Any] | None = None) -> None:
         self.params: dict[str, Any] = params or {}
+        self.max_depth: int = int(self.params.get("max_depth", DEFAULT_MAX_DEPTH))
 
     @classmethod
     def accepted_params(cls) -> dict[str, dict[str, Any]]:
@@ -20,8 +24,24 @@ class Parser:
         - ``"default"``: the default value (or ``None`` if required).
         - ``"description"``: a short human-readable description.
         - ``"required"``: whether the parameter must be provided.
+
+        Subclasses should merge their own parameters with the result of
+        ``super().accepted_params()`` so that common parameters like
+        ``max_depth`` remain discoverable.
         """
-        return {}
+        return {
+            "max_depth": {
+                "type": int,
+                "default": DEFAULT_MAX_DEPTH,
+                "description": (
+                    "Maximum allowed nesting depth for produced edges. "
+                    "Sentences whose parse exceeds this depth are rejected "
+                    "rather than processed, to avoid pathological inputs "
+                    "blowing the Python stack."
+                ),
+                "required": False,
+            },
+        }
 
     def get_sentences(self, text: str) -> list[str]:
         raise NotImplementedError

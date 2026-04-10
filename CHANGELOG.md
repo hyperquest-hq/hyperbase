@@ -10,6 +10,7 @@
 - `parse_to_jsonl` method on `Parser`.
 - unified parameter interface for parsers.
 - method `Parser.accepted_params`.
+- maximum depth protection for parsers.
 
 ### Changed
 - multiple patterns functions are now `Hyperedge`/`Atom` methods: `is_wildcard`, `is_pattern`, `is_fun_pattern`, `is_variable`, `contains_variable`, `variable_name`.
