@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from hyperbase.parsers.parse_result import ParseResult
 
 
-DEFAULT_MAX_DEPTH = 50
+DEFAULT_MAX_DEPTH = 25
 
 
 class Parser:
