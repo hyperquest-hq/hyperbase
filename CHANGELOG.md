@@ -23,6 +23,7 @@
 - renamed `sentensize` to `get_sentences`.
 - hedge now uses an explicit stack instead of recursion (so that pathologically
     nested edge strings cannot exhaust Python's call stack).
+- renamed parsers.correctness to parsers.badness.
 
 ### Removed
 

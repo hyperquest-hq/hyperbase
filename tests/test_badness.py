@@ -1,5 +1,5 @@
 from hyperbase.builders import hedge
-from hyperbase.parsers.correctness import badness_check, filter_alphanumeric_strings
+from hyperbase.parsers.badness import badness_check, filter_alphanumeric_strings
 
 
 class TestFilterAlphanumericStrings:
