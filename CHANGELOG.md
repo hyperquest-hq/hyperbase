@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.9.1] - work in progress
+## [0.10.0] - 11-04-2026
 
 ### Added
 
