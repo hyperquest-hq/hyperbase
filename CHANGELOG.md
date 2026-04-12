@@ -6,6 +6,8 @@
 
 ### Changed
 
+- Renamed command `hyperbase` to `hyperb`.
+
 ### Removed
 
 ## [0.10.0] - 11-04-2026
