@@ -35,7 +35,7 @@ dependencies = [
 ]
 
 [project.scripts]
-hyperb = "hyperbase.cli:main"
+hyperbase = "hyperbase.cli:main"
 
 [project.optional-dependencies]
 dev = [
