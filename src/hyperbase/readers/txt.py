@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterator
+from typing import Any
 
 from hyperbase.readers.reader import Reader, register_reader, split_blocks
 
@@ -22,6 +23,9 @@ class TxtReader(Reader):
 
     def block_count(self, source: str) -> int | None:
         return len(self._load(source))
+
+    def source_info(self, source: str) -> dict[str, Any]:
+        return {"source_type": "txt", "source": os.path.basename(source)}
 
     def read(self, source: str) -> Iterator[str]:
         yield from self._load(source)

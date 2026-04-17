@@ -3,7 +3,8 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from pathlib import Path
-from urllib.parse import urlparse
+from typing import Any
+from urllib.parse import unquote, urlparse
 
 import mwparserfromhell
 import requests
@@ -288,6 +289,14 @@ class WikipediaReader(Reader):
 
     def block_count(self, source: str) -> int | None:
         return len(self._fetch(source))
+
+    def source_info(self, source: str) -> dict[str, Any]:
+        title, _ = _url2title_and_lang(source)
+        return {
+            "source_type": "wikipedia",
+            "source": source,
+            "title": unquote(title).replace("_", " "),
+        }
 
     def read(self, source: str) -> Iterator[str]:
         yield from self._fetch(source)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from hyperbase.parsers.parser import Parser, ParseResult
@@ -131,6 +131,15 @@ class Reader:
         """
         raise NotImplementedError
 
+    def source_info(self, source: str) -> dict[str, Any]:
+        """Return source metadata to attach to each :class:`ParseResult`.
+
+        Subclasses should override this to provide reader-specific fields.
+        The returned dict must always include ``"source_type"`` and
+        ``"source"`` keys.
+        """
+        return {}
+
     def read_to_text(
         self,
         source: str,
@@ -176,11 +185,15 @@ class Reader:
 
             total = self.block_count(source)
             pbar = tqdm(total=total, desc="Parsing", unit="block")
+        src_info = self.source_info(source)
         for block in self.read(source):
             results = parser.parse(block, batch_size=batch_size)
             if progress:
                 pbar.update(1)
             if results:
+                if src_info:
+                    for result in results:
+                        result.source = src_info
                 yield results
         if progress:
             pbar.close()

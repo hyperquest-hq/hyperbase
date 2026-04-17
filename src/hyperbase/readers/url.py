@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import Any
 from urllib.parse import urlparse
 
-from trafilatura import extract, fetch_url
+from trafilatura import bare_extraction, fetch_url
 
 from hyperbase.readers.reader import Reader, register_reader, split_blocks
 
@@ -11,6 +12,7 @@ from hyperbase.readers.reader import Reader, register_reader, split_blocks
 class UrlReader(Reader):
     def __init__(self) -> None:
         self._blocks: list[str] | None = None
+        self._title: str | None = None
 
     @staticmethod
     def accepts(source: str) -> bool:
@@ -23,7 +25,9 @@ class UrlReader(Reader):
             if not document:
                 raise RuntimeError(f"Could not read data from URL: {source}")
 
-            text = extract(document)
+            result = bare_extraction(document, url=source)
+            text = result.get("text") if result else None
+            self._title = result.get("title") if result else None
             if not text:
                 text = document
 
@@ -32,6 +36,13 @@ class UrlReader(Reader):
 
     def block_count(self, source: str) -> int | None:
         return len(self._fetch(source))
+
+    def source_info(self, source: str) -> dict[str, Any]:
+        self._fetch(source)
+        info: dict[str, Any] = {"source_type": "url", "source": source}
+        if self._title:
+            info["title"] = self._title
+        return info
 
     def read(self, source: str) -> Iterator[str]:
         yield from self._fetch(source)

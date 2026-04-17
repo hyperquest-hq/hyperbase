@@ -4,6 +4,8 @@
 
 ### Added
 
+- readers provide source information.
+
 ### Changed
 
 - Renamed command `hyperbase` to `hyperb`.
