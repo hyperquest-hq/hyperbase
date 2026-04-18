@@ -102,14 +102,14 @@ It is often desirable to match for the presence of a given set of argroles, inde
 The above pattern would match both (independently of position):
 
 ```clojure
-(is/P.sc (the/M sky/C) blue/C)
+(is/P.so (the/M sky/C) blue/C)
 (is/P.cs blue/C (the/M sky/C))
 ```
 
 and also (independently of the presence of further argroles outside the set):
 
 ```clojure
-(is/P.scx (the/M sky/C) blue/C (in/T (the/M morning/C)))
+(is/P.sox (the/M sky/C) blue/C (in/T (the/M morning/C)))
 ```
 
 In fact, when specifying argroles, more often than not this is the behavior that is the most useful, because it allows for the matching of the participants of a relationship purely according to the role they play in it (subject, object, etc.).
@@ -140,7 +140,7 @@ Then `edge.match(pattern)` can be used to apply patterns to edges. It works like
 from hyperbase import hedge
 pattern = hedge("(plays/P.{so} PLAYER/C *)")
 edge = hedge("(plays/P.so mary/C *)")
-edge.match(pattern)  # [{'PLAYER': mary/C}]
+edge.match(pattern)  # [{"PLAYER": mary/C}]
 ```
 
 So, `edge.match(pattern)` gives a list of dictionaries (one pattern can match the same edge in several ways). Each dictionary represents a match, and assigns values to the pattern variable(s).

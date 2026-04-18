@@ -5,13 +5,21 @@
 !!! note
     [Read our publications and explore some use cases](pubs-cases.md).
 
-Hyperbase is a foundational library for working with *Semantic Hypergraphs (SH)*, which make it possible to represent a natural language sentence such as "Einstein first published the theory of relativity in 1905" as an ordered, recursive hyperlink of the form:
+Hyperbase is a foundational Python library for working with *Semantic Hypergraphs (SH)*, which make it possible to represent a natural language sentence such as "Einstein first published the theory of relativity in 1905" in a structured way:
 
 <figure markdown="span">
-  ![Einstein first published the Theory of Relativity in 1905.](assets/images/hyperedge-blocks.png){ width="75%" }
+  ![Einstein first published the Theory of Relativity in 1905.](assets/images/theory-of-relativity.png){ width="75%" }
 </figure>
 
-Hyperbase is written in Python, to both take advantage and facilitate integration with the rich environment of scientific libraries available in this language. It is released under the highly permissive MIT open source license.
+In SH notation, this is represented as:
+
+```text
+((first/M published/P.sox)
+    einstein/C
+    (the/M
+        (of/B.ma theory/C relativity/C))
+    (in/T 1905))
+```
 
 ## Funding
 

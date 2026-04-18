@@ -134,8 +134,8 @@ uv run hyperbase repl --parser alphabeta --lang en
 Or programmatically:
 
 ```python
-from hyperbase.parsers import get_parser
+from hyperbase import get_parser
 
 parser = get_parser("alphabeta", lang="en")
-result = parser.parse_text("The sky is blue.")
+results = parser.parse("The sky is blue.")
 ```

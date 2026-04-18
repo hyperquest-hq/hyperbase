@@ -4,7 +4,7 @@ The `hyperbase.readers` module provides a way to read and parse text from variou
 
 ## Reading and parsing sources
 
-The preferred way to read and parse a source is through the `Parser` methods `read_source()` and `read_source_to_jsonl()`. These handle reader selection automatically, so you only need a parser instance:
+The preferred way to read and parse a source is through the `Parser` methods `parse_source()` and `parse_source_to_jsonl()`. These handle reader selection automatically, so you only need a parser instance:
 
 ```python
 from hyperbase import get_parser
@@ -12,19 +12,19 @@ from hyperbase import get_parser
 parser = get_parser("generative")
 
 # Iterate over parse results block by block
-for results in parser.read_source("article.txt"):
+for results in parser.parse_source("article.txt"):
     for result in results:
-        print(result["edge"])
+        print(result.edge)
 
 # Or write everything to a JSONL file in one call
-parser.read_source_to_jsonl("article.txt", "output.jsonl", progress=True)
+parser.parse_source_to_jsonl("article.txt", "output.jsonl", progress=True)
 ```
 
 Both methods accept an optional `reader` argument to force a specific reader instead of auto-detection:
 
 ```python
 # Force the generic URL reader on a Wikipedia link
-for results in parser.read_source(
+for results in parser.parse_source(
     "https://en.wikipedia.org/wiki/Hypergraph", reader="url"
 ):
     ...
@@ -73,6 +73,27 @@ hyperbase read https://en.wikipedia.org/wiki/Hypergraph -o output.jsonl
 hyperbase read source.txt -o output.jsonl --reader plain_text --parser alphabeta --lang en
 ```
 
+## Source information
+
+Readers attach metadata to each `ParseResult` through the `source_info()` method. When parsing through a reader (via `parse_source()` or `parse_source_to_jsonl()`), the `source` field of each `ParseResult` is automatically populated with this metadata:
+
+```python
+for results in parser.parse_source("article.txt"):
+    for result in results:
+        print(result.source)
+        # {"source_type": "txt", "source": "article.txt"}
+```
+
+Each built-in reader provides the following source metadata:
+
+| Reader | Fields |
+| ------ | ------ |
+| `plain_text` | `source_type`, `source` (file name) |
+| `url` | `source_type`, `source` (URL), `title` (page title, if available) |
+| `wikipedia` | `source_type`, `source` (URL), `title` (article title) |
+
+Custom readers can override `source_info(source)` to provide their own metadata.
+
 ## Built-in readers
 
 ### `plain_text`
@@ -98,7 +119,7 @@ You can create and register your own readers. A custom reader must subclass `Rea
 - `accepts(source)` -- a static method that returns `True` if the reader can handle the given source string.
 - `read(source)` -- a generator that yields text blocks from the source.
 
-Optionally, you can implement `block_count(source)` to return the total number of blocks (enabling progress bars), and set the `more_general` class attribute to declare that this reader is more specific than others.
+Optionally, you can implement `block_count(source)` to return the total number of blocks (enabling progress bars), `source_info(source)` to provide metadata for parse results, and set the `more_general` class attribute to declare that this reader is more specific than others.
 
 Here is an example:
 
@@ -106,26 +127,29 @@ Here is an example:
 from hyperbase.readers import Reader, register_reader
 
 class RSSReader(Reader):
-    more_general = ['url']  # take priority over the generic URL reader
+    more_general = ("url",)  # take priority over the generic URL reader
 
     @staticmethod
     def accepts(source: str) -> bool:
-        return source.endswith('.rss') or source.endswith('/feed')
+        return source.endswith(".rss") or source.endswith("/feed")
 
     def read(self, source: str):
         import feedparser
         feed = feedparser.parse(source)
         for entry in feed.entries:
             # yield the text content of each entry as a block
-            yield entry.get('summary', '')
+            yield entry.get("summary", "")
 
-register_reader('rss', RSSReader)
+    def source_info(self, source: str):
+        return {"source_type": "rss", "source": source}
+
+register_reader("rss", RSSReader)
 ```
 
 After registration, the new reader is automatically considered during auto-detection. It can also be requested by name:
 
 ```python
-parser.read_source_to_jsonl("https://example.com/feed", "feed.jsonl", reader="rss")
+parser.parse_source_to_jsonl("https://example.com/feed", "feed.jsonl", reader="rss")
 ```
 
 ## Listing registered readers

@@ -16,7 +16,7 @@ Once it finishes, we will have the `ai.db` hypergraph database in the current di
 from hyperbase import hgraph
 from hyperbase.patterns import PatternCounter
 
-hg = hgraph('ai.db')
+hg = hgraph("ai.db")
 pc = PatternCounter()
 for edge in hg.all():
     if hg.is_primary(edge):
@@ -71,7 +71,7 @@ The `PatternCounter` works by recursively expanding the given hyperedge up to a 
 By default, all hyperedges are expanded. The constructor argument `expansions` defaults to `{'*'}`. It is however possible to have more control, and focus the expansions on more specific things that interest us. This is achieved by specifying patterns. Each hyperedge that is fed to the counter is only expanded (and also recursively) if it happens to match one of the patterns in `expansions`. Let us say that we are interested in relations with at least two arguments:
 
 ```python
-pc = PatternCounter(expansions={'(*/P * * ...)'})
+pc = PatternCounter(expansions={"(*/P * * ...)"})
 for edge in hg.all():
     if hg.is_primary(edge):
         pc.count(edge)
@@ -98,7 +98,7 @@ Any pattern(s) can be used here to control the expansions and focus the explorat
 The examples we have seen so far produce completely abstract patterns. It is also useful to be able to discover patterns where certain hyperedges are not wildcards, but instead contain the roots of the atoms. This is achieved with the `match_roots` constructor argument. Here one can include patterns that, when matched, cause the expansion to produce explicit atoms instead of wildcards. For example, we could be interested in the actual predicates of the most common relations:
 
 ```python
-pc = PatternCounter(expansions={'(*/P * * ...)'}, match_roots={'*/P'})
+pc = PatternCounter(expansions={"(*/P * * ...)"}, match_roots={"*/P"})
 for edge in hg.all():
     if hg.is_primary(edge):
         pc.count(edge)
@@ -121,7 +121,7 @@ for edge in hg.all():
 Notice that `match_roots` also causes the expansion of the matched expression, even if it does not match any pattern in `expansions`. We see this case above with `(*/M */P)` structures. Exploiting the machinery of patterns, many variations can be achieved. For example, we might be interested in only matching the roots of the predicate atoms, but keep the rest of the predicate abstract. This can be achieved by using `match_roots={'./P'}` (remember that the `.` wildcard only matches atoms):
 
 ```python
-pc = PatternCounter(expansions={'(*/P * * ...)'}, match_roots={'./P'})
+pc = PatternCounter(expansions={"(*/P * * ...)"}, match_roots={"./P"})
 for edge in hg.all():
     if hg.is_primary(edge):
         pc.count(edge)
@@ -146,7 +146,7 @@ for edge in hg.all():
 One might also be interested in including subtypes in the patterns. Again, this is achievable by specifying a constructor argument, `match_subtypes`. Following the same logic of the previous arguments, this is a set of patterns that triggers subtype inclusion in expansions when matched. Let us say, for example, that we are interested in the most common concept modifiers including subtypes:
 
 ```python
-pc = PatternCounter(expansions={'(*/M */C)'}, match_roots={'*/M'}, match_subtypes={'*/M'})
+pc = PatternCounter(expansions={"(*/M */C)"}, match_roots={"*/M"}, match_subtypes={"*/M"})
 for edge in hg.all():
     if hg.is_primary(edge):
         pc.count(edge)
