@@ -37,12 +37,16 @@ class ReplContext:
     parse_result: list[ParseResult]
     """The full list returned by ``parser.parse(text)``."""
 
+    result: ParseResult | None
+    """The single :class:`ParseResult` currently being rendered. ``None``
+    only when ``parse_result`` is empty (the FAILED case)."""
+
     edge: Hyperedge | None
-    """The primary parsed edge (``parse_result[0].edge``), or ``None``
-    if parsing produced no result."""
+    """The current result's edge (``result.edge``), or ``None`` if
+    parsing produced no result."""
 
     tokens: list[str] | None
-    """The tokens for the primary parse, or ``None`` if absent."""
+    """The current result's tokens, or ``None`` if absent."""
 
     elapsed_time: float
     """Wall-clock parse time in seconds."""

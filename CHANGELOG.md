@@ -8,6 +8,8 @@
 
 ### Changed
 
+- repl shows multiple results if available.
+
 ### Removed
 
 ## [0.10.0] - 11-04-2026

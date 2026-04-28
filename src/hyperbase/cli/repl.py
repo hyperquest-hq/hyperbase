@@ -625,64 +625,80 @@ class ReplSession:
     def parse_text(self, text: str) -> None:
         try:
             start_time = time.perf_counter()
-
             parse_result = self.parser.parse(text)
-            if parse_result and len(parse_result) > 0:
-                edge = parse_result[0].edge
-                tokens = parse_result[0].tokens
-            else:
-                edge = None
-                tokens = None
-
             elapsed_time = time.perf_counter() - start_time
 
-            ctx = ReplContext(
-                session=self,
-                text=text,
-                parse_result=parse_result,
-                edge=edge,
-                tokens=tokens,
-                elapsed_time=elapsed_time,
-            )
-
-            for hook in self._pre_result_hooks:
-                try:
-                    hook(ctx)
-                except Exception as e:
-                    self.console.print(f"[red]pre-result hook failed: {e}[/red]")
-
-            self.console.print()
-
-            if edge is None:
-                result_panel = Panel(
-                    Text("FAILED", style="bold red"),
-                    title="[yellow]Parse Result[/yellow]",
-                    border_style="red",
-                    box=box.ROUNDED,
+            if not parse_result:
+                self.console.print()
+                self.console.print(
+                    Panel(
+                        Text("FAILED", style="bold red"),
+                        title="[yellow]Parse Result[/yellow]",
+                        border_style="red",
+                        box=box.ROUNDED,
+                    )
                 )
             else:
-                formatted_edge = self.formatter.format(edge)
-                result_panel = Panel(
-                    formatted_edge,
-                    title="[yellow]Parse Result[/yellow]",
-                    border_style="green",
-                    box=box.ROUNDED,
-                )
+                total = len(parse_result)
+                for i, result in enumerate(parse_result):
+                    ctx = ReplContext(
+                        session=self,
+                        text=text,
+                        parse_result=parse_result,
+                        result=result,
+                        edge=result.edge,
+                        tokens=result.tokens,
+                        elapsed_time=elapsed_time,
+                    )
 
-            self.console.print(result_panel)
+                    for hook in self._pre_result_hooks:
+                        try:
+                            hook(ctx)
+                        except Exception as e:
+                            self.console.print(
+                                f"[red]pre-result hook failed: {e}[/red]"
+                            )
 
-            for hook in self._post_result_hooks:
-                try:
-                    hook(ctx)
-                except Exception as e:
-                    self.console.print(f"[red]post-result hook failed: {e}[/red]")
+                    self.console.print()
 
-            if (
-                edge is not None
-                and tokens is not None
-                and self.settings.get("statistics", False)
-            ):
-                self._render_statistics(ctx)
+                    title = (
+                        "[yellow]Parse Result[/yellow]"
+                        if total == 1
+                        else f"[yellow]Parse Result {i + 1}/{total}[/yellow]"
+                    )
+                    if total > 1:
+                        self.console.print(Text(result.text, style="dim italic"))
+
+                    if result.edge is None:
+                        result_panel = Panel(
+                            Text("FAILED", style="bold red"),
+                            title=title,
+                            border_style="red",
+                            box=box.ROUNDED,
+                        )
+                    else:
+                        result_panel = Panel(
+                            self.formatter.format(result.edge),
+                            title=title,
+                            border_style="green",
+                            box=box.ROUNDED,
+                        )
+                    self.console.print(result_panel)
+
+                    for hook in self._post_result_hooks:
+                        try:
+                            hook(ctx)
+                        except Exception as e:
+                            self.console.print(
+                                f"[red]post-result hook failed: {e}[/red]"
+                            )
+
+                    if (
+                        result.edge is not None
+                        and result.tokens is not None
+                        and self.settings.get("statistics", False)
+                    ):
+                        self._render_statistics(ctx)
 
             # Display timing
             if elapsed_time < 0.1:
