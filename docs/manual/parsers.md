@@ -135,7 +135,21 @@ This is what `parse_source_to_jsonl()` uses internally -- each line in the outpu
 
 ## Quality checking
 
-Badness/correctness checking lives in the parser plugin that needs it. The generative parser ships [`hyperbase_parser_gen.correctness.badness_check`](https://github.com/telmomenezes/hyperbase-parser-gen) for combined structural + token-matching validation; see that package's docs for usage.
+`hyperbase.parsers.badness.badness_check(edge, tokens)` combines structural validation with token-matching validation against the original input tokens. It returns a dict mapping a context (the offending sub-edge or the literal string `"token-matching"`) to a list of `(error_type, message, severity)` tuples, where lower severities are worse (`0` for hard correctness failures, `1` for token-mismatch issues, `2` for argrole problems, `3` for junction issues). An empty result means no issues were found.
+
+```python
+from hyperbase import hedge
+from hyperbase.parsers.badness import badness_check
+
+edge = hedge("(is/P.so (the/M sky/C) blue/C)")
+errors = badness_check(edge, ["the", "sky", "is", "blue"])
+```
+
+Inside the REPL, set `check_badness` to `true` to display a badness panel after every parse:
+
+```text
+> /set check_badness true
+```
 
 ## CLI
 

@@ -22,6 +22,7 @@ from hyperbase.builders import hedge
 from hyperbase.constants import EdgeType
 from hyperbase.hyperedge import Atom, Hyperedge
 from hyperbase.parsers import Parser, get_parser, list_parsers
+from hyperbase.parsers.badness import badness_check
 from hyperbase.parsers.repl_api import (
     CommandHandler,
     PostResultHook,
@@ -49,6 +50,11 @@ BUILTIN_REPL_SETTINGS: dict[str, dict[str, Any]] = {
         "type": bool,
         "default": False,
         "description": "Show parse statistics after each parse.",
+    },
+    "check_badness": {
+        "type": bool,
+        "default": False,
+        "description": "Run badness_check after each parse.",
     },
 }
 
@@ -693,6 +699,9 @@ class ReplSession:
                                 f"[red]post-result hook failed: {e}[/red]"
                             )
 
+                    if self.settings.get("check_badness", False):
+                        self._render_badness(ctx)
+
                     if (
                         result.edge is not None
                         and result.tokens is not None
@@ -725,6 +734,61 @@ class ReplSession:
             else:
                 traceback.print_exc()
             self.console.print()
+
+    def _render_badness(self, ctx: ReplContext) -> None:
+        """Print the badness check panel for the current parse result."""
+        if ctx.edge is None or ctx.tokens is None:
+            return
+
+        _edge = hedge(ctx.edge)
+        if _edge is None:
+            return
+        badness_errors = badness_check(_edge, ctx.tokens)
+
+        self.console.print()
+        if not badness_errors:
+            self.console.print(
+                Panel(
+                    Text("No errors found", style="green"),
+                    title="[bold green]Badness Check[/bold green]",
+                    border_style="green",
+                    box=box.ROUNDED,
+                )
+            )
+            return
+
+        error_table = Table(
+            show_header=True,
+            header_style="bold red",
+            box=box.SIMPLE,
+            padding=(0, 1),
+        )
+        error_table.add_column("Type", style="cyan")
+        error_table.add_column("Message", style="white")
+
+        for key, errors in badness_errors.items():
+            context = key
+            if not isinstance(errors, list):
+                continue
+            for error in errors:
+                if isinstance(error, tuple) and len(error) >= 2:
+                    code, msg = error[0], error[1]
+                    sev = error[2] if len(error) > 2 else "?"
+                    error_table.add_row(
+                        f"{code} [dim](sev:{sev})[/dim]\n[dim]({context})[/dim]",
+                        msg,
+                    )
+                else:
+                    error_table.add_row(f"[dim]({context})[/dim]", str(error))
+
+        self.console.print(
+            Panel(
+                error_table,
+                title="[bold red]Badness Check Failed[/bold red]",
+                border_style="red",
+                box=box.ROUNDED,
+            )
+        )
 
     def _render_statistics(self, ctx: ReplContext) -> None:
         """Print the statistics panel using core + plugin-provided rows."""
