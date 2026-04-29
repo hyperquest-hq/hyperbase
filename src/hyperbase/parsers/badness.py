@@ -29,11 +29,11 @@ def check_structural_quality(
             ars = current_edge.argroles()
             ar_counts: Counter[str] = Counter()
             for ar in ars:
-                if ar not in "masox?":
+                if ar not in "masoxr?":
                     current_errors.append(
                         (
                             "bad-argrole",
-                            f"Bad argument role '{ar}'. Should be one of 'masox?'.",
+                            f"Bad argument role '{ar}'. Should be one of 'masoxr?'.",
                             2,
                         )
                     )
