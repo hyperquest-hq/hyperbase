@@ -111,18 +111,16 @@ def _build_parser_kwargs(parser_cls: type[Parser], settings: dict) -> dict[str, 
 
 
 class FilteredFileHistory(FileHistory):
-    """Custom history that filters out commands and duplicates."""
+    """Custom history that filters out blanks and consecutive duplicates."""
 
     def __init__(self, filename: str) -> None:
         super().__init__(filename)
         self.last_saved: str | None = None
 
     def store_string(self, string: str) -> None:
-        if string.startswith("/"):
+        if not string.strip():
             return
         if string == self.last_saved:
-            return
-        if not string.strip():
             return
         super().store_string(string)
         self.last_saved = string
