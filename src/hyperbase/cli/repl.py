@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from prompt_toolkit import PromptSession
-from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.completion import Completer, Completion, PathCompleter
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import FileHistory
@@ -207,8 +207,14 @@ class HyperedgeFormatter:
 class CommandCompleter(Completer):
     """Auto-completer for slash commands."""
 
+    # Commands whose argument is a filesystem path. The completer
+    # delegates to ``PathCompleter`` once the user has typed past the
+    # command name.
+    PATH_ARG_COMMANDS = frozenset({"load"})
+
     def __init__(self, commands: dict) -> None:
         self.commands = commands
+        self.path_completer = PathCompleter(expanduser=True)
 
     def get_completions(
         self,
@@ -216,16 +222,26 @@ class CommandCompleter(Completer):
         complete_event: Any,  # noqa: ANN401
     ) -> Iterable[Completion]:
         text = document.text_before_cursor
-        if text.startswith("/"):
-            word = text[1:]
-            for cmd_name in self.commands:
-                if cmd_name.startswith(word):
-                    yield Completion(
-                        cmd_name,
-                        start_position=-len(word),
-                        display=f"/{cmd_name}",
-                        display_meta=self.commands[cmd_name]["help"],
-                    )
+        if not text.startswith("/"):
+            return
+
+        stripped = text[1:]
+        if " " in stripped:
+            cmd_name, _, arg = stripped.partition(" ")
+            if cmd_name in self.PATH_ARG_COMMANDS:
+                sub_doc = Document(text=arg, cursor_position=len(arg))
+                yield from self.path_completer.get_completions(sub_doc, complete_event)
+            return
+
+        word = stripped
+        for cmd_name in self.commands:
+            if cmd_name.startswith(word):
+                yield Completion(
+                    cmd_name,
+                    start_position=-len(word),
+                    display=f"/{cmd_name}",
+                    display_meta=self.commands[cmd_name]["help"],
+                )
 
 
 class ReplSession:
@@ -242,6 +258,10 @@ class ReplSession:
 
         self.settings: dict[str, Any] = dict(settings)
         self.settings.setdefault("parser", parser_name)
+
+        # In-memory hyperedges loaded via /load or --load. Available for
+        # parser-independent commands to operate on.
+        self.edges: list[Hyperedge] = []
 
         # Per-parser registrations -- everything in these collections is
         # cleared and re-installed whenever the active parser changes.
@@ -279,6 +299,10 @@ class ReplSession:
             "clear-parsers": {
                 "help": "Clear all parsers from cache except the current one",
                 "handler": self.cmd_clear_parsers,
+            },
+            "load": {
+                "help": "Load hyperedges from a .jsonl parse-results file",
+                "handler": self.cmd_load,
             },
         }
 
@@ -423,7 +447,6 @@ class ReplSession:
         banner = Panel(
             Text.from_markup(
                 "[bold cyan]Hyperbase REPL[/bold cyan]\n"
-                "[dim]Interactive Semantic Hypergraph Parser[/dim]\n\n"
                 f"[yellow]Parser:[/yellow] [green]{self.parser_name}[/green]\n"
                 "[yellow]Installed parsers:[/yellow] "
                 f"[green]{', '.join(available) or 'none'}[/green]\n\n"
@@ -588,6 +611,59 @@ class ReplSession:
             f"[dim]Total: {len(self.parser_cache)} parser(s) in cache[/dim]\n"
         )
         return False
+
+    def cmd_load(self, args: list) -> bool:
+        if len(args) < 1:
+            self.console.print(
+                "[red]Error:[/red] /load requires a file path: "
+                "[cyan]/load <path>[/cyan]"
+            )
+            return False
+
+        path = Path(" ".join(args)).expanduser()
+        if not path.is_file():
+            self.console.print(f"[red]Error:[/red] file not found: [cyan]{path}[/cyan]")
+            return False
+
+        try:
+            edges, skipped = self._load_edges_from_jsonl(path)
+        except Exception as e:
+            self.console.print(f"[red]Error:[/red] failed to read {path}: {e}")
+            return False
+
+        self.edges = edges
+        self.console.print(
+            f"[green]✓[/green] Loaded [cyan]{len(edges)}[/cyan] hyperedge(s) "
+            f"from [cyan]{path}[/cyan]"
+        )
+        if skipped > 0:
+            self.console.print(
+                f"[yellow]Skipped {skipped} line(s) that could not be parsed[/yellow]"
+            )
+        return False
+
+    def _load_edges_from_jsonl(self, path: Path) -> tuple[list[Hyperedge], int]:
+        edges: list[Hyperedge] = []
+        skipped = 0
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                    edge_str = d.get("edge")
+                    if not isinstance(edge_str, str):
+                        skipped += 1
+                        continue
+                    edge = hedge(edge_str)
+                    if edge is None:
+                        skipped += 1
+                        continue
+                    edges.append(edge)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    skipped += 1
+        return edges, skipped
 
     def cmd_clear_parsers(self, args: list) -> bool:
         current_key = type(self.parser).cache_key_from_settings(self.settings)
@@ -875,11 +951,14 @@ def run_repl(args: argparse.Namespace) -> None:
         getattr(args, "parser", None) or saved.get("parser") or DEFAULT_PARSER
     )
 
+    # CLI-only flags that should not be persisted in saved settings.
+    load_path: str | None = getattr(args, "load", None)
+
     # Build initial settings: saved -> CLI args (CLI overrides saved).
     settings: dict[str, Any] = {}
     settings.update(saved)
     for key, value in vars(args).items():
-        if value is None:
+        if value is None or key == "load":
             continue
         settings[key] = value
 
@@ -896,4 +975,8 @@ def run_repl(args: argparse.Namespace) -> None:
         console = Console(force_terminal=True, color_system="auto")
         console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
+
+    if load_path:
+        session.cmd_load([load_path])
+
     session.run()

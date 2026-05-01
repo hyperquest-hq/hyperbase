@@ -164,6 +164,12 @@ def main() -> None:
         default=None,
         help="Show parse statistics after each parse",
     )
+    repl_parser.add_argument(
+        "--load",
+        type=str,
+        default=None,
+        help="Path to a .jsonl parse-results file to pre-load into memory",
+    )
 
     # Dynamically inject parser-specific args, derived from the active
     # parser's ``accepted_params()``. We do this in two passes so that
