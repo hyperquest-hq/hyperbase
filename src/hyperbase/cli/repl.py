@@ -262,6 +262,7 @@ class ReplSession:
         # In-memory hyperedges loaded via /load or --load. Available for
         # parser-independent commands to operate on.
         self.edges: list[Hyperedge] = []
+        self.edges_source: Path | None = None
 
         # Per-parser registrations -- everything in these collections is
         # cleared and re-installed whenever the active parser changes.
@@ -303,6 +304,10 @@ class ReplSession:
             "load": {
                 "help": "Load hyperedges from a .jsonl parse-results file",
                 "handler": self.cmd_load,
+            },
+            "edges": {
+                "help": "Show in-memory edges (count and source file)",
+                "handler": self.cmd_edges,
             },
         }
 
@@ -632,6 +637,7 @@ class ReplSession:
             return False
 
         self.edges = edges
+        self.edges_source = path
         self.console.print(
             f"[green]✓[/green] Loaded [cyan]{len(edges)}[/cyan] hyperedge(s) "
             f"from [cyan]{path}[/cyan]"
@@ -640,6 +646,21 @@ class ReplSession:
             self.console.print(
                 f"[yellow]Skipped {skipped} line(s) that could not be parsed[/yellow]"
             )
+        return False
+
+    def cmd_edges(self, args: list) -> bool:
+        if not self.edges:
+            self.console.print("[yellow]No edges loaded.[/yellow]")
+            self.console.print(
+                "[dim]Use[/dim] [cyan]/load <path>[/cyan] "
+                "[dim]to load edges from a .jsonl file.[/dim]"
+            )
+            return False
+
+        self.console.print(
+            f"[green]{len(self.edges)}[/green] edge(s) loaded from "
+            f"[cyan]{self.edges_source}[/cyan]"
+        )
         return False
 
     def _load_edges_from_jsonl(self, path: Path) -> tuple[list[Hyperedge], int]:
