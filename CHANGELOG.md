@@ -4,6 +4,7 @@
 
 ### Added
 
+- Hyperedge.transform(): pattern-based rewrites.
 - readers provide source information.
 - `hyperbase.parsers.badness` module for parser-agnostic combined structural + token-matching validation.
 - built-in REPL setting `check_badness` to render a badness panel after each parse, available regardless of the active parser plugin.
@@ -11,7 +12,7 @@
 
 ### Changed
 
-- repl shows multiple results if available.
+- REPL shows multiple results if available.
 
 ### Removed
 

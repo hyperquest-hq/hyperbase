@@ -1,5 +1,7 @@
 import unittest
 
+import pytest
+
 from hyperbase.builders import build_atom, hedge, split_edge_str, str_to_atom
 from hyperbase.hyperedge import Atom
 
@@ -1127,6 +1129,103 @@ class TestHyperedge(unittest.TestCase):
     def test_replace_argroles_deep_none(self):
         edge = hedge("((not/M is/P.sc) bob/C sad/C)")
         assert str(edge.replace_argroles(None)) == "((not/M is/P) bob/C sad/C)"
+
+    def test_transform_preserve_example(self):
+        edge = hedge(
+            "((was/Mm performed/Pd.ox) (the/Md experience) (by/Ta scientists/Cc))"
+        )
+        result = edge.transform(
+            hedge("(X/P.{x} (Y/Ta Z))"),
+            hedge("((Y/Mx X/P.{s}) Z)"),
+        )
+        assert str(result) == (
+            "((by/Mx (was/Mm performed/Pd.os)) (the/Md experience) scientists/Cc)"
+        )
+
+    def test_transform_strict_example(self):
+        edge = hedge(
+            "((was/Mm performed/Pd.ox) (the/Md experience) (by/Ta scientists/Cc))"
+        )
+        result = edge.transform(
+            hedge("(X/P.{x} (Y/Ta Z))"),
+            hedge("((Y/Mx X/P.s) Z)"),
+        )
+        assert str(result) == "((by/Mx (was/Mm performed/Pd.s)) scientists/Cc)"
+
+    def test_transform_no_match_unchanged(self):
+        edge = hedge("(eats/Pd.so john/C apples/C)")
+        result = edge.transform(
+            hedge("(X/P.{x} (Y/Ta Z))"),
+            hedge("((Y/Mx X/P.{s}) Z)"),
+        )
+        assert result == edge
+
+    def test_transform_constant_replacement(self):
+        edge = hedge("(yesterday/Mt died/Mn fido/Cc)")
+        result = edge.transform(hedge("died/Mn"), hedge("died/Md"))
+        assert str(result) == "(yesterday/Mt died/Md fido/Cc)"
+
+    def test_transform_atomic_binding_type_change(self):
+        edge = hedge("by/Ta")
+        result = edge.transform(hedge("Y/Ta"), hedge("Y/Mx"))
+        assert str(result) == "by/Mx"
+
+    def test_transform_non_atomic_type_change_raises(self):
+        edge = hedge(
+            "((was/Mm performed/Pd.ox) (the/Md experience) (by/Ta scientists/Cc))"
+        )
+        with pytest.raises(ValueError):
+            edge.transform(
+                hedge("(X/P.{x} (Y/Ta Z))"),
+                hedge("((Y/Mx X/B.{s}) Z)"),
+            )
+
+    def test_transform_anonymous_wildcard_raises(self):
+        edge = hedge("(eats/Pd.so john/C apples/C)")
+        with pytest.raises(ValueError):
+            edge.transform(hedge("(* X Y)"), hedge("(X Y)"))
+        with pytest.raises(ValueError):
+            edge.transform(hedge("(eats/Pd.so X ...)"), hedge("(X)"))
+
+    def test_transform_target_var_not_in_origin_raises(self):
+        edge = hedge("(eats/Pd.so john/C apples/C)")
+        with pytest.raises(ValueError):
+            edge.transform(hedge("(eats/Pd.so X Y)"), hedge("(eats/Pd.so W X)"))
+
+    def test_transform_origin_var_unused_in_target(self):
+        edge = hedge("(eats/Pd.so john/C apples/C)")
+        result = edge.transform(
+            hedge("(eats/Pd.so X Y)"),
+            hedge("(eats/Pd.s X)"),
+        )
+        assert str(result) == "(eats/Pd.s john/C)"
+
+    def test_transform_recursive_multi_level(self):
+        edge = hedge("(say/Pd.so john/C (say/Pd.so mary/C something/C))")
+        result = edge.transform(
+            hedge("(say/Pd.so X Y)"),
+            hedge("(told/Pd.so X Y)"),
+        )
+        assert str(result) == "(told/Pd.so john/C (told/Pd.so mary/C something/C))"
+
+    def test_transform_shallow(self):
+        edge = hedge("(say/Pd.so john/C (say/Pd.so mary/C something/C))")
+        result = edge.transform(
+            hedge("(say/Pd.so X Y)"),
+            hedge("(told/Pd.so X Y)"),
+            recursive=False,
+        )
+        assert str(result) == "(told/Pd.so john/C (say/Pd.so mary/C something/C))"
+
+    def test_transform_atomic_edge_non_atom_origin_unchanged(self):
+        edge = hedge("foo/C")
+        result = edge.transform(hedge("(eats/Pd.so X Y)"), hedge("(X Y)"))
+        assert result == edge
+
+    def test_transform_bare_variable_substitution(self):
+        edge = hedge("(eats/Pd.so john/C apples/C)")
+        result = edge.transform(hedge("(eats/Pd.so X Y)"), hedge("Y"))
+        assert str(result) == "apples/C"
 
 
 if __name__ == "__main__":

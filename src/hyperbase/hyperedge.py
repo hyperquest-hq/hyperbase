@@ -227,6 +227,17 @@ class Hyperedge:
 
         return simplify(self, subtypes=subtypes, namespaces=namespaces)
 
+    def transform(
+        self,
+        origin_pattern: Hyperedge | str | list | tuple,
+        target_pattern: Hyperedge | str | list | tuple,
+        recursive: bool = True,
+    ) -> Hyperedge:
+        """Pattern-driven rewrite. See ``hyperbase.transforms.transform``."""
+        from hyperbase.transforms import transform
+
+        return transform(self, origin_pattern, target_pattern, recursive=recursive)
+
     def type(self) -> str:
         """Returns the type of this edge as a string.
         Type inference is performed.
