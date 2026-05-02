@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import json
 import sys
 import time
@@ -358,6 +359,13 @@ class ReplSession:
             "count": {
                 "help": "Count pattern matches across loaded edges (most common first)",
                 "handler": self.cmd_count,
+            },
+            "types": {
+                "help": (
+                    "Count atom types across loaded edges "
+                    "(optional main-type filter, e.g. /types M)"
+                ),
+                "handler": self.cmd_types,
             },
         }
 
@@ -910,6 +918,76 @@ class ReplSession:
             page_size,
         )
         return False
+
+    def cmd_types(self, args: list) -> bool:
+        if not self.edges:
+            self.console.print("[yellow]No edges loaded.[/yellow]")
+            self.console.print(
+                "[dim]Use[/dim] [cyan]/load <path>[/cyan] [dim]first.[/dim]"
+            )
+            return False
+
+        filter_main_type: str | None = None
+        if args:
+            filter_main_type = args[0]
+            try:
+                EdgeType(filter_main_type)
+            except ValueError:
+                valid = ", ".join(sorted(t.value for t in EdgeType))
+                self.console.print(
+                    f"[red]Error:[/red] unknown main type "
+                    f"[cyan]{filter_main_type}[/cyan]. [dim]Valid:[/dim] {valid}"
+                )
+                return False
+
+        page_size = int(self.settings.get("search_page_size", 10))
+        if page_size < 1:
+            page_size = 10
+
+        counter: Counter[str] = Counter()
+        for top_edge in self.edges:
+            for atom in top_edge.all_atoms():
+                if filter_main_type is not None and atom.mtype() != filter_main_type:
+                    continue
+                counter[atom.type()] += 1
+
+        if not counter:
+            if filter_main_type is not None:
+                self.console.print(
+                    f"[yellow]No atoms[/yellow] with main type "
+                    f"[cyan]{filter_main_type}[/cyan]"
+                )
+            else:
+                self.console.print("[yellow]No atoms found[/yellow]")
+            return False
+
+        items = counter.most_common()
+        suffix = (
+            f" filtered to main type [cyan]{filter_main_type}[/cyan]"
+            if filter_main_type
+            else ""
+        )
+        self.console.print(
+            f"[green]{sum(counter.values())}[/green] atom(s), "
+            f"[cyan]{len(counter)}[/cyan] distinct type(s)" + suffix
+        )
+        self._paginate(
+            items,
+            lambda n, item: self._render_types_row(n, item[0], item[1]),
+            page_size,
+        )
+        return False
+
+    def _render_types_row(self, n: int, type_str: str, count: int) -> None:
+        color = "white"
+        if type_str:
+            with contextlib.suppress(ValueError):
+                color = TYPE_COLORS.get(EdgeType(type_str[0]), "white")
+        line = Text()
+        line.append(f"#{n}  ", style="bold")
+        line.append(f"{count}x  ", style="green")
+        line.append(type_str, style=color)
+        self.console.print(line)
 
     def _render_count_row(self, n: int, key: object, count: int) -> None:
         header = Text()
