@@ -1227,6 +1227,17 @@ class TestHyperedge(unittest.TestCase):
         result = edge.transform(hedge("(eats/Pd.so X Y)"), hedge("Y"))
         assert str(result) == "apples/C"
 
+    def test_transform_partial_match_unchanged(self):
+        # The matcher returns a partial binding {X: ...} (no Y, Z) when the
+        # x-position arg cannot match (Y/Ta Z). transform must treat this as
+        # no-match rather than blowing up on the unbound Y / Z.
+        edge = hedge("((had/Mm done/Pd.ox) (the/Md task) by/Ta)")
+        result = edge.transform(
+            hedge("(X/P.{x} (Y/Ta Z))"),
+            hedge("((Y/Mx X/P.{s}) Z)"),
+        )
+        assert result == edge
+
 
 if __name__ == "__main__":
     unittest.main()

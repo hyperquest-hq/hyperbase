@@ -20,7 +20,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from hyperbase.builders import hedge
+from hyperbase.builders import hedge, split_edge_str
 from hyperbase.constants import EdgeType
 from hyperbase.hyperedge import Atom, Hyperedge
 from hyperbase.parsers import Parser, get_parser, list_parsers
@@ -366,6 +366,13 @@ class ReplSession:
                     "(optional main-type filter, e.g. /types M)"
                 ),
                 "handler": self.cmd_types,
+            },
+            "transform": {
+                "help": (
+                    "Rewrite loaded edges by pattern "
+                    "(e.g. /transform (X/P.{x} (Y/Ta Z)) ((Y/Mx X/P.{s}) Z))"
+                ),
+                "handler": self.cmd_transform,
             },
         }
 
@@ -977,6 +984,107 @@ class ReplSession:
             page_size,
         )
         return False
+
+    def cmd_transform(self, args: list) -> bool:
+        if not args:
+            self.console.print(
+                "[red]Error:[/red] /transform requires two patterns: "
+                "[cyan]/transform <origin> <target>[/cyan]"
+            )
+            return False
+        if not self.edges:
+            self.console.print("[yellow]No edges loaded.[/yellow]")
+            self.console.print(
+                "[dim]Use[/dim] [cyan]/load <path>[/cyan] [dim]first.[/dim]"
+            )
+            return False
+
+        text = " ".join(args)
+        try:
+            tokens = split_edge_str(text)
+        except ValueError as e:
+            self.console.print(f"[red]Error:[/red] {e}")
+            return False
+        if len(tokens) != 2:
+            self.console.print(
+                "[red]Error:[/red] expected exactly two patterns "
+                f"(got {len(tokens)}): [cyan]/transform <origin> <target>[/cyan]"
+            )
+            return False
+
+        try:
+            origin = hedge(tokens[0])
+            target = hedge(tokens[1])
+        except Exception as e:
+            self.console.print(f"[red]Error:[/red] failed to parse pattern: {e}")
+            return False
+        if origin is None or target is None:
+            self.console.print("[red]Error:[/red] could not parse patterns")
+            return False
+
+        try:
+            choice = (
+                self.session.prompt(
+                    "Dry run? [Y/n] (n applies the rewrite to loaded edges): "
+                )
+                .strip()
+                .lower()
+            )
+        except (KeyboardInterrupt, EOFError):
+            self.console.print("[dim](aborted)[/dim]")
+            return False
+        dry_run = choice not in ("n", "no")
+
+        changes: list[tuple[int, Hyperedge, Hyperedge]] = []
+        new_edges: list[Hyperedge] = []
+        try:
+            for idx, edge in enumerate(self.edges):
+                transformed = edge.transform(origin, target)
+                if transformed != edge:
+                    changes.append((idx, edge, transformed))
+                new_edges.append(transformed)
+        except ValueError as e:
+            self.console.print(f"[red]Error:[/red] {e}")
+            return False
+        except Exception as e:
+            self.console.print(f"[red]Error:[/red] transform failed: {e}")
+            return False
+
+        mode = "dry run" if dry_run else "applied"
+        self.console.print(
+            f"[green]{len(changes)}[/green] of [cyan]{len(self.edges)}[/cyan] "
+            f"edge(s) affected ([bold]{mode}[/bold])"
+        )
+        if not dry_run:
+            self.edges = new_edges
+
+        if not changes:
+            return False
+
+        page_size = int(self.settings.get("search_page_size", 10))
+        if page_size < 1:
+            page_size = 10
+
+        self._paginate(
+            changes,
+            lambda n, change: self._render_transform_change(n, *change),
+            page_size,
+        )
+        return False
+
+    def _render_transform_change(
+        self,
+        n: int,
+        idx: int,
+        before: Hyperedge,
+        after: Hyperedge,
+    ) -> None:
+        self.console.print(f"[bold]#{n}[/bold] [dim](edge {idx})[/dim]")
+        self.console.print("  [dim red]before:[/dim red]")
+        self.console.print(self.formatter.format(before))
+        self.console.print("  [dim green]after:[/dim green]")
+        self.console.print(self.formatter.format(after))
+        self.console.print()
 
     def _render_types_row(self, n: int, type_str: str, count: int) -> None:
         color = "white"

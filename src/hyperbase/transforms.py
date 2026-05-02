@@ -202,10 +202,13 @@ def _transform_impl(
     if recursive and edge.not_atom:
         edge = Hyperedge(tuple(_transform_impl(c, origin, target, True) for c in edge))
 
-    matches = match_pattern(edge, origin)
-    if matches:
-        bindings = matches[0]
-        edge = _instantiate(target, origin, edge, bindings, top=True)
+    origin_vars = _collect_var_names(origin)
+    for bindings in match_pattern(edge, origin):
+        # The matcher may return partial bindings when constraint propagation
+        # fails on some pattern positions but enough vars satisfy its min_vars
+        # threshold. For a rewrite we require every origin variable bound.
+        if origin_vars.issubset(bindings.keys()):
+            return _instantiate(target, origin, edge, bindings, top=True)
     return edge
 
 
