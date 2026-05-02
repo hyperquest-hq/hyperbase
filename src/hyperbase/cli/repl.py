@@ -3,7 +3,8 @@ import json
 import sys
 import time
 import traceback
-from collections.abc import Iterable
+from collections import Counter
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any, cast
 
@@ -353,6 +354,10 @@ class ReplSession:
             "search": {
                 "help": "Search loaded edges for hyperedges matching a pattern",
                 "handler": self.cmd_search,
+            },
+            "count": {
+                "help": "Count pattern matches across loaded edges (most common first)",
+                "handler": self.cmd_count,
             },
         }
 
@@ -768,7 +773,11 @@ class ReplSession:
             f"[green]{len(hits)}[/green] match(es) "
             f"({'recursive' if recursive else 'top-level only'})"
         )
-        self._paginate_search_results(hits, page_size)
+        self._paginate(
+            hits,
+            lambda n, hit: self._render_search_hit(n, *hit),
+            page_size,
+        )
         return False
 
     def _render_search_hit(
@@ -786,18 +795,20 @@ class ReplSession:
         for bi, b in enumerate(nonempty):
             prefix = f"  bindings[{bi}]: " if len(nonempty) > 1 else "  bindings: "
             for var, val in b.items():
-                line = Text(prefix, style="dim")
+                line = Text()
+                line.append(prefix, style="dim")
                 line.append(f"{var} = ", style="dim")
                 line.append(self.formatter.format(val))
                 self.console.print(line)
         self.console.print()
 
-    def _paginate_search_results(
+    def _paginate(
         self,
-        hits: list[tuple[int, Hyperedge, Hyperedge, list[dict]]],
+        items: list[Any],
+        render_fn: Callable[[int, Any], None],
         page_size: int,
     ) -> None:
-        total = len(hits)
+        total = len(items)
         pages = (total + page_size - 1) // page_size
         page = 0
         while True:
@@ -809,8 +820,7 @@ class ReplSession:
                 f"(results {start + 1}-{end} of {total}) --[/dim]"
             )
             for i in range(start, end):
-                top_idx, top_edge, sub, bindings = hits[i]
-                self._render_search_hit(i + 1, top_idx, top_edge, sub, bindings)
+                render_fn(i + 1, items[i])
 
             if pages == 1:
                 return
@@ -825,7 +835,7 @@ class ReplSession:
                     .lower()
                 )
             except (KeyboardInterrupt, EOFError):
-                self.console.print("[dim](search aborted)[/dim]")
+                self.console.print("[dim](aborted)[/dim]")
                 return
 
             if choice in ("q", "quit", "exit"):
@@ -835,6 +845,88 @@ class ReplSession:
                     page -= 1
                 continue
             page += 1
+
+    def cmd_count(self, args: list) -> bool:
+        if not args:
+            self.console.print(
+                "[red]Error:[/red] /count requires a pattern: "
+                "[cyan]/count <pattern>[/cyan]"
+            )
+            return False
+        if not self.edges:
+            self.console.print("[yellow]No edges loaded.[/yellow]")
+            self.console.print(
+                "[dim]Use[/dim] [cyan]/load <path>[/cyan] [dim]first.[/dim]"
+            )
+            return False
+
+        pattern_text = " ".join(args)
+        try:
+            pattern = hedge(pattern_text)
+        except Exception as e:
+            self.console.print(f"[red]Error:[/red] failed to parse pattern: {e}")
+            return False
+        if pattern is None:
+            self.console.print(
+                f"[red]Error:[/red] could not parse pattern: "
+                f"[cyan]{pattern_text}[/cyan]"
+            )
+            return False
+
+        recursive = bool(self.settings.get("search_recursive", True))
+        page_size = int(self.settings.get("search_page_size", 10))
+        if page_size < 1:
+            page_size = 10
+
+        # Counter key:
+        #   - if the pattern has variables, key is sorted tuple of (var, value)
+        #   - otherwise the matched (sub)edge itself
+        counter: Counter[Any] = Counter()
+        for top_edge in self.edges:
+            candidates: Iterable[Hyperedge] = (
+                self._iter_subedges_ordered(top_edge) if recursive else [top_edge]
+            )
+            for sub in candidates:
+                bindings_list = sub.match(pattern)
+                for b in bindings_list:
+                    key: Any = tuple(sorted(b.items())) if b else sub
+                    counter[key] += 1
+
+        if not counter:
+            self.console.print(
+                f"[yellow]No matches[/yellow] for [cyan]{pattern_text}[/cyan]"
+            )
+            return False
+
+        items = counter.most_common()
+        self.console.print(
+            f"[green]{sum(counter.values())}[/green] match(es), "
+            f"[cyan]{len(counter)}[/cyan] distinct "
+            f"({'recursive' if recursive else 'top-level only'})"
+        )
+        self._paginate(
+            items,
+            lambda n, item: self._render_count_row(n, item[0], item[1]),
+            page_size,
+        )
+        return False
+
+    def _render_count_row(self, n: int, key: object, count: int) -> None:
+        header = Text()
+        header.append(f"#{n}  ", style="bold")
+        header.append(f"{count}x", style="green")
+        self.console.print(header)
+
+        if isinstance(key, tuple):
+            for var, val in key:
+                line = Text()
+                line.append("  ", style="dim")
+                line.append(f"{var} = ", style="dim")
+                line.append(self.formatter.format(val))
+                self.console.print(line)
+        elif isinstance(key, Hyperedge):
+            self.console.print(Text("  ") + self.formatter.format(key))
+        self.console.print()
 
     def _load_edges_from_jsonl(self, path: Path) -> tuple[list[Hyperedge], int]:
         edges: list[Hyperedge] = []
