@@ -56,6 +56,18 @@ BUILTIN_REPL_SETTINGS: dict[str, dict[str, Any]] = {
         "default": False,
         "description": "Run badness_check after each parse.",
     },
+    "search_recursive": {
+        "type": bool,
+        "default": True,
+        "description": (
+            "When /search runs, also match every sub-edge of each loaded edge."
+        ),
+    },
+    "search_page_size": {
+        "type": int,
+        "default": 10,
+        "description": "Number of /search results shown per page.",
+    },
 }
 
 
@@ -132,7 +144,7 @@ class HyperedgeFormatter:
     def __init__(self, console: Console) -> None:
         self.console = console
 
-    def format_atom(self, atom: Atom) -> Text:
+    def format_atom(self, atom: Atom, dim: bool = False) -> Text:
         parts = atom.parts()
         result = Text()
 
@@ -141,17 +153,18 @@ class HyperedgeFormatter:
 
         mtype = atom.mtype()
         type_color = TYPE_COLORS.get(mtype, "white")
+        d = "dim " if dim else ""
 
         root = parts[0]
-        result.append(root, style="white")
+        result.append(root, style=f"{d}white")
 
         if len(parts) >= 2:
-            result.append("/", style=f"{type_color}")
+            result.append("/", style=f"{d}{type_color}")
             role_parts = parts[1].split(".")
-            result.append(role_parts[0], style=f"{type_color}")
+            result.append(role_parts[0], style=f"{d}{type_color}")
             if len(role_parts) > 1:
                 result.append(".", style=f"dim {type_color}")
-                result.append(role_parts[1], style=f"italic {type_color}")
+                result.append(role_parts[1], style=f"italic {d}{type_color}")
 
         for i in range(2, len(parts)):
             result.append("/", style="dim white")
@@ -160,21 +173,34 @@ class HyperedgeFormatter:
         return result
 
     def format_hyperedge(
-        self, edge: Hyperedge, indent_level: int = 0, inline: bool = False
+        self,
+        edge: Hyperedge,
+        indent_level: int = 0,
+        inline: bool = False,
+        highlight: Hyperedge | None = None,
+        in_highlight: bool = False,
     ) -> Text:
         if edge is None:
             return Text("None", style="dim red")
 
+        is_target = highlight is not None and edge is highlight
+        dim_outside = highlight is not None and not in_highlight and not is_target
+        descendant_in = in_highlight or is_target
+
         if edge.atom:
             atom = cast(Atom, edge)
-            return self.format_atom(atom)
+            result = self.format_atom(atom, dim=dim_outside)
+            if is_target:
+                result.stylize("bold")
+            return result
 
         result = Text()
 
         edge_type = edge.mtype()
         paren_color = TYPE_COLORS.get(edge_type, "white")
+        d = "dim " if dim_outside else ""
 
-        result.append("(", style=f"bold {paren_color}")
+        result.append("(", style=f"{d}bold {paren_color}")
 
         should_inline = inline or (edge.depth() <= 1 and edge.size() <= 3)
 
@@ -183,7 +209,13 @@ class HyperedgeFormatter:
                 if i > 0:
                     result.append(" ")
                 result.append(
-                    self.format_hyperedge(sub_edge, indent_level + 1, inline=True)
+                    self.format_hyperedge(
+                        sub_edge,
+                        indent_level + 1,
+                        inline=True,
+                        highlight=highlight,
+                        in_highlight=descendant_in,
+                    )
                 )
         else:
             for i, sub_edge in enumerate(edge):
@@ -191,15 +223,26 @@ class HyperedgeFormatter:
                     result.append("\n")
                     result.append(" " * (indent_level + 1) * 2)
                 result.append(
-                    self.format_hyperedge(sub_edge, indent_level + 1, inline=False)
+                    self.format_hyperedge(
+                        sub_edge,
+                        indent_level + 1,
+                        inline=False,
+                        highlight=highlight,
+                        in_highlight=descendant_in,
+                    )
                 )
 
-        result.append(")", style=f"bold {paren_color}")
+        result.append(")", style=f"{d}bold {paren_color}")
+
+        if is_target:
+            result.stylize("bold")
 
         return result
 
-    def format(self, edge: Hyperedge) -> Text:
-        return self.format_hyperedge(edge, indent_level=0, inline=False)
+    def format(self, edge: Hyperedge, highlight: Hyperedge | None = None) -> Text:
+        return self.format_hyperedge(
+            edge, indent_level=0, inline=False, highlight=highlight
+        )
 
 
 class CommandCompleter(Completer):
@@ -306,6 +349,10 @@ class ReplSession:
             "edges": {
                 "help": "Show in-memory edges (count and source file)",
                 "handler": self.cmd_edges,
+            },
+            "search": {
+                "help": "Search loaded edges for hyperedges matching a pattern",
+                "handler": self.cmd_search,
             },
         }
 
@@ -615,6 +662,14 @@ class ReplSession:
         )
         return False
 
+    def _iter_subedges_ordered(self, edge: Hyperedge) -> Iterable[Hyperedge]:
+        """Depth-first, document-order walk yielding edge then every descendant.
+        Atoms terminate naturally because their __iter__ is empty."""
+        yield edge
+        if not edge.atom:
+            for child in edge:
+                yield from self._iter_subedges_ordered(child)
+
     def cmd_load(self, args: list) -> bool:
         if len(args) < 1:
             self.console.print(
@@ -660,6 +715,126 @@ class ReplSession:
             f"[cyan]{self.edges_source}[/cyan]"
         )
         return False
+
+    def cmd_search(self, args: list) -> bool:
+        if not args:
+            self.console.print(
+                "[red]Error:[/red] /search requires a pattern: "
+                "[cyan]/search <pattern>[/cyan]"
+            )
+            return False
+        if not self.edges:
+            self.console.print("[yellow]No edges loaded.[/yellow]")
+            self.console.print(
+                "[dim]Use[/dim] [cyan]/load <path>[/cyan] [dim]first.[/dim]"
+            )
+            return False
+
+        pattern_text = " ".join(args)
+        try:
+            pattern = hedge(pattern_text)
+        except Exception as e:
+            self.console.print(f"[red]Error:[/red] failed to parse pattern: {e}")
+            return False
+        if pattern is None:
+            self.console.print(
+                f"[red]Error:[/red] could not parse pattern: "
+                f"[cyan]{pattern_text}[/cyan]"
+            )
+            return False
+
+        recursive = bool(self.settings.get("search_recursive", True))
+        page_size = int(self.settings.get("search_page_size", 10))
+        if page_size < 1:
+            page_size = 10
+
+        hits: list[tuple[int, Hyperedge, Hyperedge, list[dict]]] = []
+        for top_idx, top_edge in enumerate(self.edges):
+            candidates: Iterable[Hyperedge] = (
+                self._iter_subedges_ordered(top_edge) if recursive else [top_edge]
+            )
+            for sub in candidates:
+                bindings = sub.match(pattern)
+                if bindings:
+                    hits.append((top_idx, top_edge, sub, bindings))
+
+        if not hits:
+            self.console.print(
+                f"[yellow]No matches[/yellow] for [cyan]{pattern_text}[/cyan]"
+            )
+            return False
+
+        self.console.print(
+            f"[green]{len(hits)}[/green] match(es) "
+            f"({'recursive' if recursive else 'top-level only'})"
+        )
+        self._paginate_search_results(hits, page_size)
+        return False
+
+    def _render_search_hit(
+        self,
+        n: int,
+        top_idx: int,
+        top_edge: Hyperedge,
+        sub: Hyperedge,
+        bindings: list[dict],
+    ) -> None:
+        self.console.print(f"[bold]#{n}[/bold] [dim](edge {top_idx})[/dim]")
+        self.console.print(self.formatter.format(top_edge, highlight=sub))
+
+        nonempty = [b for b in bindings if b]
+        for bi, b in enumerate(nonempty):
+            prefix = f"  bindings[{bi}]: " if len(nonempty) > 1 else "  bindings: "
+            for var, val in b.items():
+                line = Text(prefix, style="dim")
+                line.append(f"{var} = ", style="dim")
+                line.append(self.formatter.format(val))
+                self.console.print(line)
+        self.console.print()
+
+    def _paginate_search_results(
+        self,
+        hits: list[tuple[int, Hyperedge, Hyperedge, list[dict]]],
+        page_size: int,
+    ) -> None:
+        total = len(hits)
+        pages = (total + page_size - 1) // page_size
+        page = 0
+        while True:
+            start = page * page_size
+            end = min(start + page_size, total)
+            self.console.print()
+            self.console.print(
+                f"[dim]-- page {page + 1}/{pages} "
+                f"(results {start + 1}-{end} of {total}) --[/dim]"
+            )
+            for i in range(start, end):
+                top_idx, top_edge, sub, bindings = hits[i]
+                self._render_search_hit(i + 1, top_idx, top_edge, sub, bindings)
+
+            if pages == 1:
+                return
+            if page == pages - 1:
+                self.console.print("[dim]-- end of results --[/dim]")
+                return
+
+            try:
+                choice = (
+                    self.session.prompt("[Enter] next  [p] prev  [q] quit > ")
+                    .strip()
+                    .lower()
+                )
+            except (KeyboardInterrupt, EOFError):
+                self.console.print("[dim](search aborted)[/dim]")
+                return
+
+            if choice in ("q", "quit", "exit"):
+                return
+            if choice == "p":
+                if page > 0:
+                    page -= 1
+                continue
+            page += 1
 
     def _load_edges_from_jsonl(self, path: Path) -> tuple[list[Hyperedge], int]:
         edges: list[Hyperedge] = []
