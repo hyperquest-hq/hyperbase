@@ -60,7 +60,7 @@ def simplify(
         if len(parts) > 2 and not namespaces:
             parts = parts[:2]
         atom_str = "/".join(parts)
-        return Atom(atom_str)
+        return Atom(atom_str, tok_pos=atom.tok_pos, text_span=atom.text_span)
     else:
         return hedge(
             [
@@ -103,7 +103,7 @@ def replace_argroles(edge: Hyperedge, argroles: str | None) -> Hyperedge:
         else:
             role[1] = argroles
         parts = [parts[0], ".".join(role), *parts[2:]]
-        return Atom("/".join(parts))
+        return Atom("/".join(parts), tok_pos=atom.tok_pos, text_span=atom.text_span)
     else:
         st = edge.mtype()
         if st in {EdgeType.CONCEPT, EdgeType.RELATION}:
@@ -123,7 +123,7 @@ def _remove_argroles(atom: Atom) -> Atom:
         return atom
     role = parts[1].split(".")
     parts[1] = role[0]
-    return Atom("/".join(parts))
+    return Atom("/".join(parts), tok_pos=atom.tok_pos, text_span=atom.text_span)
 
 
 def insert_argrole(edge: Hyperedge, argrole: str, pos: int) -> Hyperedge:
@@ -154,6 +154,21 @@ def add_argument(
     new_edge = insert_argrole(edge, argrole, pos)
     combined = (*tuple(new_edge[: pos + 1]), arg, *tuple(new_edge[pos + 1 :]))
     return Hyperedge(combined)
+
+
+def tok_pos_tree(edge: Hyperedge) -> Hyperedge:
+    """Build a tok_pos parallel-tree Hyperedge mirroring *edge*'s structure.
+
+    Each atom in the result holds the source token index of the corresponding
+    atom in *edge* (``tok_pos`` if set, else ``-1`` for synthetic atoms).
+    Suitable for serialisation as the ``tok_pos`` field of a parse-result
+    JSONL row.
+    """
+    if edge.atom:
+        atom = cast(Atom, edge)
+        pos = atom.tok_pos if atom.tok_pos is not None else -1
+        return Atom(str(pos))
+    return Hyperedge(tuple(tok_pos_tree(c) for c in edge))
 
 
 #############
@@ -202,13 +217,9 @@ def _transform_impl(
     if recursive and edge.not_atom:
         edge = Hyperedge(tuple(_transform_impl(c, origin, target, True) for c in edge))
 
-    origin_vars = _collect_var_names(origin)
-    for bindings in match_pattern(edge, origin):
-        # The matcher may return partial bindings when constraint propagation
-        # fails on some pattern positions but enough vars satisfy its min_vars
-        # threshold. For a rewrite we require every origin variable bound.
-        if origin_vars.issubset(bindings.keys()):
-            return _instantiate(target, origin, edge, bindings, top=True)
+    matches = match_pattern(edge, origin)
+    if matches:
+        edge = _instantiate(target, origin, edge, matches[0], top=True)
     return edge
 
 
@@ -302,7 +313,11 @@ def _instantiate(
     if target.atom:
         if is_variable(target):
             return _substitute_var_atom(cast(Atom, target), origin, bindings)
-        return target
+        # Constant atom -- if a structurally-identical atom appears in the
+        # original edge, inherit its source-position metadata so the rewrite
+        # preserves tok_pos/text_span when the constant pin-points an atom
+        # that survived the transform unchanged.
+        return _attach_metadata_from_original(cast(Atom, target), original)
 
     if top and original.not_atom and target.argroles().startswith("{"):
         return _instantiate_with_preserve(target, origin, original, bindings)
@@ -310,6 +325,33 @@ def _instantiate(
     return Hyperedge(
         tuple(_instantiate(c, origin, original, bindings, top=False) for c in target)
     )
+
+
+def _attach_metadata_from_original(target_atom: Atom, original: Hyperedge) -> Atom:
+    """If ``target_atom`` matches an atom in ``original``, return a copy with
+    that atom's tok_pos / text_span. Otherwise return ``target_atom`` as-is.
+    """
+    if target_atom.tok_pos is not None or target_atom.text_span is not None:
+        return target_atom
+    for atom in _walk_origin_atoms(original):
+        if atom == target_atom and (
+            atom.tok_pos is not None or atom.text_span is not None
+        ):
+            return Atom(
+                target_atom.atom_str,
+                target_atom.parens,
+                tok_pos=atom.tok_pos,
+                text_span=atom.text_span,
+            )
+    return target_atom
+
+
+def _walk_origin_atoms(edge: Hyperedge) -> Iterator[Atom]:
+    if edge.atom:
+        yield cast(Atom, edge)
+    else:
+        for c in edge:
+            yield from _walk_origin_atoms(c)
 
 
 def _substitute_var_atom(
@@ -330,26 +372,45 @@ def _substitute_var_atom(
     if binding.atom:
         binding_atom = cast(Atom, binding)
         new_parts = [binding_atom.root(), *target_parts[1:]]
-        return Atom("/".join(p for p in new_parts if p))
+        return Atom(
+            "/".join(p for p in new_parts if p),
+            tok_pos=binding_atom.tok_pos,
+            text_span=binding_atom.text_span,
+        )
 
     origin_atom = _find_var_atom(origin, name)
     origin_parts = origin_atom.parts() if origin_atom else [name]
-    if not _atom_decoration_compatible(origin_parts, target_parts):
-        raise ValueError(
-            f"Cannot change type or namespace on non-atomic binding for "
-            f"variable '{name}': origin {origin_parts} vs target {target_parts}"
-        )
 
-    t_role = target_parts[1].split(".") if len(target_parts) > 1 else [""]
-    target_argroles = t_role[1] if len(t_role) > 1 else ""
-    o_role = origin_parts[1].split(".") if len(origin_parts) > 1 else [""]
-    origin_argroles = o_role[1] if len(o_role) > 1 else ""
-    if target_argroles == origin_argroles:
-        return binding
-    bare = _strip_braces(target_argroles)
-    if bare == "":
-        return binding
-    return replace_argroles(binding, bare)
+    if _atom_decoration_compatible(origin_parts, target_parts):
+        # Type/namespace match: only argroles may differ. Apply via
+        # replace_argroles, which plumbs to the connector's inner predicate.
+        t_role = target_parts[1].split(".") if len(target_parts) > 1 else [""]
+        target_argroles = t_role[1] if len(t_role) > 1 else ""
+        o_role = origin_parts[1].split(".") if len(origin_parts) > 1 else [""]
+        origin_argroles = o_role[1] if len(o_role) > 1 else ""
+        if target_argroles == origin_argroles:
+            return binding
+        bare = _strip_braces(target_argroles)
+        if bare == "":
+            return binding
+        return replace_argroles(binding, bare)
+
+    # Type/namespace change requested. Try to descend through a modifier-style
+    # nesting (e.g. ``(immediately/M by/Ta)``) where the binding's outer type
+    # is inherited from a single inner atom: rewrite that inner atom in place.
+    inner = binding.inner_atom()
+    if inner.type() == binding.type():
+        new_inner = Atom(
+            "/".join(p for p in [inner.root(), *target_parts[1:]] if p),
+            tok_pos=inner.tok_pos,
+            text_span=inner.text_span,
+        )
+        return replace_atom(binding, inner, new_inner)
+
+    raise ValueError(
+        f"Cannot change type or namespace on non-atomic binding for "
+        f"variable '{name}': origin {origin_parts} vs target {target_parts}"
+    )
 
 
 def _instantiate_with_preserve(

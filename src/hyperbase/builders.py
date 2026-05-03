@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+import itertools
+from collections.abc import Iterable, Iterator
 from typing import Any, cast
 
 from hyperbase.constants import ATOM_ENCODE_TABLE
@@ -130,30 +131,123 @@ def _collect_positions(tok_pos: Hyperedge) -> list[int]:
         return positions
 
 
-def _rebuild_with_text(
+def _compute_token_offsets(
+    tokens: list[str], text: str
+) -> list[tuple[int, int] | None]:
+    """Cursor-scan ``text`` for each token in order, returning per-token
+    (start, end) byte offsets. Tokens that can't be located after the running
+    cursor get ``None`` and the cursor is left unchanged so a single failed
+    token does not poison the rest of the sentence.
+    """
+    spans: list[tuple[int, int] | None] = []
+    cursor = 0
+    for tok in tokens:
+        idx = text.find(tok, cursor)
+        if idx < 0:
+            spans.append(None)
+        else:
+            spans.append((idx, idx + len(tok)))
+            cursor = idx + len(tok)
+    return spans
+
+
+def _rebuild_with_metadata(
     edge: Hyperedge,
     tok_pos: Hyperedge,
     tokens: list[str],
+    text: str,
+    offsets: list[tuple[int, int] | None],
+    claimed: frozenset[int],
 ) -> Hyperedge:
-    """Recursively rebuild an edge, assigning text from tokens and tok_pos."""
+    """Recursively rebuild an edge, populating per-atom tok_pos/text_span and
+    per-non-atom continuity-aware ``text``. ``claimed`` is the global set of
+    token positions actually mapped to atoms anywhere in the loaded root.
+    """
     if edge.atom:
         atom = cast(Atom, edge)
         pos = int(str(tok_pos))
-        text = tokens[pos] if pos >= 0 else None
-        return Atom(str(atom), atom.parens, text=text)
+        if pos < 0:
+            return Atom(str(atom), atom.parens)
+        span = offsets[pos] if 0 <= pos < len(offsets) else None
+        atom_text = (
+            text[span[0] : span[1]]
+            if span is not None
+            else (tokens[pos] if 0 <= pos < len(tokens) else None)
+        )
+        return Atom(str(atom), atom.parens, text=atom_text, tok_pos=pos, text_span=span)
     else:
         new_children = tuple(
-            _rebuild_with_text(sub_edge, sub_tok_pos, tokens)
+            _rebuild_with_metadata(
+                sub_edge, sub_tok_pos, tokens, text, offsets, claimed
+            )
             for sub_edge, sub_tok_pos in zip(edge, tok_pos, strict=False)
         )
-        positions = _collect_positions(tok_pos)
-        if positions:
-            min_pos = min(positions)
-            max_pos = max(positions)
-            text = " ".join(tokens[min_pos : max_pos + 1])
+        sub_text = _derive_subedge_text(new_children, text, tokens, offsets, claimed)
+        return Hyperedge(new_children, text=sub_text)
+
+
+def _derive_subedge_text(
+    children: tuple[Hyperedge, ...],
+    root_text: str,
+    root_tokens: list[str],
+    offsets: list[tuple[int, int] | None],
+    claimed: frozenset[int],
+) -> str | None:
+    """Continuity-aware text derivation for a non-atomic edge.
+
+    Walks the descendant atoms, uses their ``tok_pos`` to identify which
+    source positions the sub-edge references (``used``), and slices the
+    root's ``text`` per contiguous run. A run is broken only by a position
+    in ``claimed`` (a real atom anywhere in the root) that is not in
+    ``used`` -- synthetic atoms and unclaimed tokens (e.g. punctuation that
+    no atom maps to) keep the run continuous.
+    """
+    used_positions: set[int] = set()
+    for a in _walk_atoms(children):
+        pos = cast(Atom, a).tok_pos
+        if pos is not None:
+            used_positions.add(pos)
+    used: list[int] = sorted(used_positions)
+    if not used:
+        return None
+
+    span_by_pos: dict[int, tuple[int, int] | None] = {}
+    for a in _walk_atoms(children):
+        atom = cast(Atom, a)
+        if atom.tok_pos is not None and atom.tok_pos not in span_by_pos:
+            span_by_pos[atom.tok_pos] = atom.text_span
+
+    # Group used positions into runs, splitting whenever a claimed-but-unused
+    # position falls between two consecutive used positions.
+    used_set = set(used)
+    runs: list[list[int]] = [[used[0]]]
+    for prev, curr in itertools.pairwise(used):
+        broken = any(prev < p < curr and p not in used_set for p in claimed)
+        if broken:
+            runs.append([curr])
         else:
-            text = None
-        return Hyperedge(new_children, text=text)
+            runs[-1].append(curr)
+
+    slices: list[str] = []
+    for run in runs:
+        first_span = span_by_pos.get(run[0])
+        last_span = span_by_pos.get(run[-1])
+        if first_span is not None and last_span is not None:
+            slices.append(root_text[first_span[0] : last_span[1]])
+        else:
+            # Local fallback: token-join for this run.
+            slices.append(
+                " ".join(root_tokens[p] for p in run if 0 <= p < len(root_tokens))
+            )
+    return " ".join(slices)
+
+
+def _walk_atoms(edges: tuple[Hyperedge, ...]) -> Iterator[Hyperedge]:
+    for e in edges:
+        if e.atom:
+            yield e
+        else:
+            yield from _walk_atoms(tuple(e))
 
 
 def hedge(
@@ -162,8 +256,23 @@ def hedge(
     """Create a hyperedge."""
     if isinstance(source, ParseResult):
         _source = source
-        edge = _rebuild_with_text(_source.edge, _source.tok_pos, _source.tokens)
-        object.__setattr__(edge, "text", _source.text)
+        offsets = _compute_token_offsets(_source.tokens, _source.text)
+        # Compute claimed = all token positions referenced by atoms in the
+        # original edge tree. Used to detect real (non-synthetic, non-padding)
+        # discontinuities in sub-edge text derivation.
+        claimed = frozenset(_collect_positions(_source.tok_pos))
+        edge = _rebuild_with_metadata(
+            _source.edge,
+            _source.tok_pos,
+            _source.tokens,
+            _source.text,
+            offsets,
+            claimed,
+        )
+        # Override the root's text with the verbatim original sentence and
+        # store tokens on the root for any later derivation.
+        object.__setattr__(edge, "_text", _source.text)
+        object.__setattr__(edge, "tokens", tuple(_source.tokens))
         return edge
     if type(source) in {tuple, list}:
         _source = cast(Iterable, source)

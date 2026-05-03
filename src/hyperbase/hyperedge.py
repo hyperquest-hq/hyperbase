@@ -12,14 +12,21 @@ class Hyperedge:
     """Non-atomic hyperedge."""
 
     _edges: tuple[Hyperedge, ...]
-    text: str | None
+    _text: str | None
+    tokens: tuple[str, ...] | None = field(default=None, compare=False, hash=False)
     _cache: dict[str, Any] = field(
         default_factory=dict, repr=False, compare=False, hash=False
     )
 
-    def __init__(self, edges: Iterable[Hyperedge], text: str | None = None) -> None:
+    def __init__(
+        self,
+        edges: Iterable[Hyperedge],
+        text: str | None = None,
+        tokens: tuple[str, ...] | None = None,
+    ) -> None:
         object.__setattr__(self, "_edges", tuple(edges))
-        object.__setattr__(self, "text", text)
+        object.__setattr__(self, "_text", text)
+        object.__setattr__(self, "tokens", tokens)
         object.__setattr__(self, "_cache", {})
 
     def __iter__(self) -> Iterator[Hyperedge]:
@@ -48,6 +55,20 @@ class Hyperedge:
 
     def __bool__(self) -> bool:
         return True
+
+    @property
+    def text(self) -> str | None:
+        """Original-source text for this (sub-)edge.
+
+        Populated eagerly by the parse-result builder: an atom carries the
+        substring it was located at (or ``None`` for synthetic atoms); a
+        non-atom carries the continuity-aware derivation against its loaded
+        root (one or more verbatim slices of ``root.text``, joined). Returns
+        ``None`` for edges built outside of a parse-result load (e.g. fresh
+        transform output) -- those preserve per-atom ``tok_pos``/``text_span``
+        but not the cached non-atom slice.
+        """
+        return self._text
 
     @property
     def atom(self) -> bool:
@@ -451,16 +472,23 @@ class Atom(Hyperedge):
 
     atom_str: str
     parens: bool
+    tok_pos: int | None = field(default=None, compare=False, hash=False)
+    text_span: tuple[int, int] | None = field(default=None, compare=False, hash=False)
 
     def __init__(
         self,
         atom_str: str,
         parens: bool = False,
         text: str | None = None,
+        tok_pos: int | None = None,
+        text_span: tuple[int, int] | None = None,
     ) -> None:
         object.__setattr__(self, "atom_str", atom_str)
         object.__setattr__(self, "parens", parens)
-        object.__setattr__(self, "text", text)
+        object.__setattr__(self, "_text", text)
+        object.__setattr__(self, "tok_pos", tok_pos)
+        object.__setattr__(self, "text_span", text_span)
+        object.__setattr__(self, "tokens", None)
         object.__setattr__(self, "_edges", ())
         object.__setattr__(self, "_cache", {})
 
@@ -492,11 +520,19 @@ class Atom(Hyperedge):
         return self.parts()[0]
 
     def replace_atom_part(self, part_pos: int, part: str) -> Atom:
-        """Build a new atom by replacing an atom part in a given atom."""
+        """Build a new atom by replacing an atom part in a given atom.
+
+        Source-position metadata (``tok_pos`` / ``text_span``) is preserved.
+        """
         parts = self.parts()
         parts[part_pos] = part
         atom_str = "/".join([part for part in parts if part])
-        return Atom(atom_str)
+        return Atom(
+            atom_str,
+            text=self._text,
+            tok_pos=self.tok_pos,
+            text_span=self.text_span,
+        )
 
     def label(self) -> str:
         """Generate human-readable label from entity."""

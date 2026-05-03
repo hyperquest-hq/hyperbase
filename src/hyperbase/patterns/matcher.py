@@ -339,12 +339,12 @@ def _match_by_argroles(
         for pitem in pitems
     ]
 
-    # early exit if any pattern position has zero candidates
+    # early exit if any pattern position has zero candidates: the role is
+    # present but no edge item can fill it, which is a hard mismatch -- never
+    # a partial. (This differs from the len(eitems) < n case above, which
+    # corresponds to a missing-but-optional role under the {req,opt} syntax.)
     if any(len(c) == 0 for c in candidates):
-        if len(curvars) >= min_vars:
-            return [curvars]
-        else:
-            return []
+        return []
 
     result: list[dict[str, Hyperedge]] = []
 

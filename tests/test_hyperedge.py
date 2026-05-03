@@ -1170,14 +1170,29 @@ class TestHyperedge(unittest.TestCase):
         result = edge.transform(hedge("Y/Ta"), hedge("Y/Mx"))
         assert str(result) == "by/Mx"
 
-    def test_transform_non_atomic_type_change_raises(self):
+    def test_transform_modifier_wrapped_descent(self):
+        # Y is bound to a modifier-wrapped trigger (immediately/M by/Ta).
+        # Target Y/Mx must rewrite the inner atom by/Ta -> by/Mx, leaving
+        # the modifier nesting intact.
         edge = hedge(
-            "((was/Mm performed/Pd.ox) (the/Md experience) (by/Ta scientists/Cc))"
+            "((had/Mm done/Pd.ox) (the/Md task) ((immediately/M by/Ta) someone/Cc))"
         )
+        result = edge.transform(
+            hedge("(X/P.{x} (Y/Ta Z))"),
+            hedge("((Y/Mx X/P.{s}) Z)"),
+        )
+        assert str(result) == (
+            "(((immediately/M by/Mx) (had/Mm done/Pd.os)) (the/Md task) someone/Cc)"
+        )
+
+    def test_transform_non_atomic_type_change_no_descent_raises(self):
+        # Y is bound to a relation (multiple inner atoms, type R != inner
+        # atom's type). The descent guard refuses, so a type change raises.
+        edge = hedge("(say/Pd.so john/C (eats/Pd.so mary/C apples/C))")
         with pytest.raises(ValueError):
             edge.transform(
-                hedge("(X/P.{x} (Y/Ta Z))"),
-                hedge("((Y/Mx X/B.{s}) Z)"),
+                hedge("(say/Pd.so X Y)"),
+                hedge("(say/Pd.so X Y/M)"),
             )
 
     def test_transform_anonymous_wildcard_raises(self):
@@ -1226,6 +1241,90 @@ class TestHyperedge(unittest.TestCase):
         edge = hedge("(eats/Pd.so john/C apples/C)")
         result = edge.transform(hedge("(eats/Pd.so X Y)"), hedge("Y"))
         assert str(result) == "apples/C"
+
+    def test_tok_pos_tree_round_trip(self):
+        from hyperbase.parsers.parse_result import ParseResult
+        from hyperbase.transforms import tok_pos_tree
+
+        original = "(2 (0 1) 3)"
+        pr = ParseResult(
+            edge=hedge("(is/P.so (the/M sky/C) blue/C)"),
+            text="The sky is blue.",
+            tokens=["The", "sky", "is", "blue", "."],
+            tok_pos=hedge(original),
+        )
+        loaded = hedge(pr)
+        regenerated = tok_pos_tree(loaded)
+        assert str(regenerated) == original
+
+    def test_tok_pos_tree_synthetic_atom(self):
+        from hyperbase.parsers.parse_result import ParseResult
+        from hyperbase.transforms import tok_pos_tree
+
+        original = "(-1 0 2)"
+        pr = ParseResult(
+            edge=hedge("(+/B a/C b/C)"),
+            text="a and b",
+            tokens=["a", "and", "b"],
+            tok_pos=hedge(original),
+        )
+        loaded = hedge(pr)
+        regenerated = tok_pos_tree(loaded)
+        assert str(regenerated) == original
+
+    def test_transform_preserves_metadata_on_atoms(self):
+        from hyperbase.parsers.parse_result import ParseResult
+        from hyperbase.transforms import tok_pos_tree
+
+        pr = ParseResult(
+            edge=hedge("(eats/Pd.so john/C apples/C)"),
+            text="John eats apples",
+            tokens=["John", "eats", "apples"],
+            tok_pos=hedge("(1 0 2)"),
+        )
+        loaded = hedge(pr)
+        # Decoration-only change on atoms keeps tok_pos and text_span.
+        result = loaded.transform(
+            hedge("(eats/Pd.so X Y)"),
+            hedge("(eats/Pd.so X/Cp Y/Cp)"),
+        )
+        # John was at position 0, apples at position 2.
+        assert result[1].tok_pos == 0
+        assert result[1].text_span == (0, 4)
+        assert result[2].tok_pos == 2
+        assert result[2].text_span == (10, 16)
+        # Round-trip yields a structurally-coherent tok_pos tree.
+        assert str(tok_pos_tree(result)) == "(1 0 2)"
+
+    def test_simplify_preserves_tok_pos(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(is/Pd.so (the/Md sky/Cn) blue/Cc)"),
+            text="The sky is blue",
+            tokens=["The", "sky", "is", "blue"],
+            tok_pos=hedge("(2 (0 1) 3)"),
+        )
+        loaded = hedge(pr)
+        simplified = loaded.simplify()
+        # Find the simplified blue atom and verify metadata survived.
+        assert simplified[2].tok_pos == 3
+        assert simplified[2].text_span == (11, 15)
+
+    def test_replace_argroles_preserves_tok_pos(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(is/P.sc john/C tired/C)"),
+            text="John is tired",
+            tokens=["John", "is", "tired"],
+            tok_pos=hedge("(1 0 2)"),
+        )
+        loaded = hedge(pr)
+        result = loaded.replace_argroles("os")
+        # Connector was at position 1.
+        assert result[0].tok_pos == 1
+        assert result[0].text_span == (5, 7)
 
     def test_transform_partial_match_unchanged(self):
         # The matcher returns a partial binding {X: ...} (no Y, Z) when the

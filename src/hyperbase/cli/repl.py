@@ -1115,6 +1115,8 @@ class ReplSession:
         self.console.print()
 
     def _load_edges_from_jsonl(self, path: Path) -> tuple[list[Hyperedge], int]:
+        from hyperbase.parsers.parse_result import ParseResult
+
         edges: list[Hyperedge] = []
         skipped = 0
         with open(path) as f:
@@ -1128,12 +1130,23 @@ class ReplSession:
                     if not isinstance(edge_str, str):
                         skipped += 1
                         continue
-                    edge = hedge(edge_str)
+                    # Prefer the full parse-result path so loaded edges carry
+                    # tokens, text, and per-atom tok_pos/text_span metadata.
+                    # Fall back to a bare hedge() parse if the row only has
+                    # the edge string.
+                    if (
+                        "tokens" in d
+                        and "tok_pos" in d
+                        and isinstance(d.get("text"), str)
+                    ):
+                        edge = hedge(ParseResult.from_dict(d))
+                    else:
+                        edge = hedge(edge_str)
                     if edge is None:
                         skipped += 1
                         continue
                     edges.append(edge)
-                except (json.JSONDecodeError, ValueError, TypeError):
+                except (json.JSONDecodeError, ValueError, TypeError, KeyError):
                     skipped += 1
         return edges, skipped
 

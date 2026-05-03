@@ -584,6 +584,19 @@ class TestPatterns(unittest.TestCase):
             {"X": hedge("hyperbase/Cp.s"), "Y": hedge("great/C"), "Z": hedge("today/J")}
         ]
 
+    def test_match_pattern_no_partial_on_structural_mismatch(self):
+        # The role is filled in the edge but no edge item is structurally
+        # compatible with the pattern at that role: pattern wants a non-atom
+        # `(Y/Ta Z)` for the x role, edge has the atom `by/Ta` there. This
+        # must be a hard no-match, NOT a partial binding for the connector.
+        assert (
+            match_pattern(
+                "((had/Mm done/Pd.ox) (the/Md task) by/Ta)",
+                "(X/P.{x} (Y/Ta Z))",
+            )
+            == []
+        )
+
     # [] ordered subsequence brackets -- is_pattern detection
 
     def test_is_pattern_brackets1(self):

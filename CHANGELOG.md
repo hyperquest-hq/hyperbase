@@ -4,7 +4,10 @@
 
 ### Added
 
-- Hyperedge.transform(): pattern-based rewrites.
+- `Hyperedge.transform()`: pattern-based rewrites.
+- per-atom `tok_pos`/`text_span` and per-root `Hyperedge.tokens` source-position metadata.
+- continuity-aware sub-edge text derivation with verbatim character-offset slicing.
+- `transforms.tok_pos_tree(edge)` rebuilds the parallel `tok_pos` tree from in-memory atoms.
 - readers provide source information.
 - `hyperbase.parsers.badness` module for parser-agnostic combined structural + token-matching validation.
 - built-in REPL setting `check_badness` to render a badness panel after each parse, available regardless of the active parser plugin.
@@ -12,7 +15,13 @@
 
 ### Changed
 
+- transforms propagate per-atom `tok_pos`/`text_span` through rewrites.
+- REPL `/load` now uses `ParseResult.from_dict` (was dropping `tokens`/`tok_pos`).
 - REPL shows multiple results if available.
+
+### Fixed
+
+- pattern matcher no longer returns partial bindings on structural mismatch in `{...}` argrole patterns.
 
 ### Removed
 
