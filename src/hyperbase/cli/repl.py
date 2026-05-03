@@ -35,8 +35,6 @@ from hyperbase.parsers.repl_api import (
 
 SETTINGS_FILE = Path.home() / ".hyperbase_repl_settings.json"
 
-DEFAULT_PARSER = "generative"
-
 # Legacy setting key -> current key. Applied once when loading saved
 # settings so users upgrading across the plugin-extension refactor
 # don't lose parser-specific config (e.g. the old CLI's ``--language``
@@ -295,12 +293,12 @@ class ReplSession:
     providers. The core REPL contains no parser-specific behavior.
     """
 
-    def __init__(self, parser_name: str, settings: dict[str, Any]) -> None:
+    def __init__(self, parser_name: str | None, settings: dict[str, Any]) -> None:
         self.console = Console(force_terminal=True, color_system="auto")
         self.formatter = HyperedgeFormatter(self.console)
 
         self.settings: dict[str, Any] = dict(settings)
-        self.settings.setdefault("parser", parser_name)
+        self.settings["parser"] = parser_name
 
         # In-memory hyperedges loaded via /load or --load. Available for
         # parser-independent commands to operate on.
@@ -317,8 +315,10 @@ class ReplSession:
 
         # Parser cache: cache_key -> Parser instance.
         self.parser_cache: dict[tuple, Parser] = {}
-        self.parser_name: str = parser_name
-        self.parser: Parser = self._init_parser(parser_name)
+        self.parser_name: str | None = parser_name
+        self.parser: Parser | None = (
+            self._init_parser(parser_name) if parser_name else None
+        )
 
         history_file = Path.home() / ".hyperbase_repl_history"
         self.history = FilteredFileHistory(str(history_file))
@@ -426,6 +426,22 @@ class ReplSession:
     # Parser lifecycle
     # ------------------------------------------------------------------
 
+    def _require_parser(self) -> bool:
+        """Print a friendly hint if no parser is loaded.
+
+        Returns True when a parser is loaded, False otherwise.
+        """
+        if self.parser is not None:
+            return True
+        available = sorted(list_parsers().keys())
+        avail_str = ", ".join(available) or "(none installed)"
+        self.console.print("[yellow]No parser loaded.[/yellow]")
+        self.console.print(
+            "[dim]Use[/dim] [cyan]/set parser <name>[/cyan] [dim]to load one.[/dim]"
+        )
+        self.console.print(f"[dim]Available parsers:[/dim] [green]{avail_str}[/green]")
+        return False
+
     def _reset_plugin_state(self) -> None:
         """Drop everything that was registered by the previous parser."""
         for name in self._extra_settings:
@@ -514,11 +530,20 @@ class ReplSession:
 
     def show_banner(self) -> None:
         available = sorted(list_parsers().keys())
+        if self.parser_name is None:
+            parser_line = (
+                "[yellow]Parser:[/yellow] [dim]none "
+                "(use [bold]/set parser <name>[/bold] to load one)[/dim]\n"
+            )
+        else:
+            parser_line = (
+                f"[yellow]Parser:[/yellow] [green]{self.parser_name}[/green]\n"
+            )
         banner = Panel(
             Text.from_markup(
                 "[bold cyan]Hyperbase REPL[/bold cyan]\n"
-                f"[yellow]Parser:[/yellow] [green]{self.parser_name}[/green]\n"
-                "[yellow]Installed parsers:[/yellow] "
+                + parser_line
+                + "[yellow]Installed parsers:[/yellow] "
                 f"[green]{', '.join(available) or 'none'}[/green]\n\n"
                 "[dim]Type [bold]/help[/bold] to see available commands[/dim]"
             ),
@@ -584,9 +609,10 @@ class ReplSession:
             return BUILTIN_REPL_SETTINGS[name]["type"]
         if name in self._extra_settings:
             return self._extra_settings[name]["type"]
-        params = type(self.parser).accepted_params()
-        if name in params:
-            return params[name].get("type")
+        if self.parser is not None:
+            params = type(self.parser).accepted_params()
+            if name in params:
+                return params[name].get("type")
         return None
 
     def cmd_set(self, args: list) -> bool:
@@ -642,11 +668,14 @@ class ReplSession:
         )
 
         # If this setting affects parser instantiation, re-init the parser.
-        parser_params = type(self.parser).accepted_params()
-        if setting_name in parser_params and not self._switch_parser(self.parser_name):
-            self.console.print(
-                "[red]Failed to reload parser. Keeping previous parser.[/red]"
-            )
+        if self.parser is not None and self.parser_name is not None:
+            parser_params = type(self.parser).accepted_params()
+            if setting_name in parser_params and not self._switch_parser(
+                self.parser_name
+            ):
+                self.console.print(
+                    "[red]Failed to reload parser. Keeping previous parser.[/red]"
+                )
         return False
 
     def cmd_clear(self, args: list) -> bool:
@@ -665,7 +694,11 @@ class ReplSession:
         table.add_column("Settings", style="white")
         table.add_column("Current", style="green")
 
-        current_key = type(self.parser).cache_key_from_settings(self.settings)
+        current_key: tuple | None = (
+            type(self.parser).cache_key_from_settings(self.settings)
+            if self.parser is not None
+            else None
+        )
 
         for cache_key, cached_parser in self.parser_cache.items():
             cls = type(cached_parser)
@@ -1151,10 +1184,14 @@ class ReplSession:
         return edges, skipped
 
     def cmd_clear_parsers(self, args: list) -> bool:
-        current_key = type(self.parser).cache_key_from_settings(self.settings)
         old_count = len(self.parser_cache)
-        self.parser_cache = {current_key: self.parser}
-        cleared_count = old_count - 1
+        if self.parser is None:
+            self.parser_cache = {}
+            cleared_count = old_count
+        else:
+            current_key = type(self.parser).cache_key_from_settings(self.settings)
+            self.parser_cache = {current_key: self.parser}
+            cleared_count = old_count - 1
         self.console.print(
             f"[green]✓[/green] Cleared [cyan]{cleared_count}[/cyan] "
             "parser(s) from cache"
@@ -1190,6 +1227,9 @@ class ReplSession:
     # ------------------------------------------------------------------
 
     def parse_text(self, text: str) -> None:
+        if not self._require_parser():
+            return
+        assert self.parser is not None
         try:
             start_time = time.perf_counter()
             parse_result = self.parser.parse(text)
@@ -1432,9 +1472,7 @@ def run_repl(args: argparse.Namespace) -> None:
         if old_key in saved and new_key not in saved:
             saved[new_key] = saved.pop(old_key)
 
-    parser_name: str = (
-        getattr(args, "parser", None) or saved.get("parser") or DEFAULT_PARSER
-    )
+    parser_name: str | None = getattr(args, "parser", None) or saved.get("parser")
 
     # CLI-only flags that should not be persisted in saved settings.
     load_path: str | None = getattr(args, "load", None)
