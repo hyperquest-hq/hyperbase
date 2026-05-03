@@ -251,7 +251,7 @@ class CommandCompleter(Completer):
     # Commands whose argument is a filesystem path. The completer
     # delegates to ``PathCompleter`` once the user has typed past the
     # command name.
-    PATH_ARG_COMMANDS = frozenset({"load"})
+    PATH_ARG_COMMANDS = frozenset({"load", "save"})
 
     def __init__(self, commands: dict) -> None:
         self.commands = commands
@@ -347,6 +347,10 @@ class ReplSession:
             "load": {
                 "help": "Load hyperedges from a .jsonl parse-results file",
                 "handler": self.cmd_load,
+            },
+            "save": {
+                "help": "Save in-memory edges to a .jsonl file",
+                "handler": self.cmd_save,
             },
             "edges": {
                 "help": "Show in-memory edges (count and source file)",
@@ -753,6 +757,49 @@ class ReplSession:
                 f"[yellow]Skipped {skipped} line(s) that could not be parsed[/yellow]"
             )
         return False
+
+    def cmd_save(self, args: list) -> bool:
+        if len(args) < 1:
+            self.console.print(
+                "[red]Error:[/red] /save requires a file path: "
+                "[cyan]/save <path>[/cyan]"
+            )
+            return False
+        if not self.edges:
+            self.console.print("[yellow]No edges loaded.[/yellow]")
+            return False
+
+        path = Path(" ".join(args)).expanduser()
+        with_metadata = 0
+        try:
+            with open(path, "w") as f:
+                for edge in self.edges:
+                    d: dict[str, Any] = {"edge": str(edge)}
+                    if edge.tokens is not None and edge.text is not None:
+                        d["text"] = edge.text
+                        d["tokens"] = list(edge.tokens)
+                        d["tok_pos"] = str(self._build_tok_pos_tree(edge))
+                        with_metadata += 1
+                    f.write(json.dumps(d, ensure_ascii=False) + "\n")
+        except OSError as e:
+            self.console.print(f"[red]Error:[/red] failed to write {path}: {e}")
+            return False
+
+        self.console.print(
+            f"[green]✓[/green] Saved [cyan]{len(self.edges)}[/cyan] edge(s) "
+            f"to [cyan]{path}[/cyan] "
+            f"[dim]({with_metadata} with source-position metadata)[/dim]"
+        )
+        return False
+
+    def _build_tok_pos_tree(self, edge: Hyperedge) -> Hyperedge:
+        """Build a tok_pos mirror tree where each atom is replaced by its
+        ``tok_pos`` (or ``-1`` for synthetic atoms with no position)."""
+        if edge.atom:
+            atom = cast(Atom, edge)
+            pos = atom.tok_pos if atom.tok_pos is not None else -1
+            return Atom(str(pos))
+        return Hyperedge(tuple(self._build_tok_pos_tree(sub) for sub in edge))
 
     def cmd_edges(self, args: list) -> bool:
         if not self.edges:
