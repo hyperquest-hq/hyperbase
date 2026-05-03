@@ -233,9 +233,9 @@ class Hyperedge:
         unique -- match only the exact same instance of the atom, i.e.
         UniqueAtom(self) == UniqueAtom(old) (default: False)
         """
-        from hyperbase.transforms import replace_atom
+        from hyperbase.transforms import _propagate_root_text, replace_atom
 
-        return replace_atom(self, old, new, unique=unique)
+        return _propagate_root_text(self, replace_atom(self, old, new, unique=unique))
 
     def simplify(self, subtypes: bool = False, namespaces: bool = False) -> Hyperedge:
         """Returns a version of the edge with simplified atoms.
@@ -244,9 +244,11 @@ class Hyperedge:
         subtypes -- include subtypes (default: True).
         namespaces -- include namespaces (default: True).
         """
-        from hyperbase.transforms import simplify
+        from hyperbase.transforms import _propagate_root_text, simplify
 
-        return simplify(self, subtypes=subtypes, namespaces=namespaces)
+        return _propagate_root_text(
+            self, simplify(self, subtypes=subtypes, namespaces=namespaces)
+        )
 
     def transform(
         self,
@@ -255,9 +257,12 @@ class Hyperedge:
         recursive: bool = True,
     ) -> Hyperedge:
         """Pattern-driven rewrite. See ``hyperbase.transforms.transform``."""
-        from hyperbase.transforms import transform
+        from hyperbase.transforms import _propagate_root_text, transform
 
-        return transform(self, origin_pattern, target_pattern, recursive=recursive)
+        return _propagate_root_text(
+            self,
+            transform(self, origin_pattern, target_pattern, recursive=recursive),
+        )
 
     def type(self) -> str:
         """Returns the type of this edge as a string.
@@ -376,17 +381,17 @@ class Hyperedge:
         """Returns an edge with the argroles of the connector atom replaced
         with the provided string.
         Returns same edge if the atom does not contain a role part."""
-        from hyperbase.transforms import replace_argroles
+        from hyperbase.transforms import _propagate_root_text, replace_argroles
 
-        return replace_argroles(self, argroles)
+        return _propagate_root_text(self, replace_argroles(self, argroles))
 
     def _insert_argrole(self, argrole: str, pos: int) -> Hyperedge:
         """Returns an edge with the given argrole inserted at the specified
         position in the argroles of the connector atom.
         Same restrictions as in replace_argroles() apply."""
-        from hyperbase.transforms import insert_argrole
+        from hyperbase.transforms import _propagate_root_text, insert_argrole
 
-        return insert_argrole(self, argrole, pos)
+        return _propagate_root_text(self, insert_argrole(self, argrole, pos))
 
     def add_argument(
         self, edge: Hyperedge, argrole: str, pos: int | None = None
@@ -394,9 +399,9 @@ class Hyperedge:
         """Returns a new edge with the provided edge and its argroles inserted
         at the specified position. If pos is not provided, the argument is
         appended at the end."""
-        from hyperbase.transforms import add_argument
+        from hyperbase.transforms import _propagate_root_text, add_argument
 
-        return add_argument(self, edge, argrole, pos)
+        return _propagate_root_text(self, add_argument(self, edge, argrole, pos))
 
     def arguments_with_role(self, argrole: str) -> list[Hyperedge]:
         """Returns the list of edges with the given argument role."""
@@ -418,9 +423,9 @@ class Hyperedge:
         return check_correctness(self)
 
     def normalise(self) -> Hyperedge:
-        from hyperbase.transforms import normalise
+        from hyperbase.transforms import _propagate_root_text, normalise
 
-        return normalise(self)
+        return _propagate_root_text(self, normalise(self))
 
     ############
     # patterns #

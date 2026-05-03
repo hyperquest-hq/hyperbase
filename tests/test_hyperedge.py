@@ -1337,6 +1337,135 @@ class TestHyperedge(unittest.TestCase):
         )
         assert result == edge
 
+    def test_transform_preserves_root_text_same_roots(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(eats/Pd.so john/C apples/C)"),
+            text="John eats apples",
+            tokens=["John", "eats", "apples"],
+            tok_pos=hedge("(1 0 2)"),
+        )
+        loaded = hedge(pr)
+        # Decoration-only changes leave the atom roots untouched: text and
+        # source tokens flow through to the result root verbatim.
+        result = loaded.transform(
+            hedge("(eats/Pd.so X Y)"),
+            hedge("(eats/Pd.so X/Cp Y/Cp)"),
+        )
+        assert result.text == "John eats apples"
+        assert result.tokens == ("John", "eats", "apples")
+
+    def test_transform_derives_root_text_when_roots_change(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(eats/Pd.so john/C apples/C)"),
+            text="John eats apples",
+            tokens=["John", "eats", "apples"],
+            tok_pos=hedge("(1 0 2)"),
+        )
+        loaded = hedge(pr)
+        # Drop the predicate via the {} preserve form: the resulting root has
+        # a different atom-root set, so text is derived from atom spans.
+        result = loaded.transform(
+            hedge("(eats/Pd.so X Y)"),
+            hedge("Y"),
+        )
+        # Y -> apples/C with text_span (10, 16) in "John eats apples".
+        assert str(result) == "apples/C"
+        assert result.text == "apples"
+
+    def test_replace_argroles_preserves_root_text(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(is/P.sc john/C tired/C)"),
+            text="John is tired",
+            tokens=["John", "is", "tired"],
+            tok_pos=hedge("(1 0 2)"),
+        )
+        loaded = hedge(pr)
+        result = loaded.replace_argroles("os")
+        assert result.text == "John is tired"
+        assert result.tokens == ("John", "is", "tired")
+
+    def test_add_argument_preserves_root_text_when_arg_in_source(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(eats/Pd.so john/C)"),
+            text="John eats apples",
+            tokens=["John", "eats", "apples"],
+            tok_pos=hedge("(1 0)"),
+        )
+        loaded = hedge(pr)
+        # Build the new arg from the parse so it carries source spans.
+        apples_pr = ParseResult(
+            edge=hedge("apples/C"),
+            text="John eats apples",
+            tokens=["John", "eats", "apples"],
+            tok_pos=hedge("2"),
+        )
+        apples = hedge(apples_pr)
+        result = loaded.add_argument(apples, "o")
+        # Roots changed (added apples), so text is derived. Slice spans
+        # from John to apples — the full source text.
+        assert result.text == "John eats apples"
+
+    def test_transform_constant_inherits_metadata_by_root(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(yesterday/Mt died/Mn fido/Cc)"),
+            text="Yesterday died Fido",
+            tokens=["Yesterday", "died", "Fido"],
+            tok_pos=hedge("(0 1 2)"),
+        )
+        loaded = hedge(pr)
+        # died/Md (constant target) shares root with died/Mn in the original;
+        # tok_pos and text_span must be inherited even though the decoration
+        # changed.
+        result = loaded.transform(hedge("died/Mn"), hedge("died/Md"))
+        assert str(result) == "(yesterday/Mt died/Md fido/Cc)"
+        assert result[1].tok_pos == 1
+        assert result[1].text_span == (10, 14)
+
+    def test_replace_atom_inherits_metadata_when_same_root(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(eats/Pd.so john/C apples/C)"),
+            text="John eats apples",
+            tokens=["John", "eats", "apples"],
+            tok_pos=hedge("(1 0 2)"),
+        )
+        loaded = hedge(pr)
+        old = loaded[2]  # apples/C with tok_pos=2, text_span=(10, 16)
+        new = hedge("apples/Cp")  # bare atom, no metadata
+        result = loaded.replace_atom(old, new)
+        # Metadata flows through because the root matches.
+        assert str(result[2]) == "apples/Cp"
+        assert result[2].tok_pos == 2
+        assert result[2].text_span == (10, 16)
+
+    def test_replace_atom_no_inherit_when_root_differs(self):
+        from hyperbase.parsers.parse_result import ParseResult
+
+        pr = ParseResult(
+            edge=hedge("(eats/Pd.so john/C apples/C)"),
+            text="John eats apples",
+            tokens=["John", "eats", "apples"],
+            tok_pos=hedge("(1 0 2)"),
+        )
+        loaded = hedge(pr)
+        old = loaded[2]
+        new = hedge("oranges/C")
+        result = loaded.replace_atom(old, new)
+        assert str(result[2]) == "oranges/C"
+        assert result[2].tok_pos is None
+        assert result[2].text_span is None
+
 
 if __name__ == "__main__":
     unittest.main()

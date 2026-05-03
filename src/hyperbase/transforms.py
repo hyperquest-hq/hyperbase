@@ -75,17 +75,42 @@ def replace_atom(
 ) -> Hyperedge:
     """Return a copy with every instance of *old* replaced by *new*."""
     if edge.atom:
+        edge_atom = cast(Atom, edge)
         if unique:
-            if UniqueAtom(edge) == UniqueAtom(old):  # type: ignore[arg-type]
-                return new
+            matched = UniqueAtom(edge_atom) == UniqueAtom(old)  # type: ignore[arg-type]
         else:
-            if edge == old:
-                return new
+            matched = edge_atom == old
+        if matched:
+            return _maybe_inherit_atom_metadata(new, edge_atom)
         return edge
     else:
         return Hyperedge(
             tuple(replace_atom(item, old, new, unique=unique) for item in edge)
         )
+
+
+def _maybe_inherit_atom_metadata(new: Hyperedge, source: Atom) -> Hyperedge:
+    """If *new* is an atom with the same root as *source* and carries no
+    source-position metadata of its own, return a copy that inherits
+    ``tok_pos``/``text_span``/``text`` from *source*. Otherwise *new* is
+    returned unchanged.
+    """
+    if not new.atom:
+        return new
+    new_atom = cast(Atom, new)
+    if new_atom.tok_pos is not None or new_atom.text_span is not None:
+        return new
+    if new_atom.root() != source.root():
+        return new
+    if source.tok_pos is None and source.text_span is None and source._text is None:
+        return new
+    return Atom(
+        new_atom.atom_str,
+        new_atom.parens,
+        text=source._text,
+        tok_pos=source.tok_pos,
+        text_span=source.text_span,
+    )
 
 
 def replace_argroles(edge: Hyperedge, argroles: str | None) -> Hyperedge:
@@ -328,18 +353,21 @@ def _instantiate(
 
 
 def _attach_metadata_from_original(target_atom: Atom, original: Hyperedge) -> Atom:
-    """If ``target_atom`` matches an atom in ``original``, return a copy with
-    that atom's tok_pos / text_span. Otherwise return ``target_atom`` as-is.
+    """If an atom with the same root as ``target_atom`` exists in ``original``,
+    return a copy that inherits its ``tok_pos``/``text_span``/``text``.
+    Otherwise return ``target_atom`` as-is.
     """
     if target_atom.tok_pos is not None or target_atom.text_span is not None:
         return target_atom
+    target_root = target_atom.root()
     for atom in _walk_origin_atoms(original):
-        if atom == target_atom and (
+        if atom.root() == target_root and (
             atom.tok_pos is not None or atom.text_span is not None
         ):
             return Atom(
                 target_atom.atom_str,
                 target_atom.parens,
+                text=atom._text,
                 tok_pos=atom.tok_pos,
                 text_span=atom.text_span,
             )
@@ -374,6 +402,7 @@ def _substitute_var_atom(
         new_parts = [binding_atom.root(), *target_parts[1:]]
         return Atom(
             "/".join(p for p in new_parts if p),
+            text=binding_atom._text,
             tok_pos=binding_atom.tok_pos,
             text_span=binding_atom.text_span,
         )
@@ -402,6 +431,7 @@ def _substitute_var_atom(
     if inner.type() == binding.type():
         new_inner = Atom(
             "/".join(p for p in [inner.root(), *target_parts[1:]] if p),
+            text=inner._text,
             tok_pos=inner.tok_pos,
             text_span=inner.text_span,
         )
@@ -463,3 +493,47 @@ def _consumed_arg_indices(
                 consumed.add(i)
                 break
     return consumed
+
+
+def _propagate_root_text(original: Hyperedge, result: Hyperedge) -> Hyperedge:
+    """Carry the original root's source-text fingerprint onto a transform's
+    result.
+
+    Mutates ``result``'s ``_text``/``tokens`` in place (safe: the result is
+    freshly constructed by the transform). When the original carries no
+    source text or when ``result is original``, the result is returned
+    unchanged. When the set of atom roots is unchanged, ``_text`` is
+    preserved verbatim. Otherwise it is derived as the contiguous slice of
+    the original text that spans the result atoms' ``text_span`` extents.
+    """
+    if result is original:
+        return result
+    if original.atom or result.atom:
+        return result
+    src_text = original.text
+    if src_text is None:
+        return result
+
+    orig_roots = sorted(a.root() for a in original.all_atoms())
+    new_roots = sorted(a.root() for a in result.all_atoms())
+
+    if orig_roots == new_roots:
+        new_text: str | None = src_text
+    else:
+        new_text = _derive_text_from_spans(result, src_text)
+        if new_text is None:
+            return result
+
+    object.__setattr__(result, "_text", new_text)
+    if original.tokens is not None:
+        object.__setattr__(result, "tokens", original.tokens)
+    return result
+
+
+def _derive_text_from_spans(edge: Hyperedge, source_text: str) -> str | None:
+    spans = [atom.text_span for atom in edge.all_atoms() if atom.text_span is not None]
+    if not spans:
+        return None
+    start = min(s[0] for s in spans)
+    end = max(s[1] for s in spans)
+    return source_text[start:end]
