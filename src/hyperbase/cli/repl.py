@@ -125,13 +125,21 @@ def _build_parser_kwargs(parser_cls: type[Parser], settings: dict) -> dict[str, 
 
 
 class FilteredFileHistory(FileHistory):
-    """Custom history that filters out blanks and consecutive duplicates."""
+    """Custom history that filters out blanks and consecutive duplicates.
+
+    Set ``paused = True`` to skip persistence around prompts whose input
+    should not pollute the REPL's command history (e.g. classification
+    labels typed during ``/classify``).
+    """
 
     def __init__(self, filename: str) -> None:
         super().__init__(filename)
         self.last_saved: str | None = None
+        self.paused: bool = False
 
     def store_string(self, string: str) -> None:
+        if self.paused:
+            return
         if not string.strip():
             return
         if string == self.last_saved:
@@ -253,7 +261,7 @@ class CommandCompleter(Completer):
     # Commands whose argument is a filesystem path. The completer
     # delegates to ``PathCompleter`` once the user has typed past the
     # command name.
-    PATH_ARG_COMMANDS = frozenset({"load", "save", "count-csv"})
+    PATH_ARG_COMMANDS = frozenset({"load", "save", "count-csv", "classify"})
 
     def __init__(self, commands: dict) -> None:
         self.commands = commands
@@ -369,6 +377,13 @@ class ReplSession:
             "count-csv": {
                 "help": "Like /count, but write counts to a .csv file instead",
                 "handler": self.cmd_count_csv,
+            },
+            "classify": {
+                "help": (
+                    "Count pattern matches, prompt for a label per item, "
+                    "and write labels to a .csv file"
+                ),
+                "handler": self.cmd_classify,
             },
             "types": {
                 "help": (
@@ -899,6 +914,15 @@ class ReplSession:
                 self.console.print(line)
         self.console.print()
 
+    def _format_eta(self, minutes: float) -> str:
+        if minutes < 1:
+            return f"{round(minutes * 60)}s"
+        if minutes < 60:
+            return f"{minutes:.1f}m"
+        if minutes < 1440:
+            return f"{minutes / 60:.1f}h"
+        return f"{minutes / 1440:.1f}d"
+
     def _page_size(self) -> int:
         try:
             size = int(self.settings.get("page_size", 20))
@@ -1081,6 +1105,218 @@ class ReplSession:
             f"([green]{sum(counter.values())}[/green] total match(es), "
             f"{'recursive' if recursive else 'top-level only'}) "
             f"to [cyan]{csv_path}[/cyan]"
+        )
+        return False
+
+    def cmd_classify(self, args: list) -> bool:
+        if len(args) < 2:
+            self.console.print(
+                "[red]Error:[/red] /classify requires a file path and a pattern: "
+                "[cyan]/classify <path> <pattern>[/cyan]"
+            )
+            return False
+        if not self.edges:
+            self.console.print("[yellow]No edges loaded.[/yellow]")
+            self.console.print(
+                "[dim]Use[/dim] [cyan]/load <path>[/cyan] [dim]first.[/dim]"
+            )
+            return False
+
+        csv_path = Path(args[0]).expanduser()
+        pattern_text = " ".join(args[1:])
+        try:
+            pattern = hedge(pattern_text)
+        except Exception as e:
+            self.console.print(f"[red]Error:[/red] failed to parse pattern: {e}")
+            return False
+        if pattern is None:
+            self.console.print(
+                f"[red]Error:[/red] could not parse pattern: "
+                f"[cyan]{pattern_text}[/cyan]"
+            )
+            return False
+
+        recursive = bool(self.settings.get("search_recursive", True))
+
+        counter: Counter[Any] = Counter()
+        for top_edge in self.edges:
+            candidates: Iterable[Hyperedge] = (
+                self._iter_subedges_ordered(top_edge) if recursive else [top_edge]
+            )
+            for sub in candidates:
+                bindings_list = sub.match(pattern)
+                for b in bindings_list:
+                    key: Any = tuple(sorted(b.items())) if b else sub
+                    counter[key] += 1
+
+        if not counter:
+            self.console.print(
+                f"[yellow]No matches[/yellow] for [cyan]{pattern_text}[/cyan]"
+            )
+            return False
+
+        items = counter.most_common()
+        total = len(items)
+        self.console.print(
+            f"[green]{sum(counter.values())}[/green] match(es), "
+            f"[cyan]{total}[/cyan] distinct "
+            f"({'recursive' if recursive else 'top-level only'})"
+        )
+
+        first_key = items[0][0]
+        if isinstance(first_key, tuple):
+            id_cols = [var for var, _ in first_key]
+
+            def identity_of(key: Any) -> tuple[str, ...]:  # noqa: ANN401
+                return tuple(str(val) for _, val in key)
+        else:
+            id_cols = ["edge"]
+
+            def identity_of(key: Any) -> tuple[str, ...]:  # noqa: ANN401
+                return (str(key),)
+
+        existing_size = csv_path.stat().st_size if csv_path.exists() else 0
+        done_identities: set[tuple[str, ...]] = set()
+        if existing_size > 0:
+            try:
+                with open(csv_path, newline="") as f:
+                    reader = csv.reader(f)
+                    header = next(reader, None)
+                    if header is None:
+                        pass
+                    elif (
+                        not header
+                        or header[-1] != "classification"
+                        or header[:-1] != id_cols
+                    ):
+                        self.console.print(
+                            f"[red]Error:[/red] [cyan]{csv_path}[/cyan] header "
+                            f"{header} does not match expected "
+                            f"{[*id_cols, 'classification']}"
+                        )
+                        return False
+                    else:
+                        for row in reader:
+                            if not row or len(row) < len(header):
+                                continue
+                            done_identities.add(tuple(row[: len(id_cols)]))
+            except OSError as e:
+                self.console.print(f"[red]Error:[/red] failed to read {csv_path}: {e}")
+                return False
+
+        existing_count = len(done_identities)
+        pending: list[tuple[Any, int]] = [
+            (key, count)
+            for key, count in items
+            if identity_of(key) not in done_identities
+        ]
+        pending_total = len(pending)
+
+        if existing_count > 0:
+            self.console.print(
+                f"[dim]Resuming from[/dim] [cyan]{csv_path}[/cyan] "
+                f"[dim]({existing_count} already classified, "
+                f"{pending_total} pending)[/dim]"
+            )
+
+        if not pending:
+            self.console.print(
+                f"[green]All[/green] [cyan]{total}[/cyan] item(s) already "
+                f"classified in [cyan]{csv_path}[/cyan]"
+            )
+            return False
+
+        self.console.print(
+            "[dim]Enter a label for each item. "
+            "Empty input asks to finish early.[/dim]\n"
+        )
+
+        classifications: list[tuple[Any, str]] = []
+        finished_early = False
+        aborted = False
+        start_time = time.perf_counter()
+
+        self.history.paused = True
+        try:
+            for n, (key, count) in enumerate(pending, start=1):
+                self._render_count_row(existing_count + n, key, count)
+                while True:
+                    session_done = len(classifications)
+                    total_done = existing_count + session_done
+                    elapsed_min = (time.perf_counter() - start_time) / 60.0
+                    if session_done > 0 and elapsed_min > 0:
+                        rate = session_done / elapsed_min
+                        pending_remaining = pending_total - session_done
+                        eta = pending_remaining / rate if rate > 0 else None
+                        rate_str = f"{rate:.1f}/min"
+                        eta_str = self._format_eta(eta) if eta is not None else "—"
+                    else:
+                        rate_str = "—/min"
+                        eta_str = "—"
+                    self.console.print(
+                        f"[dim]{total_done}/{total} classified | "
+                        f"{rate_str} | ~{eta_str} remaining[/dim]"
+                    )
+                    try:
+                        label = self.session.prompt(
+                            f"[{n}/{pending_total}] label > "
+                        ).strip()
+                    except (KeyboardInterrupt, EOFError):
+                        self.console.print("[dim](aborted)[/dim]")
+                        aborted = True
+                        break
+
+                    if label == "":
+                        try:
+                            confirm = (
+                                self.session.prompt("Finish classification? [y/N] ")
+                                .strip()
+                                .lower()
+                            )
+                        except (KeyboardInterrupt, EOFError):
+                            self.console.print("[dim](aborted)[/dim]")
+                            aborted = True
+                            break
+                        if confirm in ("y", "yes"):
+                            finished_early = True
+                            break
+                        continue
+
+                    classifications.append((key, label))
+                    break
+
+                if aborted or finished_early:
+                    break
+        finally:
+            self.history.paused = False
+
+        if aborted:
+            return False
+
+        if not classifications:
+            self.console.print("[yellow]No new classifications recorded.[/yellow]")
+            return False
+
+        append = existing_size > 0
+        try:
+            with open(csv_path, "a" if append else "w", newline="") as f:
+                writer = csv.writer(f)
+                if not append:
+                    writer.writerow([*id_cols, "classification"])
+                for key, label in classifications:
+                    if isinstance(first_key, tuple):
+                        writer.writerow([*(str(val) for _, val in key), label])
+                    else:
+                        writer.writerow([str(key), label])
+        except OSError as e:
+            self.console.print(f"[red]Error:[/red] failed to write {csv_path}: {e}")
+            return False
+
+        verb = "Appended" if append else "Wrote"
+        suffix = " [dim](finished early)[/dim]" if finished_early else ""
+        self.console.print(
+            f"[green]✓[/green] {verb} [cyan]{len(classifications)}[/cyan] "
+            f"classification(s) to [cyan]{csv_path}[/cyan]{suffix}"
         )
         return False
 

@@ -11,7 +11,7 @@
 - readers provide source information.
 - `hyperbase.parsers.badness` module for parser-agnostic combined structural + token-matching validation.
 - built-in REPL setting `check_badness` to render a badness panel after each parse, available regardless of the active parser plugin.
-- more REPL commands: /load, /save, /search, /count, /count-csv, /types and /transform.
+- more REPL commands: /load, /save, /search, /count, /count-csv, /types, /transform and /classify.
 
 ### Changed
 
