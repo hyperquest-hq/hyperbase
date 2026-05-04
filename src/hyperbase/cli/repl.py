@@ -41,6 +41,7 @@ SETTINGS_FILE = Path.home() / ".hyperbase_repl_settings.json"
 # maps to the alphabeta parser's ``lang`` accepted_param).
 LEGACY_SETTING_RENAMES: dict[str, str] = {
     "language": "lang",
+    "search_page_size": "page_size",
 }
 
 # Built-in REPL settings (parser-independent). Parser plugins may add
@@ -63,10 +64,10 @@ BUILTIN_REPL_SETTINGS: dict[str, dict[str, Any]] = {
             "When /search runs, also match every sub-edge of each loaded edge."
         ),
     },
-    "search_page_size": {
+    "page_size": {
         "type": int,
-        "default": 10,
-        "description": "Number of /search results shown per page.",
+        "default": 20,
+        "description": "Number of results shown per page in paginated commands.",
     },
 }
 
@@ -844,9 +845,6 @@ class ReplSession:
             return False
 
         recursive = bool(self.settings.get("search_recursive", True))
-        page_size = int(self.settings.get("search_page_size", 10))
-        if page_size < 1:
-            page_size = 10
 
         hits: list[tuple[int, Hyperedge, Hyperedge, list[dict]]] = []
         for top_idx, top_edge in enumerate(self.edges):
@@ -871,7 +869,6 @@ class ReplSession:
         self._paginate(
             hits,
             lambda n, hit: self._render_search_hit(n, *hit),
-            page_size,
         )
         return False
 
@@ -897,12 +894,19 @@ class ReplSession:
                 self.console.print(line)
         self.console.print()
 
+    def _page_size(self) -> int:
+        try:
+            size = int(self.settings.get("page_size", 20))
+        except (TypeError, ValueError):
+            size = 20
+        return size if size >= 1 else 20
+
     def _paginate(
         self,
         items: list[Any],
         render_fn: Callable[[int, Any], None],
-        page_size: int,
     ) -> None:
+        page_size = self._page_size()
         total = len(items)
         pages = (total + page_size - 1) // page_size
         page = 0
@@ -969,9 +973,6 @@ class ReplSession:
             return False
 
         recursive = bool(self.settings.get("search_recursive", True))
-        page_size = int(self.settings.get("search_page_size", 10))
-        if page_size < 1:
-            page_size = 10
 
         # Counter key:
         #   - if the pattern has variables, key is sorted tuple of (var, value)
@@ -1002,7 +1003,6 @@ class ReplSession:
         self._paginate(
             items,
             lambda n, item: self._render_count_row(n, item[0], item[1]),
-            page_size,
         )
         return False
 
@@ -1026,10 +1026,6 @@ class ReplSession:
                     f"[cyan]{filter_main_type}[/cyan]. [dim]Valid:[/dim] {valid}"
                 )
                 return False
-
-        page_size = int(self.settings.get("search_page_size", 10))
-        if page_size < 1:
-            page_size = 10
 
         counter: Counter[str] = Counter()
         for top_edge in self.edges:
@@ -1061,7 +1057,6 @@ class ReplSession:
         self._paginate(
             items,
             lambda n, item: self._render_types_row(n, item[0], item[1]),
-            page_size,
         )
         return False
 
