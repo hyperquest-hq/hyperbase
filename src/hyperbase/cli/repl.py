@@ -1138,33 +1138,7 @@ class ReplSession:
         if not dry_run:
             self.edges = new_edges
 
-        if not changes:
-            return False
-
-        page_size = int(self.settings.get("search_page_size", 10))
-        if page_size < 1:
-            page_size = 10
-
-        self._paginate(
-            changes,
-            lambda n, change: self._render_transform_change(n, *change),
-            page_size,
-        )
         return False
-
-    def _render_transform_change(
-        self,
-        n: int,
-        idx: int,
-        before: Hyperedge,
-        after: Hyperedge,
-    ) -> None:
-        self.console.print(f"[bold]#{n}[/bold] [dim](edge {idx})[/dim]")
-        self.console.print("  [dim red]before:[/dim red]")
-        self.console.print(self.formatter.format(before))
-        self.console.print("  [dim green]after:[/dim green]")
-        self.console.print(self.formatter.format(after))
-        self.console.print()
 
     def _render_types_row(self, n: int, type_str: str, count: int) -> None:
         color = "white"
