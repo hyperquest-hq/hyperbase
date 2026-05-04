@@ -1,5 +1,6 @@
 import argparse
 import contextlib
+import csv
 import json
 import sys
 import time
@@ -252,7 +253,7 @@ class CommandCompleter(Completer):
     # Commands whose argument is a filesystem path. The completer
     # delegates to ``PathCompleter`` once the user has typed past the
     # command name.
-    PATH_ARG_COMMANDS = frozenset({"load", "save"})
+    PATH_ARG_COMMANDS = frozenset({"load", "save", "count-csv"})
 
     def __init__(self, commands: dict) -> None:
         self.commands = commands
@@ -364,6 +365,10 @@ class ReplSession:
             "count": {
                 "help": "Count pattern matches across loaded edges (most common first)",
                 "handler": self.cmd_count,
+            },
+            "count-csv": {
+                "help": "Like /count, but write counts to a .csv file instead",
+                "handler": self.cmd_count_csv,
             },
             "types": {
                 "help": (
@@ -1003,6 +1008,79 @@ class ReplSession:
         self._paginate(
             items,
             lambda n, item: self._render_count_row(n, item[0], item[1]),
+        )
+        return False
+
+    def cmd_count_csv(self, args: list) -> bool:
+        if len(args) < 2:
+            self.console.print(
+                "[red]Error:[/red] /count-csv requires a file path and a pattern: "
+                "[cyan]/count-csv <path> <pattern>[/cyan]"
+            )
+            return False
+        if not self.edges:
+            self.console.print("[yellow]No edges loaded.[/yellow]")
+            self.console.print(
+                "[dim]Use[/dim] [cyan]/load <path>[/cyan] [dim]first.[/dim]"
+            )
+            return False
+
+        csv_path = Path(args[0]).expanduser()
+        pattern_text = " ".join(args[1:])
+        try:
+            pattern = hedge(pattern_text)
+        except Exception as e:
+            self.console.print(f"[red]Error:[/red] failed to parse pattern: {e}")
+            return False
+        if pattern is None:
+            self.console.print(
+                f"[red]Error:[/red] could not parse pattern: "
+                f"[cyan]{pattern_text}[/cyan]"
+            )
+            return False
+
+        recursive = bool(self.settings.get("search_recursive", True))
+
+        counter: Counter[Any] = Counter()
+        for top_edge in self.edges:
+            candidates: Iterable[Hyperedge] = (
+                self._iter_subedges_ordered(top_edge) if recursive else [top_edge]
+            )
+            for sub in candidates:
+                bindings_list = sub.match(pattern)
+                for b in bindings_list:
+                    key: Any = tuple(sorted(b.items())) if b else sub
+                    counter[key] += 1
+
+        if not counter:
+            self.console.print(
+                f"[yellow]No matches[/yellow] for [cyan]{pattern_text}[/cyan]"
+            )
+            return False
+
+        items = counter.most_common()
+        try:
+            with open(csv_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                first_key = items[0][0]
+                if isinstance(first_key, tuple):
+                    var_names = [var for var, _ in first_key]
+                    writer.writerow(["count", *var_names])
+                    for key, count in items:
+                        writer.writerow([count, *(str(val) for _, val in key)])
+                else:
+                    writer.writerow(["count", "edge"])
+                    for key, count in items:
+                        writer.writerow([count, str(key)])
+        except OSError as e:
+            self.console.print(f"[red]Error:[/red] failed to write {csv_path}: {e}")
+            return False
+
+        self.console.print(
+            f"[green]✓[/green] Wrote [cyan]{len(items)}[/cyan] row(s) "
+            f"([green]{sum(counter.values())}[/green] total match(es), "
+            f"{'recursive' if recursive else 'top-level only'}) "
+            f"to [cyan]{csv_path}[/cyan]"
         )
         return False
 
