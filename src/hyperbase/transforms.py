@@ -449,7 +449,7 @@ def _instantiate_with_preserve(
     original: Hyperedge,
     bindings: dict[str, Hyperedge],
 ) -> Hyperedge:
-    consumed = _consumed_arg_indices(original, origin)
+    consumed = _consumed_arg_indices(original, origin, bindings)
     edge_argroles = original.argroles()
     if edge_argroles.startswith("{"):
         edge_argroles = edge_argroles[1:-1]
@@ -477,6 +477,7 @@ def _instantiate_with_preserve(
 def _consumed_arg_indices(
     original_edge: Hyperedge,
     origin_pattern: Hyperedge,
+    bindings: dict[str, Hyperedge],
 ) -> set[int]:
     from hyperbase.patterns import match_pattern
 
@@ -486,13 +487,44 @@ def _consumed_arg_indices(
 
     args = list(original_edge[1:])
     for arg_pattern in origin_pattern[1:]:
+        grounded = _ground_pattern(arg_pattern, bindings)
         for i, arg in enumerate(args):
             if i in consumed:
                 continue
-            if match_pattern(arg, arg_pattern):
+            if grounded is not None:
+                if arg == grounded:
+                    consumed.add(i)
+                    break
+            elif match_pattern(arg, arg_pattern):
                 consumed.add(i)
                 break
     return consumed
+
+
+def _ground_pattern(
+    pattern: Hyperedge, bindings: dict[str, Hyperedge]
+) -> Hyperedge | None:
+    """Substitute every variable in ``pattern`` with its binding.
+
+    Returns the grounded edge, or ``None`` if any variable is unbound (in which
+    case the caller should fall back to a structural match).
+    """
+    from hyperbase.patterns.checks import is_variable, variable_name
+
+    if pattern.atom:
+        if is_variable(pattern):
+            name = variable_name(pattern)
+            if name not in bindings:
+                return None
+            return bindings[name]
+        return pattern
+    children: list[Hyperedge] = []
+    for child in pattern:
+        sub = _ground_pattern(child, bindings)
+        if sub is None:
+            return None
+        children.append(sub)
+    return Hyperedge(tuple(children))
 
 
 def _propagate_root_text(original: Hyperedge, result: Hyperedge) -> Hyperedge:
