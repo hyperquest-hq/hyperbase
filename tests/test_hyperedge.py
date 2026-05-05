@@ -1152,6 +1152,25 @@ class TestHyperedge(unittest.TestCase):
         )
         assert str(result) == "((by/Mx (was/Mm performed/Pd.s)) scientists/Cc)"
 
+    def test_transform_preserve_uses_matcher_bindings(self):
+        # Origin pattern's variable Y could greedily match the first edge arg
+        # (and/Jx ...), but the matcher actually binds Y to it/Ci so that
+        # (Z1/Ta Z2) can match the by/Ta arg. The transform must consume args
+        # according to the matcher's bindings -- otherwise (and/Jx ...) is
+        # dropped and it/Ci ends up duplicated.
+        edge = hedge(
+            "((is/Mm powered/Pd.xsx) (and/Jx active/Cp excite/Cp) it/Ci"
+            " (by/Ta (a/Md (hybrid/Ma powertrain/Cc))))"
+        )
+        result = edge.transform(
+            hedge("(X/P.{sx}-o Y (Z1/Ta Z2))"),
+            hedge("(X/P.{os} Y (Z1/Ta Z2))"),
+        )
+        assert str(result) == (
+            "((is/Mm powered/Pd.xos) (and/Jx active/Cp excite/Cp) it/Ci"
+            " (by/Ta (a/Md (hybrid/Ma powertrain/Cc))))"
+        )
+
     def test_transform_no_match_unchanged(self):
         edge = hedge("(eats/Pd.so john/C apples/C)")
         result = edge.transform(

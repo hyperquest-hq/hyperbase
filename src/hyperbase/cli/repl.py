@@ -1446,8 +1446,29 @@ class ReplSession:
         )
         if not dry_run:
             self.edges = new_edges
+            return False
+
+        if changes:
+            self._paginate(
+                changes,
+                lambda n, change: self._render_transform_change(n, *change),
+            )
 
         return False
+
+    def _render_transform_change(
+        self,
+        n: int,
+        idx: int,
+        before: Hyperedge,
+        after: Hyperedge,
+    ) -> None:
+        self.console.print(f"[bold]#{n}[/bold] [dim](edge {idx})[/dim]")
+        self.console.print("  [dim red]before:[/dim red]")
+        self.console.print(self.formatter.format(before))
+        self.console.print("  [dim green]after:[/dim green]")
+        self.console.print(self.formatter.format(after))
+        self.console.print()
 
     def _render_types_row(self, n: int, type_str: str, count: int) -> None:
         color = "white"
