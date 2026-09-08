@@ -47,6 +47,7 @@ from hyperbase.parsers.utils import clean_alphanumeric, is_structural_atom
 from hyperbase.parsers.vocabulary import (
     is_admissible_atom_type,
     is_admissible_special_atom,
+    may_carry_argroles,
 )
 
 
@@ -135,8 +136,9 @@ def check_vocabulary(
             continue
 
         atom_type = atom.type()
+        atom_errors: list[tuple[str, str, int]] = []
         if not is_admissible_atom_type(atom_type):
-            errors[atom] = [
+            atom_errors.append(
                 (
                     "atom-type-unknown",
                     f"Atom '{atom}' has type '{atom_type}', which is not an "
@@ -145,7 +147,37 @@ def check_vocabulary(
                     "docs/manual/notation.md.",
                     0,
                 )
-            ]
+            )
+        # An argrole signature on a type that takes none. ``Atom.type`` stops at
+        # the '.', and ``Atom.argroles`` returns '' for these, so the trailing
+        # part is invisible to every other check -- yet it is in the atom string,
+        # so the atom is not one the assembler can ever produce.
+        parts = atom.parts()
+        if len(parts) > 1 and "." in parts[1] and not may_carry_argroles(atom_type):
+            atom_errors.append(
+                (
+                    "atom-argroles-not-allowed",
+                    f"Atom '{atom}' has type '{atom_type}', which carries no "
+                    "argroles; only predicates and builders take an argrole "
+                    "signature.",
+                    0,
+                )
+            )
+        # ``(101/Cq)`` -- an atom written as a one-element edge. It parses, and
+        # compares equal to the bare atom, but it serialises with the brackets,
+        # so a parse built atom by atom can never reproduce it.
+        if atom.parens:
+            atom_errors.append(
+                (
+                    "atom-in-unary-edge",
+                    f"Atom '{atom}' is wrapped in a one-element edge; an edge "
+                    "has a connector and at least one argument, so the brackets "
+                    "are not part of any structure.",
+                    0,
+                )
+            )
+        if atom_errors:
+            errors[atom] = errors.get(atom, []) + atom_errors
 
     return errors
 

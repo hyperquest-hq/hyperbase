@@ -6,6 +6,12 @@ from hyperbase.parsers.correctness import (
     parse_coverage,
 )
 from hyperbase.parsers.utils import clean_alphanumeric
+from hyperbase.parsers.vocabulary import (
+    ATOM_TYPES,
+    CONVERTIBLE_MODIFIERS,
+    MODIFIER_TO_CONCEPT,
+    is_admissible_atom_type,
+)
 
 
 class TestParseCoverage:
@@ -534,3 +540,71 @@ class TestAlignment:
         # Every caller that has no tok_pos keeps its old result.
         edge = hedge("(:/J/. inés/Cp (:/Bx.ma 19/Cq 18/Cq))")
         assert check_parse_correctness(edge, ["Inés", "19", ":", "18"]) == {}
+
+
+class TestArgrolesOnlyOnPredicatesAndBuilders:
+    def test_a_trigger_with_argroles_is_rejected(self):
+        # 'Atom.type' stops at the '.', and 'Atom.argroles' returns '' for a
+        # trigger, so nothing else in the checker can see the trailing part.
+        errors = check_parse_correctness(
+            hedge("(from/Tr.x (of/Bp.ma respect/Cc imports/Cc))"),
+            ["from", "of", "respect", "imports"],
+        )
+        codes = [c for issues in errors.values() for c, _, _ in issues]
+        assert "atom-argroles-not-allowed" in codes
+
+    def test_a_trailing_dot_with_no_letters_is_rejected_too(self):
+        errors = check_parse_correctness(hedge("(du/Tr. a/Cc)"), ["du", "a"])
+        codes = [c for issues in errors.values() for c, _, _ in issues]
+        assert "atom-argroles-not-allowed" in codes
+
+    def test_predicates_and_builders_keep_their_argroles(self):
+        assert not check_parse_correctness(
+            hedge("(plays/Pv.so maria/Cp chess/Cc)"), ["Maria", "plays", "chess"]
+        )
+        assert not check_parse_correctness(
+            hedge("(of/Bp.ma city/Cc berlin/Cp)"), ["city", "of", "Berlin"]
+        )
+
+    def test_a_special_trigger_is_not_flagged_for_its_namespace(self):
+        # '_/Tt/.' ends in the reserved namespace, not an argrole signature.
+        errors = check_parse_correctness(hedge("(_/Tt/. (a/Md day/Cc))"), ["a", "day"])
+        codes = [c for issues in errors.values() for c, _, _ in issues]
+        assert "atom-argroles-not-allowed" not in codes
+
+
+class TestAtomInUnaryEdge:
+    def test_an_atom_wrapped_in_a_one_element_edge_is_rejected(self):
+        errors = check_parse_correctness(hedge("(in/Tl (101/Cq))"), ["in", "101"])
+        codes = [c for issues in errors.values() for c, _, _ in issues]
+        assert "atom-in-unary-edge" in codes
+
+    def test_the_same_edge_without_the_brackets_is_clean(self):
+        assert not check_parse_correctness(hedge("(in/Tl 101/Cq)"), ["in", "101"])
+
+
+class TestModifierToConceptMapping:
+    def test_every_target_is_an_admissible_concept_subtype(self):
+        for modifier, concept in MODIFIER_TO_CONCEPT.items():
+            assert modifier[0] == "M", modifier
+            assert is_admissible_atom_type(modifier), modifier
+            assert is_admissible_atom_type(concept), concept
+            assert concept[0] == "C", concept
+
+    def test_it_covers_every_modifier_subtype(self):
+        modifiers = {t for t in ATOM_TYPES if t[0] == "M"}
+        assert set(MODIFIER_TO_CONCEPT) == modifiers
+
+    def test_the_applied_set_is_a_subset_of_the_table(self):
+        assert set(MODIFIER_TO_CONCEPT) >= CONVERTIBLE_MODIFIERS
+
+    def test_the_two_false_friends_do_not_keep_their_letter(self):
+        # Mg is degree but Cg is gerund; Mp is possessive but Cp is proper.
+        assert MODIFIER_TO_CONCEPT["Mg"] != "Cg"
+        assert MODIFIER_TO_CONCEPT["Mp"] != "Cp"
+
+    def test_the_determiner_class_is_defined_but_not_applied(self):
+        # It maps exactly, but a determiner is never part of a compound.
+        for determiner in ("Md", "Me", "Mw"):
+            assert determiner in MODIFIER_TO_CONCEPT
+            assert determiner not in CONVERTIBLE_MODIFIERS
