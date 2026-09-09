@@ -85,6 +85,19 @@ VALID_B_ARGROLES: frozenset[str] = frozenset("ma")
 # Roles that may appear at most once on a single connector.
 SINGLETON_ARGROLES: tuple[str, ...] = ("s", "o", "a", "m")
 
+# Symbols that can stand as a connector when the surface text spells one out.
+# ``:/J/.`` and ``+/B.am/.`` mean "a connector the text does not write"; where it
+# does write one, that character is the connector and consumes its own token.
+#
+# The split is by whether the character doubles as sentence punctuation. These
+# never do, so their presence between two arguments is enough on its own:
+CONNECTIVE_SYMBOLS: frozenset[str] = frozenset(
+    "-\u2013\u2014~|/+=&*\u00b1\u00b7^<>#@\\_"
+)
+# These do, so they only join when written flush against both neighbours --
+# ``19.3`` joins, ``... Live. Neville`` ends a sentence:
+FLUSH_ONLY_SYMBOLS: frozenset[str] = frozenset(".,;:")
+
 # Concept subtype a modifier's atom becomes when a modifier construction is
 # rewritten as a builder -- ``(low/Ma density/Cc)`` spells a hyphen the parse
 # dropped, and ``(-/Bx.am low/Ca density/Cc)`` puts it back. A builder is

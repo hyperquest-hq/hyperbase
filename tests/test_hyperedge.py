@@ -1539,3 +1539,38 @@ class TestHyperedge(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestArgrolesOnConjoinedConnectors:
+    """A conjunction's mtype is its first member's, so it reaches the P/B
+    branches -- where the roles belong to every member, not just the first."""
+
+    def test_replace_argroles_reaches_every_member(self):
+        edge = hedge("(and/Jx a/Pv.so b/Pv.so)")
+        assert str(edge.replace_argroles("xx")) == "(and/Jx a/Pv.xx b/Pv.xx)"
+
+    def test_replace_argroles_through_a_relation(self):
+        edge = hedge("((and/Jx a/Pv.so b/Pv.so) x/Cc y/Cc)")
+        assert (
+            str(edge.replace_argroles("xx")) == "((and/Jx a/Pv.xx b/Pv.xx) x/Cc y/Cc)"
+        )
+
+    def test_replace_argroles_recurses_into_a_nested_conjunction(self):
+        edge = hedge("(and/Jx (or/Jx a/Pv.s b/Pv.s) c/Pv.s)")
+        assert (
+            str(edge.replace_argroles("o")) == "(and/Jx (or/Jx a/Pv.o b/Pv.o) c/Pv.o)"
+        )
+
+    def test_a_conjoined_concept_is_left_alone(self):
+        # A conjunction may mix a relation with a concept; 'dog/Cc.x' is not an
+        # atom, so only the members that can carry argroles get them.
+        edge = hedge("(and/Jx runs/Pv.s dog/Cc)")
+        assert str(edge.replace_argroles("x")) == "(and/Jx runs/Pv.x dog/Cc)"
+
+    def test_insert_argrole_reaches_every_member_too(self):
+        edge = hedge("(and/Jx a/Pv.so b/Pv.so)")
+        assert str(edge._insert_argrole("x", 0)) == "(and/Jx a/Pv.xso b/Pv.xso)"
+
+    def test_a_modifier_wrapped_connector_is_unaffected(self):
+        edge = hedge("(not/Mm is/Pv.sc)")
+        assert str(edge.replace_argroles("so")) == "(not/Mm is/Pv.so)"

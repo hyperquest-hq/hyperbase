@@ -40,11 +40,18 @@ accepted parses no per-token model can represent: ``c'`` cleaned to ``c`` and
 matched the token ``c``, so nothing flagged an atom that no token can carry.
 """
 
+from itertools import pairwise
+
+from hyperbase.builders import str_to_atom
 from hyperbase.constants import atom_decode
 from hyperbase.correctness import check_structural_quality
 from hyperbase.hyperedge import Hyperedge
 from hyperbase.parsers.utils import clean_alphanumeric, is_structural_atom
 from hyperbase.parsers.vocabulary import (
+    CONNECTIVE_SYMBOLS,
+    CONVERTIBLE_MODIFIERS,
+    FLUSH_ONLY_SYMBOLS,
+    SPECIAL_ATOMS,
     is_admissible_atom_type,
     is_admissible_special_atom,
     may_carry_argroles,
@@ -166,6 +173,22 @@ def check_vocabulary(
         # ``(101/Cq)`` -- an atom written as a one-element edge. It parses, and
         # compares equal to the bare atom, but it serialises with the brackets,
         # so a parse built atom by atom can never reproduce it.
+        # A root that spells a reserved character carries it percent-encoded:
+        # ``build_atom`` -- the only thing that mints an atom from a token --
+        # encodes and lowercases unconditionally, so a raw root is a form no
+        # parse can be assembled into. Already-encoded roots are left alone, or
+        # '%25' would be re-read as needing to become '%2525'.
+        root = parts[0]
+        if atom_decode(root) == root and str_to_atom(root) != root:
+            atom_errors.append(
+                (
+                    "atom-root-not-canonical",
+                    f"Atom root '{root}' is not in canonical form; a root is "
+                    f"percent-encoded and lowercased, so this must be written "
+                    f"'{str_to_atom(root)}'.",
+                    0,
+                )
+            )
         if atom.parens:
             atom_errors.append(
                 (
@@ -303,11 +326,134 @@ def check_alignment(
     return errors
 
 
+def token_spans(text: str, tokens: list[str]) -> list[tuple[int, int]] | None:
+    """Character spans of *tokens* in *text*, or None if they cannot be located.
+
+    A plain in-order scan: each token is found at or after the end of the
+    previous one. It is deliberately not the tokenizer's own span logic --
+    ``hyperparser`` depends on this package, not the other way round -- and it
+    only has to answer one question: is there whitespace between two tokens.
+
+    Returns ``None`` when a token is not found, which happens when the text
+    holds a character the tokenizer folded (a curly apostrophe). The caller then
+    skips the checks that need spacing rather than guessing.
+    """
+    spans: list[tuple[int, int]] = []
+    pos = 0
+    for token in tokens:
+        start = text.find(token, pos)
+        if start < 0:
+            return None
+        pos = start + len(token)
+        spans.append((start, pos))
+    return spans
+
+
+def _claimed_tokens(tree: Hyperedge, out: set[int] | None = None) -> set[int]:
+    """Every token index a ``tok_pos`` subtree points at (``-1`` excluded)."""
+    out = set() if out is None else out
+    if tree.atom:
+        try:
+            index = int(str(tree))
+        except ValueError:
+            return out
+        if index >= 0:
+            out.add(index)
+    else:
+        for child in tree:
+            _claimed_tokens(child, out)
+    return out
+
+
+def check_symbol_coverage(
+    edge: Hyperedge,
+    tok_pos: Hyperedge,
+    tokens: list[str],
+    text: str | None = None,
+) -> list[tuple[str, str, int]]:
+    """Report connective symbols the parse dropped into a connector's gap.
+
+    ``:/J/.`` and ``+/B.am/.`` stand for a connector the text does *not* spell
+    out. When the text does spell one, writing the structural atom instead makes
+    the symbol vanish: the parse still scores clean, because
+    :func:`parse_coverage` forgives an unclaimed token with no alphanumerics,
+    and the token goes on to be supervised as something to discard. The same
+    happens when a modifier swallows it -- ``(low/Ma density/Cc)`` for
+    "low-density".
+
+    Only an *unambiguous* gap is reported. A flat list with several symbol gaps
+    ("May 03, 2017 15:22 pm") really is missing its symbols, but no rule can say
+    which one the connector stands for, so it is left alone rather than reported
+    as something no repair could act on.
+
+    Without *text* the punctuation-doubles (``.``, ``,``, ``;``, ``:``) cannot be
+    told from sentence punctuation and are skipped; the rest are still reported.
+    """
+    errors: list[tuple[str, str, int]] = []
+    spans = token_spans(text, tokens) if text is not None else None
+    claimed = _claimed_tokens(tok_pos)
+
+    def flush(index: int) -> bool:
+        return (
+            spans is not None
+            and 0 < index < len(spans) - 1
+            and spans[index - 1][1] == spans[index][0]
+            and spans[index][1] == spans[index + 1][0]
+        )
+
+    def walk(sub: Hyperedge, tree: Hyperedge) -> None:
+        if sub.atom or tree.atom or len(sub) != len(tree):
+            return
+        connector = sub[0]
+        arg_spans: list[list[int]] | None = None
+        if connector.atom and str(connector) in SPECIAL_ATOMS:
+            arg_spans = [sorted(_claimed_tokens(child)) for child in tree[1:]]
+        elif (
+            len(sub) == 2
+            and connector.atom
+            and (connector.type() or "") in CONVERTIBLE_MODIFIERS
+            and (sub[1].mtype() or "") == "C"
+        ):
+            arg_spans = [
+                sorted(_claimed_tokens(tree[0])),
+                sorted(_claimed_tokens(tree[1])),
+            ]
+        if arg_spans is not None:
+            gaps = {
+                max(left) + 1
+                for left, right in pairwise(arg_spans)
+                if left and right and max(left) + 2 == min(right)
+            }
+            if len(gaps) == 1:
+                index = gaps.pop()
+                symbol = tokens[index] if 0 <= index < len(tokens) else ""
+                joins = symbol in CONNECTIVE_SYMBOLS or (
+                    symbol in FLUSH_ONLY_SYMBOLS and flush(index)
+                )
+                if joins and index not in claimed:
+                    errors.append(
+                        (
+                            "connective-symbol-dropped",
+                            f"Token '{symbol}' joins the arguments of "
+                            f"'{connector}' but no atom carries it; the "
+                            f"connector the text spells out must be used "
+                            f"instead of a structural one.",
+                            1,
+                        )
+                    )
+        for child, sub_tree in zip(sub, tree, strict=False):
+            walk(child, sub_tree)
+
+    walk(edge, tok_pos)
+    return errors
+
+
 def check_parse_correctness(
     edge: Hyperedge,
     tokens: list[str],
     strict: bool = False,
     tok_pos: Hyperedge | None = None,
+    text: str | None = None,
 ) -> dict[str | Hyperedge, list[tuple[str, str, int]]]:
 
     # Hard grammar failures (severity 0), keyed by subedge.
@@ -374,5 +520,9 @@ def check_parse_correctness(
             alignment_errors = check_alignment(edge, tok_pos, tokens)
             if alignment_errors:
                 errors["alignment"] = alignment_errors
+            # Needs the argument spans, so it is gated on tok_pos the same way.
+            symbol_errors = check_symbol_coverage(edge, tok_pos, tokens, text)
+            if symbol_errors:
+                errors["symbol-coverage"] = symbol_errors
 
     return errors

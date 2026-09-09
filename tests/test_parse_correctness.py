@@ -465,9 +465,10 @@ class TestVocabulary:
         assert "special-atom-unknown" in _codes(check_parse_correctness(edge, []))
 
     def test_token_backed_atom_in_dot_namespace_is_not_a_special_atom(self):
-        # '&/Jx' spells a real token and is an ordinary atom; only the reserved
-        # '.' namespace makes an atom special.
-        edge = hedge("(&/Jx a/Cc b/Cc)")
+        # '%26/Jx' spells a real token ('&') and is an ordinary atom; only the
+        # reserved '.' namespace makes an atom special. The root is written
+        # encoded because '&' is reserved -- see the root-canonicality check.
+        edge = hedge("(%26/Jx a/Cc b/Cc)")
         assert check_vocabulary(edge) == {}
 
     def test_special_atom_is_exempt_from_the_atom_type_check(self):
@@ -608,3 +609,105 @@ class TestModifierToConceptMapping:
         for determiner in ("Md", "Me", "Mw"):
             assert determiner in MODIFIER_TO_CONCEPT
             assert determiner not in CONVERTIBLE_MODIFIERS
+
+
+class TestAtomRootIsCanonical:
+    def test_a_raw_reserved_character_is_rejected(self):
+        # build_atom -- the only thing that mints an atom from a token --
+        # encodes unconditionally, so '%/Cc' is a form no parse assembles into.
+        errors = check_parse_correctness(
+            hedge("(in/Bp.ma (50/Mq %/Cc) cells/Cc)"), ["50", "%", "in", "cells"]
+        )
+        codes = [c for issues in errors.values() for c, _, _ in issues]
+        assert "atom-root-not-canonical" in codes
+
+    def test_the_encoded_form_is_clean(self):
+        assert not check_parse_correctness(
+            hedge("(in/Bp.ma (50/Mq %25/Cc) cells/Cc)"), ["50", "%", "in", "cells"]
+        )
+
+    def test_an_already_encoded_root_is_not_re_encoded(self):
+        # '%25' must not be read as needing to become '%2525'.
+        assert not check_parse_correctness(
+            hedge("(%2f/Bx.am mg/Cc dl/Cc)"), ["mg", "/", "dl"]
+        )
+
+    def test_an_uppercase_root_is_rejected(self):
+        errors = check_parse_correctness(hedge("(the/Md CE/Cp)"), ["the", "CE"])
+        codes = [c for issues in errors.values() for c, _, _ in issues]
+        assert "atom-root-not-canonical" in codes
+
+
+class TestConnectiveSymbolCoverage:
+    def _codes(self, edge, tokens, tok_pos=None, text=None):
+        errors = check_parse_correctness(
+            hedge(edge), tokens, tok_pos=hedge(tok_pos) if tok_pos else None, text=text
+        )
+        return [c for issues in errors.values() for c, _, _ in issues]
+
+    def test_a_structural_connector_over_a_spelled_symbol_is_rejected(self):
+        # "3-5": the hyphen is spelled out, so ':/J/.' makes it vanish.
+        assert "connective-symbol-dropped" in self._codes(
+            "(:/J/. 3/Cq 5/Cq)", ["3", "-", "5"], "(-1 0 2)", "3-5"
+        )
+
+    def test_a_modifier_that_swallowed_the_symbol_is_rejected(self):
+        assert "connective-symbol-dropped" in self._codes(
+            "(low/Ma density/Cc)", ["low", "-", "density"], "(0 2)", "low-density"
+        )
+
+    def test_the_repaired_form_is_clean(self):
+        assert "connective-symbol-dropped" not in self._codes(
+            "(-/Jx 3/Cq 5/Cq)", ["3", "-", "5"], "(1 0 2)", "3-5"
+        )
+        assert "connective-symbol-dropped" not in self._codes(
+            "(-/Bx.am low/Ca density/Cc)",
+            ["low", "-", "density"],
+            "(1 0 2)",
+            "low-density",
+        )
+
+    def test_a_claimed_symbol_is_not_reported(self):
+        # ':' belongs to the ':/Bx.ma' beside the junction, not to the junction.
+        assert "connective-symbol-dropped" not in self._codes(
+            "(:/J/. inés/Cp (:/Bx.ma 19/Cq 18/Cq))",
+            ["Inés", "19", ":", "18"],
+            "(-1 0 (2 1 3))",
+            "Inés 19:18",
+        )
+
+    def test_nothing_is_reported_without_tok_pos(self):
+        # The check needs the argument spans, like check_alignment.
+        assert "connective-symbol-dropped" not in self._codes(
+            "(:/J/. 3/Cq 5/Cq)", ["3", "-", "5"]
+        )
+
+    def test_an_ambiguous_gap_is_left_alone(self):
+        # "May 03 2017": several gaps, so no rule can say which symbol the
+        # connector stands for. A real defect, but not one a repair could act on.
+        assert "connective-symbol-dropped" not in self._codes(
+            "(:/J/. may/Cp 03/Cq 2017/Cq)",
+            ["May", "03", ",", "2017", "-", "x"],
+            "(-1 0 1 3)",
+            "May 03, 2017 - x",
+        )
+
+    def test_punctuation_needs_the_flush_test_and_therefore_the_text(self):
+        spaced = ["205", "Live", ".", "Neville"]
+        # Spaced: a sentence period, left alone.
+        assert "connective-symbol-dropped" not in self._codes(
+            "(:/J/. live/Cp neville/Cp)", spaced, "(-1 1 3)", "205 Live. Neville"
+        )
+        # Flush: part of a number, so it joins.
+        assert "connective-symbol-dropped" in self._codes(
+            "(+/B.am/. 19/Cq 3/Cq)", ["19", ".", "3"], "(-1 0 2)", "19.3"
+        )
+        # Without text the two cannot be told apart, so neither is reported.
+        assert "connective-symbol-dropped" not in self._codes(
+            "(+/B.am/. 19/Cq 3/Cq)", ["19", ".", "3"], "(-1 0 2)"
+        )
+
+    def test_a_never_punctuation_symbol_needs_no_text(self):
+        assert "connective-symbol-dropped" in self._codes(
+            "(:/J/. 3/Cq 5/Cq)", ["3", "-", "5"], "(-1 0 2)"
+        )

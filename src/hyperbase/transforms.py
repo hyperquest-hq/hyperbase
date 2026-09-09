@@ -113,6 +113,35 @@ def _maybe_inherit_atom_metadata(new: Hyperedge, source: Atom) -> Hyperedge:
     )
 
 
+def _is_conjunction(edge: Hyperedge) -> bool:
+    """True if *edge* is a conjunction construction, ``(and/J a b)``.
+
+    Its ``mtype`` is that of its first member, so a conjunction of predicates
+    reports ``P`` and reaches the predicate/builder branches below -- where
+    "the connector's roles" means every member's, not the first one's.
+    """
+    if edge.atom or len(edge) < 2:
+        return False
+    connector = edge[0]
+    if connector.atom:
+        atom: Hyperedge | None = connector
+    elif len(connector) == 2 and connector[1].atom:
+        atom = connector[1]  # a modifier-wrapped connector
+    else:
+        atom = None
+    return atom is not None and atom.mtype() == EdgeType.CONJUNCTION
+
+
+def _carries_argroles(edge: Hyperedge) -> bool:
+    """True if *edge* is the kind of thing an argrole signature belongs on.
+
+    A conjunction may mix a relation with a concept -- ``(and/J runs/P.s
+    dog/C)`` -- and ``dog/C.s`` is not an atom, so a member that is neither a
+    predicate nor a builder is left alone when the roles are distributed.
+    """
+    return edge.mtype() in {EdgeType.PREDICATE, EdgeType.BUILDER}
+
+
 def replace_argroles(edge: Hyperedge, argroles: str | None) -> Hyperedge:
     """Return a copy with the connector's argument roles replaced."""
     if edge.atom:
@@ -136,6 +165,21 @@ def replace_argroles(edge: Hyperedge, argroles: str | None) -> Hyperedge:
             new_edge += edge[1:]
             return Hyperedge(new_edge)
         elif st in {EdgeType.PREDICATE, EdgeType.BUILDER}:
+            if _is_conjunction(edge):
+                # The relation's arguments belong to every conjoined member, so
+                # the signature goes on all of them; rewriting only the first
+                # leaves the members disagreeing.
+                return Hyperedge(
+                    [
+                        edge[0],
+                        *[
+                            replace_argroles(member, argroles)
+                            if _carries_argroles(member)
+                            else member
+                            for member in edge[1:]
+                        ],
+                    ]
+                )
             new_edge = [edge[0], replace_argroles(edge[1], argroles)]
             new_edge += list(edge[2:])
             return Hyperedge(new_edge)
@@ -164,6 +208,18 @@ def insert_argrole(edge: Hyperedge, argrole: str, pos: int) -> Hyperedge:
             new_edge += edge[1:]
             return Hyperedge(new_edge)
         elif st in {EdgeType.PREDICATE, EdgeType.BUILDER}:
+            if _is_conjunction(edge):
+                return Hyperedge(
+                    [
+                        edge[0],
+                        *[
+                            insert_argrole(member, argrole, pos)
+                            if _carries_argroles(member)
+                            else member
+                            for member in edge[1:]
+                        ],
+                    ]
+                )
             new_edge = [edge[0], insert_argrole(edge[1], argrole, pos)]
             new_edge += list(edge[2:])
             return Hyperedge(new_edge)

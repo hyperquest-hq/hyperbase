@@ -2001,7 +2001,14 @@ class ReplSession:
         _edge = hedge(ctx.edge)
         if _edge is None:
             return
-        badness_errors = check_parse_correctness(_edge, ctx.tokens)
+        # tok_pos and text unlock the alignment and symbol-coverage checks;
+        # both are on hand here, so the REPL reports everything the gate does.
+        badness_errors = check_parse_correctness(
+            _edge,
+            ctx.tokens,
+            tok_pos=getattr(ctx.result, "tok_pos", None),
+            text=ctx.text,
+        )
 
         self.console.print()
         if not badness_errors:
