@@ -1,5 +1,5 @@
 from importlib.metadata import EntryPoint, entry_points
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from hyperbase.parsers.parser import Parser
 from hyperbase.parsers.repl import ReplContext
@@ -65,6 +65,47 @@ def get_parser(
     return cls(merged)
 
 
+# Served lazily by ``__getattr__``: importing ``hyperbase.parsers.correctness``
+# at module scope would close a cycle (it imports ``hyperbase.builders``, which
+# comes back around to this package), so every entry into ``hyperbase.parsers``
+# would fail. Declared here for type checkers, which do not run the import.
+if TYPE_CHECKING:
+    from hyperbase.parsers.correctness import (
+        CheckContext,
+        CorrectnessCheck,
+        ErrorMap,
+        check_parse_correctness,
+        run_checks,
+        run_parser_checks,
+    )
+
+_CORRECTNESS_EXPORTS = frozenset(
+    {
+        "CheckContext",
+        "CorrectnessCheck",
+        "ErrorMap",
+        "check_parse_correctness",
+        "run_checks",
+        "run_parser_checks",
+    }
+)
+
+
+def __getattr__(name: str) -> Any:  # noqa: ANN401
+    """Resolve the correctness re-exports on first access.
+
+    Deferred rather than imported above for the cycle described there; by the
+    time anything asks for one of these, the package is fully initialised.
+    """
+    if name in _CORRECTNESS_EXPORTS:
+        import hyperbase.parsers.correctness as _correctness
+
+        value = getattr(_correctness, name)
+        globals()[name] = value  # cache it; __getattr__ runs once per name
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 __all__ = [
     "ARGROLE_LETTERS",
     "ATOM_TYPES",
@@ -72,11 +113,17 @@ __all__ = [
     "SPECIAL_ATOMS",
     "VALID_B_ARGROLES",
     "VALID_P_ARGROLES",
+    "CheckContext",
+    "CorrectnessCheck",
+    "ErrorMap",
     "ParseResult",
     "Parser",
     "ReplContext",
+    "check_parse_correctness",
     "get_parser",
     "is_admissible_atom_type",
     "is_admissible_special_atom",
     "list_parsers",
+    "run_checks",
+    "run_parser_checks",
 ]

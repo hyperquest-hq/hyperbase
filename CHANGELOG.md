@@ -10,7 +10,7 @@
 - continuity-aware sub-edge text derivation with verbatim character-offset slicing.
 - `transforms.tok_pos_tree(edge)` rebuilds the parallel `tok_pos` tree from in-memory atoms.
 - readers provide source information.
-- `hyperbase.parsers.badness` module for parser-agnostic combined structural + token-matching validation.
+- `hyperbase.parsers.correctness` module for parser-agnostic combined structural + token-matching validation.
 - more REPL commands: /load, /unload, /save, /save-parse, /search, /count, /count-csv, /types, /transform, /classify, /unload-parser, /parse-results, /tag and /tags.
 - built-in REPL setting `diagnostics` for parsers to produce detailed diagnostics reports on each parse (for debug and improvement purposes).
 - built-in REPL setting `check_badness` to render a badness panel after each parse, available regardless of the active parser plugin.
@@ -19,6 +19,7 @@
 - CLI `stats`, `dedup`, and `shuffle` commands.
 - `hyperbase.readers` entry-point group: readers can now be distributed as plugins, like parsers.
 - single source of truth for parser vocabulary.
+- `Parser.correctness_checks()`: parser plugins can extend the set of correctness checks.
 
 ### Changed
 

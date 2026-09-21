@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from hyperbase.parsers.correctness import CorrectnessCheck
     from hyperbase.parsers.result import ParseResult
 
 
@@ -115,6 +116,42 @@ class Parser:
         Hooks receive a :class:`~hyperbase.parsers.repl.ReplContext`
         object. The default implementation is a no-op.
         """
+
+    def correctness_checks(self) -> list[CorrectnessCheck]:
+        """Extra correctness checks this parser contributes to the parse gate.
+
+        :func:`hyperbase.parsers.correctness.check_parse_correctness` runs the
+        checks returned here after its own, whenever it is called with
+        ``parser=``, and merges what they report into the same error map. Use
+        this for what *this parser* cannot represent but hyperbase has no reason
+        to forbid in general: a model's vocabulary, a tokenizer invariant, a
+        structure the architecture can never emit. A rule that holds for every
+        Semantic Hypergraph belongs in hyperbase instead.
+
+        A check takes a :class:`~hyperbase.parsers.correctness.CheckContext`
+        (the edge, its tokens, and the optional ``tok_pos``/``text``/``strict``)
+        and returns an
+        :data:`~hyperbase.parsers.correctness.ErrorMap`: subedges -- or a string
+        naming the class of problem, as the built-in ``"token-matching"`` does --
+        mapped to lists of ``(code, message, severity)``, where severity ``0`` is
+        worst. Return an empty dict when there is nothing to report.
+
+        Checks are **additive only**. What a check returns is merged in; it is
+        never used to remove or relax what the built-in checks found, so a parser
+        can make the gate stricter for its own output but never more lenient.
+        Each check is isolated -- one that raises, or returns a malformed map, is
+        reported under ``"parser-checks"`` and the others still run.
+
+        The default implementation returns no checks.
+
+        Note that ``check_parse_correctness`` only reaches these when the caller
+        has the parser on hand. A parser whose own pipeline assembles parses
+        somewhere it does not (a worker subprocess, say -- a ``Parser`` should
+        never be pickled into one) calls
+        :func:`~hyperbase.parsers.correctness.run_parser_checks` there with
+        module-level check functions instead.
+        """
+        return []
 
     def close(self) -> None:
         """Release any resources held by this parser (subprocess pools, open

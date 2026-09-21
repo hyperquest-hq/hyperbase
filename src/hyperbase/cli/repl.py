@@ -2008,6 +2008,7 @@ class ReplSession:
             ctx.tokens,
             tok_pos=getattr(ctx.result, "tok_pos", None),
             text=ctx.text,
+            parser=self.parser,
         )
 
         self.console.print()

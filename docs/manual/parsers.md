@@ -135,21 +135,69 @@ This is what `parse_source_to_jsonl()` uses internally -- each line in the outpu
 
 ## Quality checking
 
-`hyperbase.parsers.badness.badness_check(edge, tokens)` combines structural validation with token-matching validation against the original input tokens. It returns a dict mapping a context (the offending sub-edge or the literal string `"token-matching"`) to a list of `(error_type, message, severity)` tuples, where lower severities are worse (`0` for hard correctness failures, `1` for token-mismatch issues, `2` for argrole problems, `3` for junction issues). An empty result means no issues were found.
+`hyperbase.parsers.correctness.check_parse_correctness(edge, tokens)` combines structural validation with token-matching validation against the original input tokens. It returns a dict mapping a context (the offending sub-edge, or a string naming the class of problem -- `"token-matching"`, `"alignment"`, `"symbol-coverage"`) to a list of `(error_type, message, severity)` tuples, where lower severities are worse (`0` for hard correctness failures, `1` for token-mismatch issues, `2` for argrole problems, `3` for junction issues). An empty result means no issues were found.
 
 ```python
 from hyperbase import hedge
-from hyperbase.parsers.badness import badness_check
+from hyperbase.parsers.correctness import check_parse_correctness
 
-edge = hedge("(is/P.so (the/M sky/C) blue/C)")
-errors = badness_check(edge, ["the", "sky", "is", "blue"])
+edge = hedge("(is/Pv.so (the/Md sky/Cc) blue/Ca)")
+errors = check_parse_correctness(edge, ["the", "sky", "is", "blue"])
 ```
+
+Passing `tok_pos` (the parallel tree naming, per atom, the token it was aligned to) and `text` turns on two further checks: the atom-to-token alignment, and connective symbols the parse dropped into a connector's gap.
 
 Inside the REPL, set `check_badness` to `true` to display a badness panel after every parse:
 
 ```text
 > /set check_badness true
 ```
+
+### Extending the checks
+
+A parser can add checks of its own by overriding `correctness_checks()`. Use this for what *your parser* cannot represent but hyperbase has no reason to forbid in general -- a model's vocabulary, a tokenizer invariant, a structure your architecture never emits. A rule that holds for every Semantic Hypergraph belongs in hyperbase instead.
+
+A check takes a `CheckContext` and returns errors in the same shape `check_parse_correctness` does:
+
+```python
+from hyperbase.parsers import CheckContext, Parser
+from hyperbase.parsers.utils import is_structural_atom
+
+# This parser's classifier head was trained on these labels only, so an atom
+# type outside the set is one it can never produce -- even though the wider
+# Semantic Hypergraph notation allows it.
+MY_ATOM_TYPES = frozenset({"Cc", "Cp", "Ca", "Cq", "Md", "Ma", "Pv", "Jx"})
+
+
+def only_trained_types(ctx: CheckContext):
+    return {
+        atom: [(
+            "atom-type-untrained",
+            f"Atom '{atom}' has type '{atom.type()}', which is not in this "
+            "parser's label set.",
+            0,
+        )]
+        for atom in ctx.edge.all_atoms()
+        if not is_structural_atom(atom) and atom.type() not in MY_ATOM_TYPES
+    }
+
+
+class MyParser(Parser):
+    def correctness_checks(self):
+        return [only_trained_types]
+```
+
+The checks run whenever `check_parse_correctness` is called with `parser=`, and what they report is merged into the same map:
+
+```python
+errors = check_parse_correctness(edge, tokens, parser=my_parser)
+```
+
+Three things to know:
+
+- **Checks are additive only.** What a check returns is merged in, never used to remove or relax what the built-in checks found. A parser can make the gate stricter for its own output, never more lenient.
+- **Each check is isolated.** One that raises, or returns something that is not a well-formed error map, is reported under the `"parser-checks"` key at severity `0` and the others still run. A broken check is reported rather than skipped quietly, so a gate never silently stops gating.
+- **The parser has to be on hand.** `check_parse_correctness` only reaches these when the caller passes `parser=`. If your own pipeline assembles parses somewhere the `Parser` object is not available -- a worker subprocess, say, which should never have a parser pickled into it -- call `run_parser_checks(...)` there with module-level check functions instead.
 
 ## CLI
 
@@ -204,7 +252,12 @@ To create a custom parser, subclass `Parser` and implement:
 - `parse_sentence(sentence)` -- parse a single sentence and return a list of `ParseResult` objects.
 - `accepted_params()` (classmethod) -- return a dict describing the parameters the parser accepts.
 
-Optionally, override `parse_batch(sentences)` if your parser can process multiple sentences more efficiently in a single call.
+Optionally, override:
+
+- `parse_batch(sentences)` -- if your parser can process multiple sentences more efficiently in a single call.
+- `correctness_checks()` -- to add parser-specific checks to the parse gate (see [Extending the checks](#extending-the-checks)).
+- `install_repl(session)` -- to extend the interactive REPL (see [REPL API for parsers](#repl-api-for-parsers)).
+- `close()` -- to release subprocess pools, GPU contexts or open files. Must be idempotent.
 
 ```python
 from hyperbase.parsers import Parser, ParseResult

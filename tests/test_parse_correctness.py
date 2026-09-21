@@ -5,6 +5,7 @@ from hyperbase.parsers.correctness import (
     check_vocabulary,
     parse_coverage,
 )
+from hyperbase.parsers.parser import Parser
 from hyperbase.parsers.utils import clean_alphanumeric
 from hyperbase.parsers.vocabulary import (
     ATOM_TYPES,
@@ -711,3 +712,207 @@ class TestConnectiveSymbolCoverage:
         assert "connective-symbol-dropped" in self._codes(
             "(:/J/. 3/Cq 5/Cq)", ["3", "-", "5"], "(-1 0 2)"
         )
+
+
+class _StubParser(Parser):
+    """A Parser that contributes exactly the checks it was handed.
+
+    ``correctness_checks`` raises instead of returning when *raises* is set, so
+    the hook's own failure can be tested apart from a check's.
+    """
+
+    def __init__(self, checks=None, raises=False):
+        super().__init__()
+        self._checks = list(checks or [])
+        self._raises = raises
+
+    def correctness_checks(self):
+        if self._raises:
+            raise RuntimeError("hook exploded")
+        return self._checks
+
+
+def _codes(errors):
+    """Every error code in a result, regardless of which key it landed under."""
+    return [code for issues in errors.values() for code, _, _ in issues]
+
+
+# A known-bad edge: 'chess' is never used, so the built-ins always have
+# something to say about it. Used to prove extensions never subtract.
+BAD_EDGE = "(plays/Pv.s maria/Cp)"
+BAD_TOKENS = ["Maria", "plays", "chess"]
+
+
+class TestParserSuppliedChecks:
+    """Checks a parser plugin adds on top of the built-in gate."""
+
+    def test_parser_none_is_the_old_behaviour(self):
+        edge, tokens = hedge(BAD_EDGE), BAD_TOKENS
+        assert check_parse_correctness(edge, tokens, parser=None) == (
+            check_parse_correctness(edge, tokens)
+        )
+
+    def test_a_parser_with_no_checks_changes_nothing(self):
+        edge, tokens = hedge(BAD_EDGE), BAD_TOKENS
+        assert check_parse_correctness(edge, tokens, parser=_StubParser()) == (
+            check_parse_correctness(edge, tokens)
+        )
+
+    def test_a_check_adds_its_errors(self):
+        def check(ctx):
+            return {"mine": [("my-code", "my message", 2)]}
+
+        errors = check_parse_correctness(
+            hedge("(plays/Pv.so maria/Cp chess/Cc)"),
+            ["Maria", "plays", "chess"],
+            parser=_StubParser([check]),
+        )
+        assert errors["mine"] == [("my-code", "my message", 2)]
+
+    def test_errors_merge_onto_a_shared_string_key(self):
+        def check(ctx):
+            return {"token-matching": [("my-code", "my message", 1)]}
+
+        errors = check_parse_correctness(
+            hedge(BAD_EDGE), BAD_TOKENS, parser=_StubParser([check])
+        )
+        codes = [code for code, _, _ in errors["token-matching"]]
+        # The built-in finding survives and the extension's is appended after it.
+        assert "token-unused" in codes
+        assert codes[-1] == "my-code"
+
+    def test_errors_merge_onto_a_shared_subedge_key(self):
+        # 'Cz' is not an admissible subtype, so the atom itself is a key.
+        edge = hedge("(plays/Pv.so maria/Cp chess/Cz)")
+        tokens = ["Maria", "plays", "chess"]
+        builtin = check_parse_correctness(edge, tokens)
+        # Pick a subedge the built-ins already reported on.
+        key = next(k for k in builtin if not isinstance(k, str))
+
+        def check(ctx):
+            return {key: [("my-code", "my message", 3)]}
+
+        errors = check_parse_correctness(edge, tokens, parser=_StubParser([check]))
+        assert len(errors[key]) == len(builtin[key]) + 1
+        assert errors[key][: len(builtin[key])] == builtin[key]
+
+    def test_a_check_cannot_remove_built_in_errors(self):
+        def silent(ctx):
+            return {}
+
+        edge, tokens = hedge(BAD_EDGE), BAD_TOKENS
+        assert check_parse_correctness(
+            edge, tokens, parser=_StubParser([silent])
+        ) == check_parse_correctness(edge, tokens)
+
+    def test_the_context_carries_the_whole_parse(self):
+        seen = []
+
+        def check(ctx):
+            seen.append(ctx)
+            return {}
+
+        check_parse_correctness(
+            hedge("(:/J/. 3/Cq 5/Cq)"),
+            ["3", "-", "5"],
+            strict=True,
+            tok_pos=hedge("(-1 0 2)"),
+            text="3-5",
+            parser=_StubParser([check]),
+        )
+        (ctx,) = seen
+        assert str(ctx.edge) == "(:/J/. 3/Cq 5/Cq)"
+        assert ctx.tokens == ["3", "-", "5"]
+        assert str(ctx.tok_pos) == "(-1 0 2)"
+        assert ctx.text == "3-5"
+        assert ctx.strict is True
+
+    def test_tok_pos_and_text_are_none_when_absent(self):
+        seen = []
+
+        def check(ctx):
+            seen.append(ctx)
+            return {}
+
+        check_parse_correctness(
+            hedge("(plays/Pv.so maria/Cp chess/Cc)"),
+            ["Maria", "plays", "chess"],
+            parser=_StubParser([check]),
+        )
+        (ctx,) = seen
+        assert ctx.tok_pos is None
+        assert ctx.text is None
+        assert ctx.strict is False
+
+    def test_a_raising_check_is_reported_not_swallowed(self):
+        def boom(ctx):
+            raise RuntimeError("kaboom")
+
+        errors = check_parse_correctness(
+            hedge(BAD_EDGE), BAD_TOKENS, parser=_StubParser([boom])
+        )
+        (issue,) = errors["parser-checks"]
+        code, message, severity = issue
+        assert code == "check-failed"
+        assert severity == 0
+        assert "boom" in message
+        assert "RuntimeError" in message
+        assert "kaboom" in message
+        # The built-in findings are untouched by the failure.
+        assert "token-unused" in _codes(errors)
+
+    def test_a_raising_hook_is_reported_not_propagated(self):
+        errors = check_parse_correctness(
+            hedge(BAD_EDGE), BAD_TOKENS, parser=_StubParser(raises=True)
+        )
+        (issue,) = errors["parser-checks"]
+        assert issue[0] == "check-failed"
+        assert "hook exploded" in issue[1]
+
+    def test_one_bad_check_does_not_stop_the_others(self):
+        def boom(ctx):
+            raise RuntimeError("kaboom")
+
+        def good(ctx):
+            return {"mine": [("my-code", "my message", 2)]}
+
+        errors = check_parse_correctness(
+            hedge(BAD_EDGE), BAD_TOKENS, parser=_StubParser([boom, good])
+        )
+        assert errors["mine"] == [("my-code", "my message", 2)]
+        assert "check-failed" in _codes(errors)
+
+    def test_a_malformed_return_is_reported_and_discarded(self):
+        cases = [
+            ("not a dict", lambda ctx: [("my-code", "my message", 1)]),
+            ("a two-tuple", lambda ctx: {"mine": [("my-code", "my message")]}),
+            ("a non-int severity", lambda ctx: {"mine": [("c", "m", "bad")]}),
+            ("a non-str code", lambda ctx: {"mine": [(1, "m", 1)]}),
+            ("a bad key", lambda ctx: {1: [("c", "m", 1)]}),
+            ("a non-list value", lambda ctx: {"mine": ("c", "m", 1)}),
+        ]
+        for label, check in cases:
+            errors = check_parse_correctness(
+                hedge(BAD_EDGE), BAD_TOKENS, parser=_StubParser([check])
+            )
+            (issue,) = errors["parser-checks"]
+            assert issue[0] == "check-malformed", label
+            assert issue[2] == 0, label
+            # Nothing the malformed check reported was merged.
+            assert "mine" not in errors, label
+            assert "my-code" not in _codes(errors), label
+            # The built-ins still ran.
+            assert "token-unused" in _codes(errors), label
+
+    def test_a_check_runs_even_when_the_edge_is_empty(self):
+        # An unparseable edge is exactly the case a parser may want to flag.
+        def check(ctx):
+            return {"mine": [("my-code", "my message", 0)]}
+
+        errors = check_parse_correctness(
+            hedge("(*/Cx)"), ["x"], parser=_StubParser([check])
+        )
+        assert errors["mine"] == [("my-code", "my message", 0)]
+
+    def test_the_default_hook_supplies_nothing(self):
+        assert Parser().correctness_checks() == []

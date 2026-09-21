@@ -40,7 +40,12 @@ accepted parses no per-token model can represent: ``c'`` cleaned to ``c`` and
 matched the token ``c``, so nothing flagged an atom that no token can carry.
 """
 
+from __future__ import annotations
+
+from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass
 from itertools import pairwise
+from typing import TYPE_CHECKING, Any
 
 from hyperbase.builders import str_to_atom
 from hyperbase.constants import atom_decode
@@ -56,6 +61,43 @@ from hyperbase.parsers.vocabulary import (
     is_admissible_special_atom,
     may_carry_argroles,
 )
+
+if TYPE_CHECKING:
+    from hyperbase.parsers.parser import Parser
+
+
+# The shape every check -- built-in or parser-supplied -- reports in: a mapping
+# from the offending subedge (or a string naming the class of problem, as
+# "token-matching" and "alignment" do) to a list of ``(code, message, severity)``
+# triples. Lower severity is worse.
+ErrorMap = dict[str | Hyperedge, list[tuple[str, str, int]]]
+
+# Where a parser check's own failures are reported. Deliberately not a key any
+# built-in check uses, so a broken plugin is legible as such.
+PARSER_CHECKS_KEY = "parser-checks"
+
+
+@dataclass(frozen=True)
+class CheckContext:
+    """Everything a correctness check is given about one parse.
+
+    A frozen record rather than a positional signature so a check declares one
+    parameter instead of five, and so a field can be added here later without
+    breaking the checks every installed parser already supplies. ``tok_pos`` and
+    ``text`` are ``None`` when the caller does not have them -- the built-in
+    alignment and symbol-coverage checks simply do not run in that case, and a
+    parser check that needs them should do the same rather than assume.
+    """
+
+    edge: Hyperedge
+    tokens: list[str]
+    tok_pos: Hyperedge | None = None
+    text: str | None = None
+    strict: bool = False
+
+
+CorrectnessCheck = Callable[["CheckContext"], ErrorMap]
+"""A parser-supplied check: takes one parse, returns the errors it found."""
 
 
 def _surface(text: str) -> str:
@@ -448,25 +490,171 @@ def check_symbol_coverage(
     return errors
 
 
+def _merge_errors(
+    errors: ErrorMap, extra: Mapping[Any, list[tuple[str, str, int]]]
+) -> None:
+    """Fold *extra* into *errors* in place, appending where a key is shared.
+
+    Nothing is ever replaced or dropped: two checks that both have something to
+    say about the same subedge each keep their say. This is what makes a
+    parser-supplied check purely additive -- there is no code path by which one
+    can shorten a list a built-in check wrote.
+    """
+    for key, issues in extra.items():
+        if key in errors:
+            errors[key].extend(issues)
+        else:
+            errors[key] = list(issues)
+
+
+def _validate(produced: object) -> ErrorMap:
+    """Return *produced* as an :data:`ErrorMap`, or raise ``ValueError``.
+
+    A parser check is plugin code, so its return value is checked before it is
+    merged rather than trusted. The message names the specific breakage, because
+    it is what the plugin author will see reported back.
+    """
+    if not isinstance(produced, dict):
+        raise ValueError(f"returned {type(produced).__name__}, not a dict")
+    out: ErrorMap = {}
+    for key, issues in produced.items():
+        # Atom subclasses Hyperedge, so one test covers both kinds of key.
+        if not isinstance(key, (str, Hyperedge)):
+            raise ValueError(
+                f"keyed errors by {type(key).__name__}; a key is a subedge or a string"
+            )
+        if not isinstance(issues, list):
+            raise ValueError(
+                f"mapped {key!r} to {type(issues).__name__}, not a list of errors"
+            )
+        for issue in issues:
+            if not isinstance(issue, tuple) or len(issue) != 3:
+                raise ValueError(
+                    f"reported {issue!r} under {key!r}; an error is a "
+                    "(code, message, severity) triple"
+                )
+            code, message, severity = issue
+            if (
+                not isinstance(code, str)
+                or not isinstance(message, str)
+                or not isinstance(severity, int)
+            ):
+                raise ValueError(
+                    f"reported {issue!r} under {key!r}; a triple is "
+                    "(str code, str message, int severity)"
+                )
+        out[key] = list(issues)
+    return out
+
+
+def run_checks(checks: Iterable[CorrectnessCheck], context: CheckContext) -> ErrorMap:
+    """Run *checks* against *context* and return what they found.
+
+    Each check is isolated: one that raises, or returns something that is not an
+    error map, is reported under :data:`PARSER_CHECKS_KEY` and the rest still
+    run. A broken check is *reported* rather than skipped quietly -- elsewhere in
+    this module a failed check degrades to fewer errors, which is right when the
+    fallback is "this malformed edge yielded less detail", and wrong here, where
+    it would turn a gate into a no-op nobody notices. Severity ``0`` for the same
+    reason: a parse whose checks did not run is unverified, and the conservative
+    reading of unverified is "worst", never "clean".
+
+    Takes the checks themselves rather than the parser that supplies them, so it
+    can be used where no ``Parser`` object is in reach: ``hyperparser`` assembles
+    parses inside spawn workers that must not have a model pickled into them, and
+    passes module-level check functions here instead.
+    """
+    errors: ErrorMap = {}
+
+    def report(code: str, message: str) -> None:
+        """Record a failure of the checking itself, not of the parse."""
+        _merge_errors(errors, {PARSER_CHECKS_KEY: [(code, message, 0)]})
+
+    for check in checks:
+        name = getattr(check, "__name__", None) or repr(check)
+        try:
+            produced = check(context)
+        except Exception as exc:  # one bad check must not take out the whole gate
+            report(
+                "check-failed",
+                f"Parser check '{name}' raised {type(exc).__name__}: {exc}; "
+                "this parse was not checked against it.",
+            )
+            continue
+        # An empty map is the ordinary "nothing to report", and a check that
+        # falls off its end returning None is read the same way: both say the
+        # check ran and found nothing, and neither can be told from the other.
+        if not produced:
+            continue
+        try:
+            validated = _validate(produced)
+        except ValueError as exc:
+            # Discarded whole rather than merged in part: half an error map is
+            # not something the callers downstream can reason about.
+            report(
+                "check-malformed",
+                f"Parser check '{name}' {exc}; what it reported was discarded.",
+            )
+            continue
+        _merge_errors(errors, validated)
+
+    return errors
+
+
+def run_parser_checks(parser: Parser, context: CheckContext) -> ErrorMap:
+    """Run the checks *parser* contributes via :meth:`Parser.correctness_checks`.
+
+    A thin resolution step in front of :func:`run_checks`: the hook itself is
+    plugin code too, so a hook that raises is reported the same way a raising
+    check is, rather than propagating out of the gate.
+    """
+    try:
+        checks = list(parser.correctness_checks())
+    except Exception as exc:  # a broken hook must not abort the gate
+        return {
+            PARSER_CHECKS_KEY: [
+                (
+                    "check-failed",
+                    f"{type(parser).__name__}.correctness_checks() raised "
+                    f"{type(exc).__name__}: {exc}; this parse was not checked "
+                    "against the parser's own rules.",
+                    0,
+                )
+            ]
+        }
+    return run_checks(checks, context)
+
+
 def check_parse_correctness(
     edge: Hyperedge,
     tokens: list[str],
     strict: bool = False,
     tok_pos: Hyperedge | None = None,
     text: str | None = None,
-) -> dict[str | Hyperedge, list[tuple[str, str, int]]]:
+    parser: Parser | None = None,
+    checks: Iterable[CorrectnessCheck] | None = None,
+) -> ErrorMap:
+    """Check a whole parse: the edge, and how its atoms map onto the tokens.
+
+    Extra checks run after the built-in ones and their findings are merged into
+    the same map. They can only add: a parser makes the gate stricter for its own
+    output, never more lenient. Leaving both *parser* and *checks* unset is
+    exactly the behaviour this function had before the hook existed.
+
+    *parser* contributes whatever :meth:`Parser.correctness_checks` returns, and
+    is the ergonomic form for a caller that holds a parser. *checks* takes the
+    check functions directly, for a caller that does not -- a parser's own worker
+    subprocesses, which must not have a model pickled into them. Giving both runs
+    both.
+    """
 
     # Hard grammar failures (severity 0), keyed by subedge.
-    errors: dict[str | Hyperedge, list[tuple[str, str, int]]] = {
+    errors: ErrorMap = {
         k: list(v) for k, v in edge.check_correctness(strict=strict).items()
     }
 
     for extra in (check_vocabulary(edge), check_structural_quality(edge)):
-        for k, v in extra.items():
-            if k in errors:
-                errors[k].extend(v)
-            else:
-                errors[k] = v
+        _merge_errors(errors, extra)
 
     # Only check token matching if we have a valid edge
     if edge:
@@ -524,5 +712,22 @@ def check_parse_correctness(
             symbol_errors = check_symbol_coverage(edge, tok_pos, tokens, text)
             if symbol_errors:
                 errors["symbol-coverage"] = symbol_errors
+
+    # Parser-supplied checks go last, so they see a complete built-in picture
+    # layered underneath them. Outside the ``if edge`` above: an empty or
+    # malformed edge is exactly the case a parser may have something to say
+    # about, and nothing here depends on the edge being well-formed.
+    if parser is not None or checks is not None:
+        context = CheckContext(
+            edge=edge,
+            tokens=tokens,
+            tok_pos=tok_pos,
+            text=text,
+            strict=strict,
+        )
+        if parser is not None:
+            _merge_errors(errors, run_parser_checks(parser, context))
+        if checks is not None:
+            _merge_errors(errors, run_checks(checks, context))
 
     return errors
