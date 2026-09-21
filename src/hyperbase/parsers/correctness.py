@@ -372,8 +372,8 @@ def token_spans(text: str, tokens: list[str]) -> list[tuple[int, int]] | None:
     """Character spans of *tokens* in *text*, or None if they cannot be located.
 
     A plain in-order scan: each token is found at or after the end of the
-    previous one. It is deliberately not the tokenizer's own span logic --
-    ``hyperparser`` depends on this package, not the other way round -- and it
+    previous one. It is deliberately not the tokenizer's own span logic -- a
+    parser plugin depends on this package, not the other way round -- and it
     only has to answer one question: is there whitespace between two tokens.
 
     Returns ``None`` when a token is not found, which happens when the text
@@ -560,9 +560,9 @@ def run_checks(checks: Iterable[CorrectnessCheck], context: CheckContext) -> Err
     reading of unverified is "worst", never "clean".
 
     Takes the checks themselves rather than the parser that supplies them, so it
-    can be used where no ``Parser`` object is in reach: ``hyperparser`` assembles
-    parses inside spawn workers that must not have a model pickled into them, and
-    passes module-level check functions here instead.
+    can be used where no ``Parser`` object is in reach: a parser that assembles
+    parses inside worker subprocesses, which must not have a model pickled into
+    them, passes module-level check functions here instead.
     """
     errors: ErrorMap = {}
 

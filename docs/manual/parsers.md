@@ -197,7 +197,13 @@ Three things to know:
 
 - **Checks are additive only.** What a check returns is merged in, never used to remove or relax what the built-in checks found. A parser can make the gate stricter for its own output, never more lenient.
 - **Each check is isolated.** One that raises, or returns something that is not a well-formed error map, is reported under the `"parser-checks"` key at severity `0` and the others still run. A broken check is reported rather than skipped quietly, so a gate never silently stops gating.
-- **The parser has to be on hand.** `check_parse_correctness` only reaches these when the caller passes `parser=`. If your own pipeline assembles parses somewhere the `Parser` object is not available -- a worker subprocess, say, which should never have a parser pickled into it -- call `run_parser_checks(...)` there with module-level check functions instead.
+- **The parser has to be on hand.** `check_parse_correctness` only reaches these when the caller passes `parser=`. If your own pipeline assembles parses somewhere the `Parser` object is not available -- a worker subprocess, say, which should never have a parser pickled into it -- pass the check functions directly instead:
+
+```python
+errors = check_parse_correctness(edge, tokens, checks=MY_CHECKS)
+```
+
+Giving both `parser=` and `checks=` runs both. `run_checks(checks, context)` is the same machinery on its own, for a caller that already has the built-in errors in hand.
 
 ## CLI
 

@@ -6,7 +6,7 @@ are held to a stricter contract -- the single-character subtypes of the notation
 tables, the narrow argrole sets, and a fixed inventory of special atoms in the
 reserved ``.`` namespace. This module is the one place those inventories are
 written down; :mod:`hyperbase.parsers.correctness` enforces them and parser
-plugins (e.g. ``hyperparser.types``) build their label vocabularies from them.
+plugins build their label vocabularies from them.
 """
 
 # Admissible full atom types (main type + subtype), per the subtype tables of

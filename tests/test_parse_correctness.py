@@ -1,5 +1,6 @@
 from hyperbase import hedge
 from hyperbase.parsers.correctness import (
+    CheckContext,
     check_alignment,
     check_parse_correctness,
     check_vocabulary,
@@ -916,3 +917,49 @@ class TestParserSuppliedChecks:
 
     def test_the_default_hook_supplies_nothing(self):
         assert Parser().correctness_checks() == []
+
+    def test_checks_runs_a_bare_list(self):
+        def check(ctx):
+            return {"mine": [("my-code", "my message", 2)]}
+
+        errors = check_parse_correctness(hedge(BAD_EDGE), BAD_TOKENS, checks=[check])
+        assert errors["mine"] == [("my-code", "my message", 2)]
+        # The built-ins still ran.
+        assert "token-unused" in _codes(errors)
+
+    def test_checks_and_parser_both_run(self):
+        def from_parser(ctx):
+            return {"mine": [("from-parser", "p", 2)]}
+
+        def from_checks(ctx):
+            return {"mine": [("from-checks", "c", 2)]}
+
+        errors = check_parse_correctness(
+            hedge(BAD_EDGE),
+            BAD_TOKENS,
+            parser=_StubParser([from_parser]),
+            checks=[from_checks],
+        )
+        # The parser's checks are merged first, then the bare list.
+        assert [code for code, _, _ in errors["mine"]] == [
+            "from-parser",
+            "from-checks",
+        ]
+
+    def test_a_raising_check_is_contained_via_checks_too(self):
+        def boom(ctx):
+            raise RuntimeError("kaboom")
+
+        errors = check_parse_correctness(hedge(BAD_EDGE), BAD_TOKENS, checks=[boom])
+        (issue,) = errors["parser-checks"]
+        assert issue[0] == "check-failed"
+        assert "token-unused" in _codes(errors)
+
+    def test_run_checks_is_importable_from_the_package(self):
+        from hyperbase.parsers import run_checks
+
+        def check(ctx):
+            return {"mine": [("my-code", "my message", 1)]}
+
+        found = run_checks([check], CheckContext(edge=hedge("a/Cc"), tokens=["a"]))
+        assert found == {"mine": [("my-code", "my message", 1)]}

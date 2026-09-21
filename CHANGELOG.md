@@ -20,6 +20,7 @@
 - `hyperbase.readers` entry-point group: readers can now be distributed as plugins, like parsers.
 - single source of truth for parser vocabulary.
 - `Parser.correctness_checks()`: parser plugins can extend the set of correctness checks.
+- `check_parse_correctness(..., checks=...)` and `run_checks()`: run parser checks where no `Parser` object is in reach, such as a parser's own worker subprocesses.
 
 ### Changed
 
