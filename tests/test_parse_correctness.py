@@ -364,7 +364,7 @@ def _codes(errors):
 
 
 class TestStrictMode:
-    """Strict mode enforces that x-role arguments are specifiers (S)."""
+    """Strict mode lines up the x role and specifier arguments, both ways."""
 
     def test_strict_flags_bare_specification_argument(self):
         # "peter" fills the x slot but is a bare concept, not a specifier
@@ -405,6 +405,56 @@ class TestStrictMode:
         assert edge
         errors = check_parse_correctness(edge, [], strict=True)
         assert "spec-arg-not-specifier" not in _codes(errors)
+
+
+class TestStrictSpecifierPlacement:
+    """The converse rule: a specifier (S) only belongs in the x role."""
+
+    def test_strict_flags_specifier_in_object_role(self):
+        # "that the sky is blue" is a specifier, but it fills the o slot.
+        edge = hedge("(say/Pv.so (the/Md man/Cc) (that/Td (is/Pv.sx sky/Cc blue/Ca)))")
+        assert edge
+        errors = check_parse_correctness(edge, [], strict=True)
+        assert "specifier-in-core-role" in _codes(errors)
+
+    def test_strict_flags_specifier_in_subject_role(self):
+        edge = hedge("(said/Pv.so (_/Td/. (won/Pv.s she/Ci)) john/Cp)")
+        assert edge
+        errors = check_parse_correctness(edge, [], strict=True)
+        assert "specifier-in-core-role" in _codes(errors)
+
+    def test_strict_error_has_severity_zero(self):
+        edge = hedge("(said/Pv.so (_/Td/. (won/Pv.s she/Ci)) john/Cp)")
+        assert edge
+        errors = check_parse_correctness(edge, [], strict=True)
+        severities = [
+            sev
+            for v in errors.values()
+            for code, _msg, sev in v
+            if code == "specifier-in-core-role"
+        ]
+        assert severities == [0]
+
+    def test_default_mode_does_not_flag_specifier_in_core_role(self):
+        edge = hedge("(said/Pv.so (_/Td/. (won/Pv.s she/Ci)) john/Cp)")
+        assert edge
+        errors = check_parse_correctness(edge, [])
+        assert "specifier-in-core-role" not in _codes(errors)
+
+    def test_strict_allows_specifier_in_specification_role(self):
+        # The slot a specifier exists for: no complaint.
+        edge = hedge("(gave/Pv.sox maria/Cp book/Cc (_/Ti/. peter/Cp))")
+        assert edge
+        errors = check_parse_correctness(edge, [], strict=True)
+        assert "specifier-in-core-role" not in _codes(errors)
+
+    def test_strict_ignores_pattern_argroles(self):
+        # '{sx}' is pattern syntax: roles and arguments do not line up one to
+        # one, so reading a role by position would be meaningless.
+        edge = hedge("(*/P.{sx} (var */C EFFECT) (*/T (var * CAUSE)))")
+        assert edge
+        errors = check_parse_correctness(edge, [], strict=True)
+        assert "specifier-in-core-role" not in _codes(errors)
 
 
 class TestNewSubtypeModifierRules:

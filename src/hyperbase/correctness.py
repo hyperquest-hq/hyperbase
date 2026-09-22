@@ -16,6 +16,12 @@ if TYPE_CHECKING:
     from hyperbase.hyperedge import Atom, Hyperedge
 
 
+# A predicate's *core* roles: the relation's own arguments, as opposed to the
+# specification role ``x``. A specifier is made to fill ``x`` and nothing else,
+# so these are exactly the slots it can be wrong in.
+_CORE_P_ARGROLES = VALID_P_ARGROLES - {const.ArgRole.SPECIFICATION}
+
+
 def _safe_mtype(edge: Hyperedge) -> str:
     """Main type of ``edge``, or the sentinel ``'?'`` when it cannot be determined.
 
@@ -125,12 +131,20 @@ def _check_edge(
             if at not in {EdgeType.CONCEPT, EdgeType.RELATION, EdgeType.SPECIFIER}:
                 e = f"predicate argument '{arg}' of '{edge}' has incorrect type: {at}"
                 errors.append(("pred-arg-bad-type", e))
-        # strict: every specification-role (x) argument must be a specifier (S)
+        # strict: a predicate's specification role and its specifier arguments
+        # must line up, in both directions -- an ``x`` role holds a specifier,
+        # and a specifier holds an ``x`` role.
         if strict:
             try:
                 ars = edge.argroles()
             except RuntimeError:
                 ars = ""
+            # Reading a role by position only means anything when roles and
+            # arguments match one to one. Pattern argrole syntax -- ``{sx}``,
+            # ``{sx}-o`` -- never does, and a genuine mismatch is already
+            # reported as ``bad-num-argroles``. The older rule below keeps its
+            # looser ``i < len(ars)`` test so its behaviour is unchanged.
+            aligned = len(ars) == len(edge) - 1
             for i, arg in enumerate(edge[1:]):
                 am = _safe_mtype(arg)
                 if (
@@ -145,6 +159,20 @@ def _check_edge(
                             f"be a specifier (type 'S'), but has type "
                             f"{am}. Wrap it in a trigger (e.g. a "
                             f"special trigger atom like _/Tt/.).",
+                        )
+                    )
+                elif (
+                    aligned and ars[i] in _CORE_P_ARGROLES and am == EdgeType.SPECIFIER
+                ):
+                    errors.append(
+                        (
+                            "specifier-in-core-role",
+                            f"specifier argument '{arg}' of '{edge}' fills the "
+                            f"'{ars[i]}' role, but a specifier (type 'S') only "
+                            f"belongs in the specification role "
+                            f"('{const.ArgRole.SPECIFICATION.value}'). A "
+                            f"trigger the surface text does not write (e.g. "
+                            f"_/Td/.) should be dropped rather than moved.",
                         )
                     )
     # check if conjunction structure is correct
