@@ -45,7 +45,7 @@ possessive_builder = "poss/Bp.am/."
 list_of_matches_builder = "list/J/."
 
 # Pattern functions
-PATTERN_FUNCTIONS: set[str] = {"var", "atoms", "lemma", "any", "deep"}
+PATTERN_FUNCTIONS: set[str] = {"var", "atoms", "lemma", "any", "deep", "class"}
 
 # Argument role ordering for normalisation
 argrole_order: dict[str, int] = {

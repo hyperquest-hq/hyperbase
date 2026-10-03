@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import Any, cast
 
 import hyperbase.constants as const
@@ -12,11 +12,17 @@ from hyperbase.hyperedge import Atom, Hyperedge
 # tok_pos can be nested lists/ints matching the edge structure
 TokPos = Any
 
+# Membership test for ``(class <pattern> <name>)``: whether ``edge`` belongs to
+# the class called ``name``. Classes are defined outside hyperbase (e.g. by a
+# classifier), so the caller supplies the test.
+ClassTest = Callable[[str, Hyperedge], bool]
+
 
 def match_pattern(
     edge: Hyperedge | str | list[object] | tuple[object, ...],
     pattern: Hyperedge | str | list[object] | tuple[object, ...],
     curvars: dict[str, Hyperedge] | None = None,
+    classes: ClassTest | None = None,
 ) -> list[dict[str, Hyperedge]]:
     """
     Matches an edge to a pattern. This means that, if the edge fits the
@@ -35,6 +41,9 @@ def match_pattern(
     - `.` represents an atomic wildcard (matches any atom)
     - `(\\*)` represents an edge wildcard (matches any non-atom)
     - `...` at the end indicates an open-ended pattern.
+    - `(class <pattern> <name>)` matches what `<pattern>` matches, provided the
+      edge belongs to class `<name>` according to ``classes``; without
+      ``classes`` it matches nothing.
 
     The wildcards (`\\*`, `.` and `(\\*)`) can be used to specify variables,
     for example `\\*x`, `(CLAIM)` or `.ACTOR`. In case of a match, these
@@ -60,6 +69,7 @@ def match_pattern(
         edge=_edge,
         pattern=_pattern,
         curvars=curvars,
+        classes=classes,
     )
 
     return matcher.results
@@ -439,7 +449,9 @@ class Matcher:
         pattern: Hyperedge,
         curvars: dict[str, Hyperedge] | None = None,
         tok_pos: TokPos = None,
+        classes: ClassTest | None = None,
     ) -> None:
+        self.classes = classes
         self.results: list[dict[str, Hyperedge]] = self.match(
             edge, pattern, curvars=curvars, tok_pos=tok_pos
         )
@@ -690,5 +702,21 @@ class Matcher:
 
             _walk(edge, tok_pos)
             return results
+        elif fun == "class":
+            if len(fun_pattern) != 3:
+                raise RuntimeError("class pattern function must have two arguments")
+            class_atom = fun_pattern[2]
+            if not class_atom.atom:
+                raise ValueError(f"Class name is not atom: {class_atom}")
+            # A function pattern on the edge side (e.g. matching patterns
+            # against patterns) carries no class membership.
+            if self.classes is None or edge.is_fun_pattern():
+                return []
+            matches = self.match(edge, fun_pattern[1], curvars=curvars, tok_pos=tok_pos)
+            if not matches:
+                return []
+            if not self.classes(cast(Atom, class_atom).root(), edge):
+                return []
+            return matches
         else:
             raise NotImplementedError(f"Pattern function '{fun}' not implemented.")

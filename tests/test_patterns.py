@@ -1447,6 +1447,63 @@ class TestPatterns(unittest.TestCase):
             "((any likes/P.{so} prefers/P.{so} loves/P.{so}) */C */C)"
         )
 
+    # class: membership supplied by the caller
+
+    @staticmethod
+    def _professions(name: str, edge: object) -> bool:
+        return name == "professions" and str(edge) in {"doctor/Cc", "nurse/Cc"}
+
+    def test_fun_class_member(self) -> None:
+        assert match_pattern(
+            "doctor/Cc", "(class */C professions)", classes=self._professions
+        ) == [{}]
+
+    def test_fun_class_non_member(self) -> None:
+        assert (
+            match_pattern(
+                "paris/Cp", "(class */C professions)", classes=self._professions
+            )
+            == []
+        )
+
+    def test_fun_class_inner_pattern_must_match(self) -> None:
+        # A member that fails the inner pattern's type does not match.
+        assert (
+            match_pattern(
+                "doctor/Cc", "(class */P professions)", classes=self._professions
+            )
+            == []
+        )
+
+    def test_fun_class_other_class(self) -> None:
+        assert (
+            match_pattern(
+                "doctor/Cc", "(class */C countries)", classes=self._professions
+            )
+            == []
+        )
+
+    def test_fun_class_without_test_matches_nothing(self) -> None:
+        assert match_pattern("doctor/Cc", "(class */C professions)") == []
+
+    def test_fun_class_in_argument_with_var(self) -> None:
+        pattern = "(is/P.sc (var (class */C professions) WHO) *)"
+        assert match_pattern(
+            "(is/P.sc doctor/Cc tired/Ca)", pattern, classes=self._professions
+        ) == [{"WHO": hedge("doctor/Cc")}]
+        assert (
+            match_pattern(
+                "(is/P.sc paris/Cp big/Ca)", pattern, classes=self._professions
+            )
+            == []
+        )
+
+    def test_fun_class_type_looks_through(self) -> None:
+        edge = hedge("(class */C professions)")
+        assert edge is not None
+        assert edge.is_fun_pattern()
+        assert edge.mtype() == "C"
+
 
 if __name__ == "__main__":
     unittest.main()

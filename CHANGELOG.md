@@ -15,7 +15,7 @@
 - built-in REPL setting `diagnostics` for parsers to produce detailed diagnostics reports on each parse (for debug and improvement purposes).
 - built-in REPL setting `check_badness` to render a badness panel after each parse, available regardless of the active parser plugin.
 - parser plugin settings have an optional flag to indicate that no parser reload is nodes, REPL adjusted to accommodate this mechanism.
-- functional pattern `deep`.
+- functional patterns `deep` and `class`.
 - CLI `stats`, `dedup`, and `shuffle` commands.
 - `hyperbase.readers` entry-point group: readers can now be distributed as plugins, like parsers.
 - single source of truth for parser vocabulary.
