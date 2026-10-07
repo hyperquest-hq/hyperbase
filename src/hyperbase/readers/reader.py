@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import threading
 from collections.abc import Iterator
 from importlib.metadata import entry_points
 from typing import TYPE_CHECKING, Any
@@ -12,6 +13,8 @@ if TYPE_CHECKING:
 _REGISTRY: dict[str, type[Reader]] = {}
 
 _plugins_loaded = False
+_plugins_loading = False
+_plugins_lock = threading.RLock()
 
 
 def split_blocks(text: str) -> list[str]:
@@ -64,15 +67,24 @@ def _load_plugins() -> None:
     from ``hyperbase/readers/__init__.py`` would re-enter a half-initialized
     plugin module whenever the plugin package is what got imported first.
     """
-    global _plugins_loaded
+    global _plugins_loaded, _plugins_loading
     if _plugins_loaded:
         return
-    # Set before loading: a plugin that imports this module back must not recurse.
-    _plugins_loaded = True
-    for entry_point in entry_points(group="hyperbase.readers"):
-        # setdefault: an explicit register_reader() call wins over a plugin,
-        # whichever happened first.
-        _REGISTRY.setdefault(entry_point.name, entry_point.load())
+    # Other threads wait here until the registry is filled. A plugin that
+    # imports this module back re-enters from the loading thread (the lock is
+    # reentrant) and must not recurse.
+    with _plugins_lock:
+        if _plugins_loaded or _plugins_loading:
+            return
+        _plugins_loading = True
+        try:
+            for entry_point in entry_points(group="hyperbase.readers"):
+                # setdefault: an explicit register_reader() call wins over a
+                # plugin, whichever happened first.
+                _REGISTRY.setdefault(entry_point.name, entry_point.load())
+        finally:
+            _plugins_loading = False
+            _plugins_loaded = True
 
 
 def list_readers() -> dict[str, type[Reader]]:
